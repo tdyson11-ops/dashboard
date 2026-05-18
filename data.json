@@ -1,0 +1,33 @@
+{
+  "updated": "18 May 2026",
+  "focus": [
+    "Review cash flow projections with Dad",
+    "Submit NHBC stage inspection request — Plots 7-9",
+    "Revise for CM essay due Friday"
+  ],
+  "whoop": {
+    "recovery": 85,
+    "hrv": 62,
+    "rhr": 48,
+    "sleep_score": 78,
+    "strain": 12.4
+  },
+  "cyden": {
+    "plots_complete": 14,
+    "plots_total": 32,
+    "current_stage": "Roof structure — Plots 15-18",
+    "next_milestone": "Slab pour — Plots 19-22 (26 May)",
+    "kpis": [
+      { "label": "On programme", "value": "Yes",  "status": "green" },
+      { "label": "Snagging open",  "value": "7",   "status": "amber" },
+      { "label": "H&S actions",    "value": "2",   "status": "amber" }
+    ]
+  },
+  "university": {
+    "module": "Construction Management (Hons)",
+    "next_deadline": "2026-05-22",
+    "deadline_label": "Essay submission",
+    "grade_target": "First",
+    "current_avg": "71%"
+  }
+}

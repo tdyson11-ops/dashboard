@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Tom Dyson</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #0d0d0d;
+      --card: #161616;
+      --border: #222;
+      --text: #f0f0f0;
+      --muted: #666;
+      --accent: #f59e0b;
+      --green: #22c55e;
+      --amber: #f59e0b;
+      --red: #ef4444;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      max-width: 430px;
+      margin: 0 auto;
+      padding-bottom: 2rem;
+    }
+
+    /* ── Header ── */
+    .header {
+      padding: 1.5rem 1.25rem 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .header-date {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+      margin-bottom: 0.3rem;
+    }
+
+    .header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+
+    .header-name {
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .time-display {
+      font-size: 0.8rem;
+      color: var(--muted);
+      font-weight: 500;
+      padding-bottom: 0.1rem;
+    }
+
+    .header-updated {
+      font-size: 0.68rem;
+      color: var(--muted);
+      margin-top: 0.3rem;
+    }
+
+    /* ── Section ── */
+    .section {
+      padding: 1rem 1.25rem 0;
+    }
+
+    .section-label {
+      font-size: 0.63rem;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--muted);
+      margin-bottom: 0.55rem;
+    }
+
+    /* ── Card ── */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.1rem;
+      margin-bottom: 0.75rem;
+    }
+
+    /* ── Focus ── */
+    .focus-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      padding: 0.6rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.875rem;
+      line-height: 1.45;
+    }
+
+    .focus-item:first-child { padding-top: 0; }
+    .focus-item:last-child { border-bottom: none; padding-bottom: 0; }
+
+    .focus-num {
+      font-size: 0.68rem;
+      font-weight: 600;
+      color: var(--accent);
+      min-width: 14px;
+      margin-top: 0.2rem;
+    }
+
+    /* ── WHOOP ── */
+    .whoop-grid {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 1.1rem;
+      align-items: center;
+    }
+
+    .recovery-ring {
+      position: relative;
+      width: 84px;
+      height: 84px;
+      flex-shrink: 0;
+    }
+
+    .recovery-ring svg {
+      transform: rotate(-90deg);
+    }
+
+    .recovery-label {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .recovery-pct {
+      font-size: 1.4rem;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .recovery-sub {
+      font-size: 0.55rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      margin-top: 0.1rem;
+    }
+
+    .whoop-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.6rem 1rem;
+    }
+
+    .stat-label {
+      font-size: 0.62rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+
+    .stat-value {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-top: 0.1rem;
+    }
+
+    .stat-unit {
+      font-size: 0.62rem;
+      color: var(--muted);
+      font-weight: 400;
+    }
+
+    /* ── Cyden ── */
+    .row-between {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+
+    .row-label {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .row-value {
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+
+    .progress-bar {
+      background: #222;
+      border-radius: 4px;
+      height: 5px;
+      margin: 0.65rem 0;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: 4px;
+      background: var(--accent);
+    }
+
+    .progress-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.7rem;
+      color: var(--muted);
+    }
+
+    .site-info {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-top: 0.4rem;
+    }
+
+    .site-info strong { color: var(--text); font-weight: 500; }
+
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 0.75rem 0;
+    }
+
+    .kpi-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.42rem 0;
+      font-size: 0.8rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .kpi-row:last-child { border-bottom: none; }
+
+    .kpi-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 0.5rem;
+      flex-shrink: 0;
+    }
+
+    .dot-green { background: var(--green); }
+    .dot-amber { background: var(--amber); }
+    .dot-red   { background: var(--red); }
+
+    .kpi-value { font-weight: 600; }
+
+    /* ── University ── */
+    .uni-module {
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-bottom: 0.2rem;
+    }
+
+    .uni-deadline {
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+
+    .days-badge {
+      display: inline-block;
+      background: #1c1400;
+      color: var(--accent);
+      border: 1px solid #3a2b00;
+      border-radius: 6px;
+      padding: 0.18rem 0.55rem;
+      font-size: 0.68rem;
+      font-weight: 600;
+      margin-top: 0.5rem;
+    }
+
+    .days-badge.urgent {
+      background: #1c0000;
+      color: var(--red);
+      border-color: #3d0000;
+    }
+
+    .uni-avg {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.78rem;
+    }
+
+    .avg-value { font-weight: 700; color: var(--green); }
+
+    /* ── Error state ── */
+    .error-msg {
+      font-size: 0.78rem;
+      color: var(--red);
+      text-align: center;
+      padding: 2rem 1rem;
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-date" id="date-display"></div>
+  <div class="header-row">
+    <div class="header-name">Tom Dyson</div>
+    <div class="time-display" id="time-display"></div>
+  </div>
+  <div class="header-updated" id="last-updated">Loading...</div>
+</div>
+
+<!-- TODAY'S FOCUS -->
+<div class="section">
+  <div class="section-label">Today's Focus</div>
+  <div class="card">
+    <div id="focus-list">
+      <div class="focus-item"><span class="focus-num">—</span><span>Loading...</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- WHOOP RECOVERY -->
+<div class="section">
+  <div class="section-label">Recovery</div>
+  <div class="card">
+    <div class="whoop-grid">
+      <div class="recovery-ring">
+        <svg width="84" height="84" viewBox="0 0 84 84">
+          <circle cx="42" cy="42" r="34" fill="none" stroke="#222" stroke-width="7"/>
+          <circle cx="42" cy="42" r="34" fill="none" stroke="#22c55e" stroke-width="7"
+            stroke-linecap="round"
+            id="recovery-arc"
+            stroke-dasharray="213.63"
+            stroke-dashoffset="213.63"/>
+        </svg>
+        <div class="recovery-label">
+          <div class="recovery-pct" id="recovery-pct">—</div>
+          <div class="recovery-sub">rec</div>
+        </div>
+      </div>
+      <div class="whoop-stats">
+        <div>
+          <div class="stat-label">HRV</div>
+          <div class="stat-value" id="hrv-val">—<span class="stat-unit"> ms</span></div>
+        </div>
+        <div>
+          <div class="stat-label">RHR</div>
+          <div class="stat-value" id="rhr-val">—<span class="stat-unit"> bpm</span></div>
+        </div>
+        <div>
+          <div class="stat-label">Sleep</div>
+          <div class="stat-value" id="sleep-val">—<span class="stat-unit"> %</span></div>
+        </div>
+        <div>
+          <div class="stat-label">Strain</div>
+          <div class="stat-value" id="strain-val">—</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CYDEN -->
+<div class="section">
+  <div class="section-label">Cyden — Site</div>
+  <div class="card">
+    <div class="row-between">
+      <span class="row-label">Units complete</span>
+      <span class="row-value" id="plots-fraction">—</span>
+    </div>
+    <div class="progress-bar">
+      <div class="progress-fill" id="plots-bar" style="width:0%"></div>
+    </div>
+    <div class="progress-meta">
+      <span id="plots-pct">0%</span>
+      <span id="plots-remaining">—</span>
+    </div>
+    <hr class="divider">
+    <div class="site-info" id="current-stage"></div>
+    <div class="site-info" id="next-milestone"></div>
+    <hr class="divider">
+    <div id="kpi-list"></div>
+  </div>
+</div>
+
+<!-- UNIVERSITY -->
+<div class="section">
+  <div class="section-label">University — Leeds Beckett</div>
+  <div class="card">
+    <div class="uni-module" id="uni-module">—</div>
+    <div class="uni-deadline" id="uni-deadline-label">—</div>
+    <div id="days-badge-container"></div>
+    <hr class="divider" style="margin-top:0.75rem;">
+    <div class="uni-avg">
+      <span style="color:var(--muted)">Current average</span>
+      <span class="avg-value" id="uni-avg">—</span>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ── Clock ──
+  function pad(n) { return String(n).padStart(2, '0'); }
+
+  function updateTime() {
+    const now = new Date();
+    document.getElementById('time-display').textContent =
+      pad(now.getHours()) + ':' + pad(now.getMinutes());
+  }
+  updateTime();
+  setInterval(updateTime, 30000);
+
+  // ── Date ──
+  const days   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const months = ['January','February','March','April','May','June',
+                  'July','August','September','October','November','December'];
+  const now = new Date();
+  document.getElementById('date-display').textContent =
+    days[now.getDay()] + ' ' + now.getDate() + ' ' + months[now.getMonth()] + ' ' + now.getFullYear();
+
+  // ── Recovery colour ──
+  function recoveryColour(pct) {
+    if (pct >= 67) return '#22c55e';
+    if (pct >= 34) return '#f59e0b';
+    return '#ef4444';
+  }
+
+  // ── Circumference for r=34 ──
+  const CIRC = 2 * Math.PI * 34;
+
+  // ── Load data ──
+  fetch('data.json?v=' + Date.now())
+    .then(function(r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    })
+    .then(function(d) {
+      document.getElementById('last-updated').textContent = 'Updated ' + d.updated;
+
+      // Focus
+      var fl = document.getElementById('focus-list');
+      fl.innerHTML = d.focus.map(function(f, i) {
+        return '<div class="focus-item"><span class="focus-num">' + (i + 1) +
+               '</span><span>' + f + '</span></div>';
+      }).join('');
+
+      // WHOOP
+      var rec = d.whoop.recovery;
+      var col = recoveryColour(rec);
+      var arc = document.getElementById('recovery-arc');
+      arc.style.stroke = col;
+      arc.setAttribute('stroke-dashoffset', CIRC * (1 - rec / 100));
+      var pctEl = document.getElementById('recovery-pct');
+      pctEl.textContent = rec;
+      pctEl.style.color = col;
+      document.getElementById('hrv-val').innerHTML    = d.whoop.hrv    + '<span class="stat-unit"> ms</span>';
+      document.getElementById('rhr-val').innerHTML    = d.whoop.rhr    + '<span class="stat-unit"> bpm</span>';
+      document.getElementById('sleep-val').innerHTML  = d.whoop.sleep_score + '<span class="stat-unit"> %</span>';
+      document.getElementById('strain-val').textContent = d.whoop.strain;
+
+      // Cyden
+      var pct = Math.round((d.cyden.plots_complete / d.cyden.plots_total) * 100);
+      document.getElementById('plots-fraction').textContent =
+        d.cyden.plots_complete + '/' + d.cyden.plots_total;
+      document.getElementById('plots-bar').style.width = pct + '%';
+      document.getElementById('plots-pct').textContent = pct + '%';
+      document.getElementById('plots-remaining').textContent =
+        (d.cyden.plots_total - d.cyden.plots_complete) + ' remaining';
+      document.getElementById('current-stage').innerHTML =
+        '<strong>Stage:</strong> ' + d.cyden.current_stage;
+      document.getElementById('next-milestone').innerHTML =
+        '<strong>Next:</strong> ' + d.cyden.next_milestone;
+
+      var kpiList = document.getElementById('kpi-list');
+      kpiList.innerHTML = d.cyden.kpis.map(function(k) {
+        return '<div class="kpi-row">' +
+          '<span><span class="kpi-dot dot-' + k.status + '"></span>' + k.label + '</span>' +
+          '<span class="kpi-value">' + k.value + '</span>' +
+          '</div>';
+      }).join('');
+
+      // University
+      document.getElementById('uni-module').textContent = d.university.module;
+      var dl = new Date(d.university.next_deadline);
+      var dlStr = dl.getDate() + ' ' + months[dl.getMonth()];
+      document.getElementById('uni-deadline-label').textContent =
+        d.university.deadline_label + ' — ' + dlStr;
+
+      var today = new Date();
+      today.setHours(0, 0, 0, 0);
+      var daysLeft = Math.ceil((dl - today) / 86400000);
+      var badge = document.getElementById('days-badge-container');
+      badge.innerHTML = '<div class="days-badge' + (daysLeft <= 3 ? ' urgent' : '') + '">' +
+        daysLeft + ' day' + (daysLeft !== 1 ? 's' : '') + ' left</div>';
+
+      document.getElementById('uni-avg').textContent =
+        d.university.current_avg + ' (target: ' + d.university.grade_target + ')';
+    })
+    .catch(function() {
+      document.getElementById('last-updated').textContent = 'Could not load data.json';
+    });
+</script>
+</body>
+</html>
