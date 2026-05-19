@@ -15,6 +15,7 @@ r = requests.post(
         'refresh_token': REFRESH_TOKEN,
         'client_id':     CLIENT_ID,
         'client_secret': CLIENT_SECRET,
+        'redirect_uri':  'http://localhost:8080/callback',
     }
 )
 print(f"Token status: {r.status_code}")
