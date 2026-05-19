@@ -15,9 +15,10 @@ r = requests.post(
         'refresh_token': REFRESH_TOKEN,
         'client_id':     CLIENT_ID,
         'client_secret': CLIENT_SECRET,
-        'scope':         'offline read:recovery read:cycles read:sleep read:body_measurement',
     }
 )
+print(f"Token status: {r.status_code}")
+print(f"Token body: {r.text}")
 r.raise_for_status()
 access_token = r.json()['access_token']
 
