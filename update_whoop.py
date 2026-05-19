@@ -1,31 +1,16 @@
 import os
 import json
-import urllib.request
-import urllib.parse
+import requests
 from datetime import datetime, timezone
 
 CLIENT_ID     = os.environ['WHOOP_CLIENT_ID']
 CLIENT_SECRET = os.environ['WHOOP_CLIENT_SECRET']
 REFRESH_TOKEN = os.environ['WHOOP_REFRESH_TOKEN']
 
-
-def post(url, data, headers=None):
-    body = urllib.parse.urlencode(data).encode()
-    req  = urllib.request.Request(url, data=body, headers=headers or {})
-    with urllib.request.urlopen(req) as r:
-        return json.loads(r.read())
-
-
-def get(url, token):
-    req = urllib.request.Request(url, headers={'Authorization': 'Bearer ' + token})
-    with urllib.request.urlopen(req) as r:
-        return json.loads(r.read())
-
-
 # ── Get access token ──
-tokens = post(
+r = requests.post(
     'https://api.prod.whoop.com/oauth/oauth2/token',
-    {
+    data={
         'grant_type':    'refresh_token',
         'refresh_token': REFRESH_TOKEN,
         'client_id':     CLIENT_ID,
@@ -33,36 +18,37 @@ tokens = post(
         'scope':         'offline read:recovery read:cycles read:sleep read:body_measurement',
     }
 )
-access_token = tokens['access_token']
+r.raise_for_status()
+access_token = r.json()['access_token']
+
+headers = {'Authorization': 'Bearer ' + access_token}
 
 # ── Fetch latest recovery ──
-recovery_data = get(
+rec_data = requests.get(
     'https://api.prod.whoop.com/developer/v1/recovery?limit=1',
-    access_token
-)
+    headers=headers
+).json()
 
-rec = recovery_data['records'][0]
-score = rec['score']
-
+score        = rec_data['records'][0]['score']
 recovery_pct = round(score['recovery_score'])
 hrv          = round(score['hrv_rmssd_milli'])
 rhr          = round(score['resting_heart_rate'])
 
 # ── Fetch latest sleep ──
-sleep_data = get(
+sleep_data = requests.get(
     'https://api.prod.whoop.com/developer/v1/activity/sleep?limit=1',
-    access_token
-)
+    headers=headers
+).json()
 sleep_score = round(sleep_data['records'][0]['score']['sleep_performance_percentage']) \
-    if sleep_data['records'] else 0
+    if sleep_data.get('records') else 0
 
 # ── Fetch latest cycle (strain) ──
-cycle_data = get(
+cycle_data = requests.get(
     'https://api.prod.whoop.com/developer/v1/cycle?limit=1',
-    access_token
-)
+    headers=headers
+).json()
 strain = round(cycle_data['records'][0]['score']['strain'], 1) \
-    if cycle_data['records'] and cycle_data['records'][0].get('score') else 0.0
+    if cycle_data.get('records') and cycle_data['records'][0].get('score') else 0.0
 
 # ── Update data.json ──
 with open('data.json', 'r') as f:
