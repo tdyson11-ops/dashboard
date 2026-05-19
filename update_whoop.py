@@ -1,12 +1,11 @@
 import os
 import json
 import requests
-from requests.auth import HTTPBasicAuth
 from datetime import datetime, timezone
 
-CLIENT_ID     = os.environ['WHOOP_CLIENT_ID']
-CLIENT_SECRET = os.environ['WHOOP_CLIENT_SECRET']
-REFRESH_TOKEN = os.environ['WHOOP_REFRESH_TOKEN']
+CLIENT_ID     = os.environ['WHOOP_CLIENT_ID'].strip()
+CLIENT_SECRET = os.environ['WHOOP_CLIENT_SECRET'].strip()
+REFRESH_TOKEN = os.environ['WHOOP_REFRESH_TOKEN'].strip()
 
 print(f"Client ID length: {len(CLIENT_ID)}")
 print(f"Refresh token length: {len(REFRESH_TOKEN)}")
@@ -14,12 +13,12 @@ print(f"Refresh token length: {len(REFRESH_TOKEN)}")
 # ── Get access token ──
 r = requests.post(
     'https://api.prod.whoop.com/oauth/oauth2/token',
-    auth=HTTPBasicAuth(CLIENT_ID, CLIENT_SECRET),
     data={
         'grant_type':    'refresh_token',
         'refresh_token': REFRESH_TOKEN,
-    },
-    headers={'Content-Type': 'application/x-www-form-urlencoded'},
+        'client_id':     CLIENT_ID,
+        'client_secret': CLIENT_SECRET,
+    }
 )
 print(f"Token status: {r.status_code}")
 print(f"Token body: {r.text}")
