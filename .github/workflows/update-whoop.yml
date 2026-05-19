@@ -1,0 +1,30 @@
+name: Update WHOOP Data
+
+on:
+  schedule:
+    - cron: '0 8 * * *'  # 8am UTC daily (9am BST)
+  workflow_dispatch:      # allow manual trigger
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch WHOOP data
+        env:
+          WHOOP_CLIENT_ID: ${{ secrets.WHOOP_CLIENT_ID }}
+          WHOOP_CLIENT_SECRET: ${{ secrets.WHOOP_CLIENT_SECRET }}
+          WHOOP_REFRESH_TOKEN: ${{ secrets.WHOOP_REFRESH_TOKEN }}
+        run: python3 update_whoop.py
+
+      - name: Commit updated data
+        run: |
+          git config user.email "action@github.com"
+          git config user.name "GitHub Action"
+          git add data.json
+          git diff --staged --quiet || git commit -m "Update WHOOP data"
+          git push
