@@ -24,10 +24,14 @@ access_token = r.json()['access_token']
 headers = {'Authorization': 'Bearer ' + access_token}
 
 # ── Fetch latest recovery ──
-rec_data = requests.get(
+rec_resp = requests.get(
     'https://api.prod.whoop.com/developer/v1/recovery?limit=1',
     headers=headers
-).json()
+)
+print(f"Recovery status: {rec_resp.status_code}")
+print(f"Recovery body: {rec_resp.text}")
+rec_resp.raise_for_status()
+rec_data = rec_resp.json()
 
 score        = rec_data['records'][0]['score']
 recovery_pct = round(score['recovery_score'])
