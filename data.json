@@ -1,14 +1,14 @@
 {
-  "updated": "18 May 2026",
+  "updated": "20 May 2026",
   "focus": [
     "Review cash flow projections with Dad",
     "Submit NHBC stage inspection request — Plots 7-9",
     "Revise for CM essay due Friday"
   ],
   "whoop": {
-    "recovery": 85,
-    "hrv": 62,
-    "rhr": 48,
+    "recovery": 77,
+    "hrv": 58,
+    "rhr": 51,
     "sleep_score": 78,
     "strain": 12.4
   },
@@ -18,9 +18,21 @@
     "current_stage": "Roof structure — Plots 15-18",
     "next_milestone": "Slab pour — Plots 19-22 (26 May)",
     "kpis": [
-      { "label": "On programme", "value": "Yes",  "status": "green" },
-      { "label": "Snagging open",  "value": "7",   "status": "amber" },
-      { "label": "H&S actions",    "value": "2",   "status": "amber" }
+      {
+        "label": "On programme",
+        "value": "Yes",
+        "status": "green"
+      },
+      {
+        "label": "Snagging open",
+        "value": "7",
+        "status": "amber"
+      },
+      {
+        "label": "H&S actions",
+        "value": "2",
+        "status": "amber"
+      }
     ]
   },
   "university": {
