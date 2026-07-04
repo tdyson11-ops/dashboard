@@ -12,6 +12,46 @@ max_tokens = 8192
 thinking = "adaptive"   # "adaptive" or "off" — adaptive lets Claude decide when to think
 effort = "high"         # low | medium | high | xhigh | max — lower is snappier, higher is smarter
 
+[heartbeat]
+enabled = true
+wake_seconds = 30            # how often the loop wakes to see what's due
+quiet_hours_start = "22:30"  # non-critical interruptions hold overnight…
+quiet_hours_end = "07:00"    # …and surface as catch-up in the morning
+
+# Each check: when to run (every_minutes), what to look at (type + params),
+# and how loud a hit is (level: notice = calm log, interrupt = tell Tom now,
+# critical = interrupts even in quiet hours). Most runs should produce nothing.
+
+[[heartbeat.checks]]
+name = "reminders"
+type = "reminder_due"
+every_minutes = 1
+level = "interrupt"
+
+[[heartbeat.checks]]
+name = "university_deadline"
+type = "deadline_approaching"
+every_minutes = 720
+days_ahead = 3
+level = "notice"
+
+[[heartbeat.checks]]
+name = "low_recovery"
+type = "whoop_recovery_low"
+every_minutes = 720
+threshold = 40
+level = "notice"
+
+# Flip enabled = true to watch the heartbeat work: create state/trigger.txt
+# and a notice appears within wake_seconds + the check interval.
+[[heartbeat.checks]]
+name = "demo_trigger"
+type = "file_exists"
+path = "state/trigger.txt"
+every_minutes = 0.2
+level = "interrupt"
+enabled = false
+
 [voice]
 ptt_key = "space"                    # hold to talk, release to send
 sample_rate = 16000                  # mic capture rate (Hz)
