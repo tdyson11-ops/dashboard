@@ -23,14 +23,23 @@ class Brain:
     # -- system prompt -------------------------------------------------------
 
     def system_prompt(self) -> str:
+        from datetime import datetime
+
         name = self.config.get("assistant.name", "Trillion")
         purpose = self.config.get("assistant.purpose", "")
         tone = self.config.get("assistant.tone", "warm, plain-spoken, and brief")
+        now = datetime.now()
         parts = [
             f"You are {name}, {purpose}",
             f"Your tone is {tone}. Answer in a few sentences unless more is truly needed; "
             "your replies are often spoken aloud, so long answers drag.",
+            f"Right now it is {now:%A} {now.day} {now:%B %Y}, {now:%H:%M}.",
         ]
+        if self.registry:
+            parts.append(
+                "Use your tools when they help, and weave results into a natural reply. "
+                "If a tool fails, say what went wrong in plain words."
+            )
         return "\n\n".join(parts)
 
     # -- the turn loop -------------------------------------------------------

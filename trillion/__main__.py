@@ -14,8 +14,11 @@ from .provider import FakeProvider, ProviderError, get_provider
 
 
 def build_brain(config: Config) -> Brain:
+    from .tools import build_default_registry
+
     provider = get_provider(config)
-    return Brain(config, provider)
+    registry = build_default_registry(config)
+    return Brain(config, provider, registry=registry)
 
 
 def repl(brain: Brain) -> None:
