@@ -1,0 +1,13 @@
+# Trillion configuration. Everything tunable lives here — see AGENT.md.
+# Edit and restart; no code changes needed.
+
+[assistant]
+name = "Trillion"
+purpose = "Tom's personal assistant: daily focus list, dashboard and health data, quick lookups."
+tone = "warm, plain-spoken, and brief — friendly but never waffles; short replies suit voice"
+
+[model]
+model = "claude-opus-4-8"
+max_tokens = 8192
+thinking = "adaptive"   # "adaptive" or "off" — adaptive lets Claude decide when to think
+effort = "high"         # low | medium | high | xhigh | max — lower is snappier, higher is smarter

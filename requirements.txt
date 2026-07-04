@@ -1,0 +1,10 @@
+# The brain (Tier 1+)
+anthropic>=0.60
+requests>=2.31
+
+# Voice extras (Tier 3, --voice) — uncomment on the laptop:
+# sounddevice>=0.4
+# pynput>=1.7
+
+# Tests
+pytest>=8
