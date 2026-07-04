@@ -57,7 +57,18 @@ def main(argv=None) -> int:
     brain = build_brain(config)
 
     if args.voice:
-        print("Voice mode arrives in Tier 3 — starting text mode.")
+        try:
+            from .voice import build_voice_interface
+
+            voice = build_voice_interface(config, brain)
+        except (RuntimeError, ImportError, OSError) as e:
+            print(f"Voice mode unavailable: {e}")
+            print("Falling back to text mode.\n")
+        else:
+            voice.run()
+            print(f"\nSession cost: {brain.provider.cost.summary()}")
+            return 0
+
     repl(brain)
     return 0
 

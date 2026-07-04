@@ -11,3 +11,10 @@ model = "claude-opus-4-8"
 max_tokens = 8192
 thinking = "adaptive"   # "adaptive" or "off" — adaptive lets Claude decide when to think
 effort = "high"         # low | medium | high | xhigh | max — lower is snappier, higher is smarter
+
+[voice]
+ptt_key = "space"                    # hold to talk, release to send
+sample_rate = 16000                  # mic capture rate (Hz)
+stt_model = "nova-3"                 # Deepgram model
+voice_id = "21m00Tcm4TlvDq8ikWAM"    # ElevenLabs voice (default: Rachel) — swap freely
+tts_model = "eleven_flash_v2_5"      # fast ElevenLabs model, good for conversation

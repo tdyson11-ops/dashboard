@@ -105,3 +105,15 @@ python -m trillion --voice             # push-to-talk (hold SPACE by default)
 
 No keys? It still runs — the FakeProvider answers with scripted replies so the
 harness can be exercised end to end.
+
+### Voice checklist (laptop-only — the build container has no audio)
+
+1. `pip install sounddevice pynput`, put Deepgram + ElevenLabs keys in `.env`.
+2. `python -m trillion --voice`; hold SPACE, ask "what's on my list today?",
+   release. You should see `(heard you — thinking…)` immediately, then the
+   transcript of what it heard, then hear a spoken answer that used the tool.
+3. If it answers the wrong question, the printed transcript tells you whether
+   the ears (bad transcript) or the brain (bad reply) misfired.
+4. Interrupt test: press SPACE while it's mid-sentence — it must shut up and
+   listen.
+5. `python -m trillion` (typed) must still behave exactly as before.
