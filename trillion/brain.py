@@ -40,6 +40,10 @@ class Brain:
                 "Use your tools when they help, and weave results into a natural reply. "
                 "If a tool fails, say what went wrong in plain words."
             )
+        if self.memory:
+            rendered = self.memory.render_for_prompt()
+            if rendered:
+                parts.append(rendered)
         return "\n\n".join(parts)
 
     # -- the turn loop -------------------------------------------------------
