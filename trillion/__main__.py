@@ -13,14 +13,18 @@ from .config import Config
 from .provider import FakeProvider, ProviderError, get_provider
 
 
-def build_brain(config: Config) -> Brain:
+def build_brain(config: Config, board=None) -> Brain:
+    from .audit import Audit
+    from .gate import Gate
     from .memory import Memory
     from .tools import build_default_registry
 
     provider = get_provider(config)
     memory = Memory()
     registry = build_default_registry(config, memory=memory)
-    return Brain(config, provider, registry=registry, memory=memory)
+    audit = Audit()
+    gate = Gate(config, audit=audit, board=board)
+    return Brain(config, provider, registry=registry, memory=memory, gate=gate, audit=audit)
 
 
 def show_catch_up(board) -> None:
@@ -54,6 +58,14 @@ def handle_command(user_text: str, board, heartbeat) -> bool:
         else:
             print(f"(no pending notice #{arg})")
         return True
+    if user_text in ("/pause", "/resume"):
+        if heartbeat is None:
+            print("(heartbeat isn't running)")
+        else:
+            heartbeat.paused = user_text == "/pause"
+            print("(proactive behavior paused — conversation still works; /resume to restart)"
+                  if heartbeat.paused else "(proactive behavior resumed)")
+        return True
     return False
 
 
@@ -61,7 +73,7 @@ def repl(brain: Brain, board=None, heartbeat=None) -> None:
     name = brain.config.get("assistant.name", "Trillion")
     offline = isinstance(brain.provider, FakeProvider)
     print(f"{name} — text mode{' (offline fake: no ANTHROPIC_API_KEY)' if offline else ''}.")
-    print("Type to talk; /notices, /dismiss <id>, /quit.\n")
+    print("Type to talk; /notices, /dismiss <id>, /pause, /quit.\n")
     if board:
         show_catch_up(board)
 
@@ -95,12 +107,26 @@ def main(argv=None) -> int:
     args = parser.parse_args(argv)
 
     config = Config()
-    brain = build_brain(config)
 
     from .heartbeat import Heartbeat
     from .notices import NoticeBoard
 
     board = NoticeBoard()
+    brain = build_brain(config, board=board)
+    name = config.get("assistant.name", "Trillion")
+
+    def ask(description: str) -> bool:
+        """Per-action confirmation; a yes covers exactly one run."""
+        print(f"\n⚠ {name} wants to: {description}")
+        try:
+            answer = input("Allow this once? [y/N] ").strip().lower()
+        except (EOFError, KeyboardInterrupt):
+            print()
+            return False
+        return answer in ("y", "yes")
+
+    brain.gate.ask = ask
+
     heartbeat = None
     if config.get("heartbeat.enabled", True) and not args.no_heartbeat:
         def push(notice):

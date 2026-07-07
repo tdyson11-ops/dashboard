@@ -58,3 +58,9 @@ sample_rate = 16000                  # mic capture rate (Hz)
 stt_model = "nova-3"                 # Deepgram model
 voice_id = "21m00Tcm4TlvDq8ikWAM"    # ElevenLabs voice (default: Rachel) — swap freely
 tts_model = "eleven_flash_v2_5"      # fast ElevenLabs model, good for conversation
+
+[tools]
+# Tools that must stop and get Tom's yes before running, in addition to any
+# flagged requires_confirmation in code (send_message is). Adding a name here
+# gates it — a one-line edit, no code change.
+confirm = ["send_message"]

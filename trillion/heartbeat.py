@@ -151,6 +151,8 @@ class Heartbeat:
 
     def tick(self, now: datetime | None = None) -> list[dict]:
         """Run whatever is due. Returns the notices created (tests use this)."""
+        if self.paused:
+            return []
         now = now or datetime.now()
         schedule = self._load_schedule()
         created = []

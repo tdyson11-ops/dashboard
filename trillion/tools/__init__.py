@@ -5,10 +5,10 @@ from .registry import Registry, Tool
 
 
 def build_default_registry(config, memory=None) -> Registry:
-    from . import dashboard, focus, web
+    from . import comms, dashboard, focus, web
 
     registry = Registry()
-    for module in (focus, dashboard, web):
+    for module in (focus, dashboard, web, comms):
         for tool in module.TOOLS:
             registry.register(tool)
     if memory is not None:
