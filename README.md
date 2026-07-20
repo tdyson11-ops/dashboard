@@ -19,6 +19,15 @@ Mobile-first personal dashboard hosted on GitHub Pages.
 
 Add it to your phone's home screen: open the URL in Safari/Chrome, then **Share → Add to Home Screen**.
 
+## Training log
+
+`training.html` is a standalone training tracker (linked from the main dashboard):
+
+- Pre-loaded 4-day upper/lower program + 2 cardio days, with the shoulder primer on every session
+- Logs sets/reps/weights, shows last session's numbers as placeholders and flags when to add weight
+- Tracks the 3 weekly metrics: 7-day average body weight (and kg/week rate), weekly training volume vs last week, and shoulder pain score
+- Data is stored in the browser's localStorage **on the device you log with** — use the Export button every week or two to download a JSON backup (Import restores it)
+
 ## Updating data
 
 Edit `data.json` and push to GitHub — the dashboard updates within ~60 seconds.
