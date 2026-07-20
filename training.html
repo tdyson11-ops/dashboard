@@ -556,6 +556,10 @@
     // History + data
     html += '<div class="section"><div class="section-label">History &amp; Data</div>';
     html += '<div class="card">' + renderHistoryRows() + '</div>';
+    html += '<a class="card session-card" href="nutrition.html" style="text-decoration:none;color:inherit">' +
+            '<div><div class="session-name">Fuel — nutrition log</div>' +
+            '<div class="session-meta">log the shake, hit 3,200</div></div>' +
+            '<div class="session-arrow">›</div></a>';
     html += '<div class="btn-row">' +
             '<button class="btn btn-ghost" onclick="exportData()">Export backup</button>' +
             '<button class="btn btn-ghost" onclick="document.getElementById(\'import-file\').click()">Import</button>' +
