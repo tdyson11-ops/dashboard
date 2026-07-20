@@ -181,6 +181,20 @@
       font-weight: 400;
     }
 
+    /* ── Training link ── */
+    a.nav-card {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      text-decoration: none;
+      color: var(--text);
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .nav-card-title { font-size: 0.95rem; font-weight: 600; }
+    .nav-card-sub { font-size: 0.7rem; color: var(--muted); margin-top: 0.2rem; }
+    .nav-card-arrow { color: var(--muted); font-size: 1.1rem; }
+
     /* ── Cyden ── */
     .row-between {
       display: flex;
@@ -368,6 +382,18 @@
       </div>
     </div>
   </div>
+</div>
+
+<!-- TRAINING -->
+<div class="section">
+  <div class="section-label">Training</div>
+  <a class="card nav-card" href="training.html">
+    <div>
+      <div class="nav-card-title">Training log</div>
+      <div class="nav-card-sub">4-day program · body weight · shoulder check</div>
+    </div>
+    <div class="nav-card-arrow">›</div>
+  </a>
 </div>
 
 <!-- CYDEN -->
