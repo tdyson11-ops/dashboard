@@ -28,6 +28,17 @@ Add it to your phone's home screen: open the URL in Safari/Chrome, then **Share 
 - Tracks the 3 weekly metrics: 7-day average body weight (and kg/week rate), weekly training volume vs last week, and shoulder pain score
 - Data is stored in the browser's localStorage **on the device you log with** — use the Export button every week or two to download a JSON backup (Import restores it)
 
+## Meal planner
+
+`meals.html` is a standalone, Mise-style weekly meal planner (linked from the main dashboard):
+
+- Plan Breakfast / Lunch / Dinner / Snack across the seven days of the week, tapping any slot to pick from the recipe library
+- Recipe library is built for the **72 → 77 kg lean bulk** on the training page — high-protein, high-calorie meals a personal trainer would recommend, each with macros, ingredients and a quick method
+- **Auto-plan week** fills the whole week with a varied, batch-friendly high-protein rotation in one tap
+- Each day shows calories and protein against the daily target (default **3000 kcal / 180 g protein** — edit `TARGET` at the top of the script to change)
+- **Morrisons shopping list** aggregates every ingredient across the planned week, combines duplicates, and groups them by store aisle (Fruit & Veg, Meat & Poultry, Fish, Dairy, Bakery, Food Cupboard) with tick-off checkboxes and a Copy button
+- Like the training log, the plan lives in the browser's localStorage **on the device you use** — use Export for a JSON backup (Import restores it)
+
 ## Updating data
 
 Edit `data.json` and push to GitHub — the dashboard updates within ~60 seconds.

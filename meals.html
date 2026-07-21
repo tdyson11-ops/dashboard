@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Meals">
+  <meta name="theme-color" content="#0d0d0d">
+  <link rel="manifest" href="manifest-meals.json">
+  <link rel="apple-touch-icon" href="micon-180.png">
+  <title>Meals — Tom Dyson</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #0d0d0d;
+      --card: #161616;
+      --border: #222;
+      --text: #f0f0f0;
+      --muted: #666;
+      --accent: #f59e0b;
+      --green: #22c55e;
+      --amber: #f59e0b;
+      --red: #ef4444;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      max-width: 430px;
+      margin: 0 auto;
+      padding-bottom: 3rem;
+    }
+
+    .header {
+      padding: 1.5rem 1.25rem 1rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+
+    .header-name { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; }
+
+    .header-sub {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+      margin-bottom: 0.3rem;
+    }
+
+    .back-link {
+      font-size: 0.78rem;
+      color: var(--muted);
+      text-decoration: none;
+      padding-bottom: 0.15rem;
+    }
+
+    .section { padding: 1rem 1.25rem 0; }
+
+    .section-label {
+      font-size: 0.63rem;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--muted);
+      margin-bottom: 0.55rem;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.1rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .divider { border: none; border-top: 1px solid var(--border); margin: 0.75rem 0; }
+
+    /* ── Day pills ── */
+    .day-strip {
+      display: flex;
+      gap: 0.4rem;
+      overflow-x: auto;
+      padding: 0 1.25rem 0.25rem;
+      -webkit-overflow-scrolling: touch;
+    }
+    .day-strip::-webkit-scrollbar { display: none; }
+
+    .day-pill {
+      flex: 0 0 auto;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 0.42rem 0.85rem;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      position: relative;
+    }
+    .day-pill.active { background: var(--accent); border-color: var(--accent); color: #0d0d0d; }
+    .day-pill .dot-today {
+      position: absolute; top: 5px; right: 7px;
+      width: 5px; height: 5px; border-radius: 50%;
+      background: var(--accent);
+    }
+    .day-pill.active .dot-today { background: #0d0d0d; }
+
+    /* ── Meal slot cards ── */
+    .slot {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 0.85rem 1rem;
+      margin-bottom: 0.6rem;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .slot-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 0.15rem;
+    }
+    .slot-label {
+      font-size: 0.6rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+    }
+    .slot-kcal { font-size: 0.65rem; color: var(--muted); }
+    .slot-body { display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+    .slot-name { font-size: 0.95rem; font-weight: 600; }
+    .slot-macros { font-size: 0.68rem; color: var(--accent); margin-top: 0.15rem; }
+    .slot-empty { font-size: 0.9rem; color: var(--muted); font-weight: 500; }
+    .slot-arrow { color: var(--muted); font-size: 1.1rem; padding-left: 0.5rem; }
+    .slot-remove {
+      color: var(--muted);
+      font-size: 1.1rem;
+      padding: 0 0.2rem 0 0.6rem;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* ── Macro totals ── */
+    .macro-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 0.78rem;
+      margin-bottom: 0.15rem;
+    }
+    .macro-row .lab { color: var(--muted); }
+    .macro-row .val { font-weight: 700; }
+    .bar { background: #222; border-radius: 4px; height: 6px; margin: 0.35rem 0 0.75rem; overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: 4px; background: var(--accent); }
+    .bar-fill.p { background: var(--green); }
+
+    .macro-mini {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.3rem 1rem;
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-top: 0.4rem;
+    }
+    .macro-mini b { color: var(--text); font-weight: 600; }
+
+    /* ── Buttons ── */
+    .btn {
+      display: block;
+      width: 100%;
+      background: var(--accent);
+      color: #0d0d0d;
+      border: none;
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: 0.9rem;
+      font-weight: 700;
+      padding: 0.8rem;
+      margin-top: 0.75rem;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); font-weight: 500; }
+    .btn-row { display: flex; gap: 0.6rem; }
+
+    /* ── Recipe picker cards ── */
+    .recipe {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 0.9rem 1rem;
+      margin-bottom: 0.6rem;
+    }
+    .recipe-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 0.6rem; }
+    .recipe-name { font-size: 0.95rem; font-weight: 600; }
+    .recipe-macros { font-size: 0.7rem; color: var(--accent); margin-top: 0.2rem; }
+    .recipe-batch { font-size: 0.65rem; color: var(--muted); margin-top: 0.15rem; }
+    .add-btn {
+      flex: 0 0 auto;
+      background: var(--accent);
+      color: #0d0d0d;
+      border: none;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.45rem 0.8rem;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .add-btn.current { background: #06170c; color: var(--green); border: 1px solid #10391f; }
+
+    summary { font-size: 0.72rem; font-weight: 600; color: var(--accent); cursor: pointer; -webkit-tap-highlight-color: transparent; list-style: none; margin-top: 0.5rem; }
+    summary::-webkit-details-marker { display: none; }
+    details[open] summary { margin-bottom: 0.4rem; }
+    .recipe-detail { font-size: 0.72rem; line-height: 1.55; color: var(--muted); }
+    .recipe-detail b { color: var(--text); font-weight: 600; }
+    .ing-list { margin: 0.2rem 0 0.5rem; padding-left: 0; list-style: none; }
+    .ing-list li { display: flex; justify-content: space-between; padding: 0.12rem 0; border-bottom: 1px dashed #1c1c1c; }
+    .ing-list li span:last-child { color: var(--text); font-weight: 500; white-space: nowrap; padding-left: 0.75rem; }
+
+    /* ── Shopping list ── */
+    .aisle-head {
+      font-size: 0.62rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--accent);
+      margin: 1rem 0 0.4rem;
+    }
+    .shop-row {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      padding: 0.55rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.85rem;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .shop-row:last-child { border-bottom: none; }
+    .check {
+      flex: 0 0 auto;
+      width: 20px; height: 20px;
+      border: 1.5px solid var(--muted);
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem; color: #0d0d0d;
+    }
+    .shop-row.done .check { background: var(--green); border-color: var(--green); }
+    .shop-row.done .shop-name { text-decoration: line-through; color: var(--muted); }
+    .shop-name { flex: 1; }
+    .shop-qty { color: var(--muted); font-weight: 600; white-space: nowrap; }
+    .shop-row.done .shop-qty { color: #3a3a3a; }
+
+    .pt-note { font-size: 0.75rem; line-height: 1.6; color: var(--muted); }
+    .pt-note b { color: var(--text); font-weight: 600; }
+    .pt-note ul { margin: 0.4rem 0 0; padding-left: 1.1rem; }
+    .pt-note li { margin-bottom: 0.3rem; }
+
+    .empty-note { font-size: 0.82rem; color: var(--muted); text-align: center; padding: 1.5rem 0.5rem; line-height: 1.6; }
+
+    .footnote {
+      font-size: 0.65rem;
+      color: var(--muted);
+      line-height: 1.5;
+      padding: 0.75rem 1.25rem 0;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="header-sub" id="date-display"></div>
+    <div class="header-name">Meals</div>
+  </div>
+  <a class="back-link" href="index.html">← Dashboard</a>
+</div>
+
+<div id="app"></div>
+
+<div class="footnote">
+  Your weekly plan is stored on this device. Back it up with Export now and then.
+</div>
+
+<script>
+  // ─────────────────────────────────────────────
+  // Trainer targets — lean bulk 72 → 77 kg
+  // High protein, calorie surplus. Tune here.
+  // ─────────────────────────────────────────────
+  var TARGET = { kcal: 3000, p: 180 };
+
+  // ─────────────────────────────────────────────
+  // Morrisons aisle map (item -> section)
+  // ─────────────────────────────────────────────
+  var CAT_ORDER = [
+    'Fruit & Veg', 'Meat & Poultry', 'Fish',
+    'Dairy, Eggs & Chilled', 'Bakery', 'Food Cupboard'
+  ];
+
+  var CAT = {
+    'Banana': 'Fruit & Veg', 'Spinach': 'Fruit & Veg', 'Blueberries': 'Fruit & Veg',
+    'Mixed peppers': 'Fruit & Veg', 'Onion': 'Fruit & Veg', 'Red onion': 'Fruit & Veg',
+    'Sweet potato': 'Fruit & Veg', 'Tenderstem broccoli': 'Fruit & Veg',
+    'New potatoes': 'Fruit & Veg', 'Baby potatoes': 'Fruit & Veg', 'Potatoes': 'Fruit & Veg',
+    'Carrots': 'Fruit & Veg',
+    'Chicken breast': 'Meat & Poultry', 'Beef mince 5%': 'Meat & Poultry',
+    'Rump steak': 'Meat & Poultry', 'Chicken thighs': 'Meat & Poultry',
+    'Turkey mince': 'Meat & Poultry', 'Wafer thin ham': 'Meat & Poultry',
+    'Salmon fillet': 'Fish', 'Tinned tuna': 'Food Cupboard',
+    'Semi-skimmed milk': 'Dairy, Eggs & Chilled', 'Eggs': 'Dairy, Eggs & Chilled',
+    'Mature cheddar': 'Dairy, Eggs & Chilled', 'Butter': 'Dairy, Eggs & Chilled',
+    'Greek yogurt': 'Dairy, Eggs & Chilled', 'Reduced-fat creme fraiche': 'Dairy, Eggs & Chilled',
+    'Parmesan': 'Dairy, Eggs & Chilled', 'Light mozzarella': 'Dairy, Eggs & Chilled',
+    'Cottage cheese': 'Dairy, Eggs & Chilled',
+    'Bagels': 'Bakery', 'Wholemeal bread': 'Bakery',
+    'Porridge oats': 'Food Cupboard', 'Whey protein': 'Food Cupboard',
+    'Peanut butter': 'Food Cupboard', 'Honey': 'Food Cupboard', 'Granola': 'Food Cupboard',
+    'Mixed nuts': 'Food Cupboard', 'Basmati rice': 'Food Cupboard', 'Olive oil': 'Food Cupboard',
+    'Sweetcorn': 'Food Cupboard', 'Red kidney beans': 'Food Cupboard',
+    'Chopped tomatoes': 'Food Cupboard', 'Pasta': 'Food Cupboard', 'Spaghetti': 'Food Cupboard',
+    'Passata': 'Food Cupboard', 'Beef gravy': 'Food Cupboard', 'Rice cakes': 'Food Cupboard',
+    'Raisins': 'Food Cupboard', 'Almonds': 'Food Cupboard'
+  };
+
+  // ─────────────────────────────────────────────
+  // Recipe library — high protein, high calorie.
+  // ing: [item, qty, unit]  (unit: g | ml | x)  — quantities are PER SERVING.
+  // ─────────────────────────────────────────────
+  var RECIPES = {
+    // ── Breakfast ──
+    b_oats: {
+      name: 'Protein overnight oats', type: 'breakfast', kcal: 640, p: 42, c: 74, f: 20,
+      note: 'Mix oats, milk and whey the night before. Top with banana and peanut butter in the morning.',
+      ing: [['Porridge oats',80,'g'],['Semi-skimmed milk',250,'ml'],['Whey protein',30,'g'],['Peanut butter',20,'g'],['Banana',1,'x'],['Honey',15,'g']]
+    },
+    b_scramble: {
+      name: 'Scrambled eggs & bagel', type: 'breakfast', kcal: 610, p: 37, c: 42, f: 33,
+      note: 'Soft-scramble 4 eggs in the butter, wilt the spinach through, pile onto a toasted cheesy bagel.',
+      ing: [['Eggs',4,'x'],['Bagels',1,'x'],['Mature cheddar',30,'g'],['Spinach',40,'g'],['Butter',10,'g']]
+    },
+    b_yog: {
+      name: 'Greek yogurt power bowl', type: 'breakfast', kcal: 600, p: 40, c: 56, f: 24,
+      note: 'Stir the whey into the yogurt for extra protein, then layer granola, berries and nuts.',
+      ing: [['Greek yogurt',200,'g'],['Granola',60,'g'],['Blueberries',80,'g'],['Honey',15,'g'],['Mixed nuts',25,'g'],['Whey protein',20,'g']]
+    },
+
+    // ── Lunch ──
+    l_cnr: {
+      name: 'Chicken & rice power bowl', type: 'lunch', kcal: 710, p: 56, c: 82, f: 14,
+      note: 'The classic. Grill the chicken, pan the peppers and sweetcorn, serve over basmati.',
+      ing: [['Chicken breast',200,'g'],['Basmati rice',90,'g'],['Olive oil',10,'ml'],['Mixed peppers',100,'g'],['Sweetcorn',80,'g']]
+    },
+    l_chilli: {
+      name: 'Beef & bean chilli', type: 'lunch', kcal: 720, p: 47, c: 80, f: 17, batch: 'Batch cook — makes 4',
+      note: 'Brown the mince with onion and peppers, add beans and tomatoes, simmer 30 min. Portion over rice.',
+      ing: [['Beef mince 5%',150,'g'],['Red kidney beans',100,'g'],['Chopped tomatoes',100,'g'],['Basmati rice',90,'g'],['Onion',0.25,'x'],['Mixed peppers',30,'g']]
+    },
+    l_tuna: {
+      name: 'Tuna pasta bake', type: 'lunch', kcal: 690, p: 46, c: 78, f: 22,
+      note: 'Fold tuna, sweetcorn and creme fraiche through cooked pasta, top with cheddar, bake till golden.',
+      ing: [['Tinned tuna',120,'g'],['Pasta',90,'g'],['Sweetcorn',60,'g'],['Mature cheddar',40,'g'],['Reduced-fat creme fraiche',40,'g']]
+    },
+    l_steak: {
+      name: 'Steak & sweet potato', type: 'lunch', kcal: 650, p: 50, c: 48, f: 26,
+      note: 'Roast sweet potato wedges, sear the steak 3 min a side, rest it, serve with tenderstem.',
+      ing: [['Rump steak',200,'g'],['Sweet potato',250,'g'],['Tenderstem broccoli',100,'g'],['Olive oil',10,'ml']]
+    },
+
+    // ── Dinner ──
+    d_salmon: {
+      name: 'Salmon, potatoes & greens', type: 'dinner', kcal: 700, p: 42, c: 50, f: 34,
+      note: 'Roast salmon and new potatoes 20 min, steam the tenderstem, finish with a squeeze of lemon.',
+      ing: [['Salmon fillet',1,'x'],['New potatoes',250,'g'],['Tenderstem broccoli',100,'g'],['Olive oil',10,'ml']]
+    },
+    d_traybake: {
+      name: 'Chicken thigh traybake', type: 'dinner', kcal: 800, p: 52, c: 58, f: 38,
+      note: 'Everything on one tray — thighs, potatoes, peppers, red onion, olive oil. 35 min at 200°C.',
+      ing: [['Chicken thighs',250,'g'],['Baby potatoes',250,'g'],['Mixed peppers',100,'g'],['Red onion',0.5,'x'],['Olive oil',15,'ml']]
+    },
+    d_bol: {
+      name: 'High-protein spag bol', type: 'dinner', kcal: 760, p: 48, c: 86, f: 22, batch: 'Batch cook — makes 4',
+      note: 'Lean mince, onion and tomatoes simmered down, finished with parmesan over spaghetti.',
+      ing: [['Beef mince 5%',150,'g'],['Spaghetti',90,'g'],['Chopped tomatoes',100,'g'],['Onion',0.25,'x'],['Parmesan',15,'g'],['Olive oil',5,'ml']]
+    },
+    d_meatballs: {
+      name: 'Turkey meatballs & pasta', type: 'dinner', kcal: 740, p: 56, c: 80, f: 18,
+      note: 'Roll turkey mince with onion into meatballs, bake, simmer in passata, melt mozzarella on top.',
+      ing: [['Turkey mince',150,'g'],['Pasta',90,'g'],['Passata',150,'g'],['Light mozzarella',60,'g'],['Onion',0.25,'x']]
+    },
+    d_pie: {
+      name: 'Cottage pie', type: 'dinner', kcal: 690, p: 42, c: 62, f: 26, batch: 'Batch cook — makes 4',
+      note: 'Mince with carrot, onion and gravy, topped with mash and a little cheddar, baked till crisp.',
+      ing: [['Beef mince 5%',150,'g'],['Potatoes',250,'g'],['Carrots',60,'g'],['Onion',0.25,'x'],['Beef gravy',50,'ml'],['Mature cheddar',20,'g']]
+    },
+
+    // ── Snack ──
+    s_shake: {
+      name: 'Protein shake & PB toast', type: 'snack', kcal: 560, p: 44, c: 50, f: 22,
+      note: 'Whey shaken with milk, plus two slices of wholemeal loaded with peanut butter.',
+      ing: [['Whey protein',30,'g'],['Semi-skimmed milk',300,'ml'],['Wholemeal bread',2,'x'],['Peanut butter',25,'g']]
+    },
+    s_cottage: {
+      name: 'Cottage cheese & rice cakes', type: 'snack', kcal: 360, p: 38, c: 30, f: 8,
+      note: 'Rice cakes topped with cottage cheese and wafer-thin ham. Fast, lean and high protein.',
+      ing: [['Cottage cheese',200,'g'],['Rice cakes',3,'x'],['Wafer thin ham',60,'g']]
+    },
+    s_trail: {
+      name: 'Trail mix & milk', type: 'snack', kcal: 470, p: 18, c: 44, f: 26,
+      note: 'A handful of nuts and raisins with a big glass of milk — easy calories between meals.',
+      ing: [['Mixed nuts',40,'g'],['Raisins',30,'g'],['Semi-skimmed milk',300,'ml']]
+    },
+    s_yog: {
+      name: 'Greek yogurt, honey & almonds', type: 'snack', kcal: 380, p: 22, c: 26, f: 20,
+      note: 'Greek yogurt with a drizzle of honey and a scatter of almonds. Good before bed.',
+      ing: [['Greek yogurt',200,'g'],['Honey',15,'g'],['Almonds',25,'g']]
+    }
+  };
+
+  var SLOTS = [
+    { key: 'breakfast', label: 'Breakfast' },
+    { key: 'lunch',     label: 'Lunch' },
+    { key: 'dinner',    label: 'Dinner' },
+    { key: 'snack',     label: 'Snack' }
+  ];
+  var DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+  // Auto-plan rotations (kept varied and batch-friendly)
+  var ROTA = {
+    breakfast: ['b_oats', 'b_scramble', 'b_yog'],
+    lunch:     ['l_cnr', 'l_chilli', 'l_tuna', 'l_steak'],
+    dinner:    ['d_salmon', 'd_traybake', 'd_bol', 'd_meatballs', 'd_pie'],
+    snack:     ['s_shake', 's_cottage', 's_trail', 's_yog']
+  };
+
+  // ─────────────────────────────────────────────
+  // Storage
+  // ─────────────────────────────────────────────
+  var PLAN_KEY = 'meal-plan-v1';
+  var CHECK_KEY = 'meal-shop-checked-v1';
+
+  function loadPlan() {
+    try {
+      var d = JSON.parse(localStorage.getItem(PLAN_KEY));
+      if (d && typeof d === 'object') return d;
+    } catch (e) {}
+    return {};
+  }
+  function savePlan() { localStorage.setItem(PLAN_KEY, JSON.stringify(PLAN)); }
+
+  function loadChecks() {
+    try {
+      var d = JSON.parse(localStorage.getItem(CHECK_KEY));
+      if (d && typeof d === 'object') return d;
+    } catch (e) {}
+    return {};
+  }
+  function saveChecks() { localStorage.setItem(CHECK_KEY, JSON.stringify(CHECKED)); }
+
+  var PLAN = loadPlan();
+  var CHECKED = loadChecks();
+
+  // ─────────────────────────────────────────────
+  // Helpers
+  // ─────────────────────────────────────────────
+  function esc(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+  function catOf(item) { return CAT[item] || 'Food Cupboard'; }
+
+  function fmtQty(qty, unit) {
+    if (unit === 'x') return '×' + Math.ceil(qty - 1e-6);
+    return Math.round(qty) + ' ' + unit;
+  }
+
+  function dayMacros(day) {
+    var slots = PLAN[day] || {};
+    var m = { kcal: 0, p: 0, c: 0, f: 0, n: 0 };
+    SLOTS.forEach(function (s) {
+      var id = slots[s.key];
+      if (id && RECIPES[id]) {
+        var r = RECIPES[id];
+        m.kcal += r.kcal; m.p += r.p; m.c += r.c; m.f += r.f; m.n++;
+      }
+    });
+    return m;
+  }
+
+  function plannedCount() {
+    var n = 0;
+    DAYS.forEach(function (d) { n += dayMacros(d).n; });
+    return n;
+  }
+
+  // ─────────────────────────────────────────────
+  // Views
+  // ─────────────────────────────────────────────
+  var app = document.getElementById('app');
+  var SELDAY = todayDow();
+
+  function todayDow() {
+    // JS: 0=Sun..6=Sat  ->  our index 0=Mon..6=Sun
+    var js = new Date().getDay();
+    return (js + 6) % 7;
+  }
+
+  function dayStrip() {
+    var td = todayDow();
+    var html = '<div class="day-strip">';
+    DAYS.forEach(function (d, i) {
+      var m = dayMacros(d);
+      var active = i === SELDAY ? ' active' : '';
+      var dot = i === td ? '<span class="dot-today"></span>' : '';
+      html += '<div class="day-pill' + active + '" onclick="selectDay(' + i + ')">' +
+              d + (m.n ? '' : '') + dot + '</div>';
+    });
+    html += '</div>';
+    return html;
+  }
+
+  function renderDay() {
+    var day = DAYS[SELDAY];
+    var slots = PLAN[day] || {};
+    var m = dayMacros(day);
+
+    var html = '';
+    html += '<div class="section" style="padding-bottom:0.5rem">' + dayStrip() + '</div>';
+
+    // Meal slots
+    html += '<div class="section">';
+    SLOTS.forEach(function (s) {
+      var id = slots[s.key];
+      html += '<div class="slot">';
+      html += '<div class="slot-head"><span class="slot-label">' + s.label + '</span>';
+      if (id && RECIPES[id]) html += '<span class="slot-kcal">' + RECIPES[id].kcal + ' kcal</span>';
+      html += '</div>';
+      if (id && RECIPES[id]) {
+        var r = RECIPES[id];
+        html += '<div class="slot-body">' +
+                '<div onclick="openPicker(\'' + s.key + '\')" style="flex:1">' +
+                '<div class="slot-name">' + esc(r.name) + '</div>' +
+                '<div class="slot-macros">' + r.p + 'P · ' + r.c + 'C · ' + r.f + 'F</div>' +
+                '</div>' +
+                '<span class="slot-remove" onclick="clearSlot(\'' + s.key + '\')">×</span>' +
+                '<span class="slot-arrow" onclick="openPicker(\'' + s.key + '\')">›</span>' +
+                '</div>';
+      } else {
+        html += '<div class="slot-body" onclick="openPicker(\'' + s.key + '\')">' +
+                '<span class="slot-empty">+ Add ' + s.label.toLowerCase() + '</span>' +
+                '<span class="slot-arrow">›</span></div>';
+      }
+      html += '</div>';
+    });
+    html += '</div>';
+
+    // Day totals vs target
+    var kcalPct = Math.min(100, Math.round(m.kcal / TARGET.kcal * 100));
+    var pPct = Math.min(100, Math.round(m.p / TARGET.p * 100));
+    html += '<div class="section"><div class="section-label">' + day + ' totals</div><div class="card">';
+    html += '<div class="macro-row"><span class="lab">Calories</span>' +
+            '<span class="val">' + m.kcal + ' <span style="color:var(--muted);font-weight:400">/ ' + TARGET.kcal + ' kcal</span></span></div>';
+    html += '<div class="bar"><div class="bar-fill" style="width:' + kcalPct + '%"></div></div>';
+    html += '<div class="macro-row"><span class="lab">Protein</span>' +
+            '<span class="val">' + m.p + ' <span style="color:var(--muted);font-weight:400">/ ' + TARGET.p + ' g</span></span></div>';
+    html += '<div class="bar"><div class="bar-fill p" style="width:' + pPct + '%"></div></div>';
+    html += '<div class="macro-mini">' +
+            '<div>Carbs <b>' + m.c + ' g</b></div>' +
+            '<div>Fat <b>' + m.f + ' g</b></div>' +
+            '<div>Meals <b>' + m.n + ' / 4</b></div>' +
+            '<div>Surplus <b>' + (m.kcal - TARGET.kcal >= 0 ? '+' : '') + (m.kcal - TARGET.kcal) + '</b></div>' +
+            '</div>';
+    html += '</div></div>';
+
+    // Actions
+    html += '<div class="section">';
+    html += '<button class="btn" onclick="openShop()">🛒 Morrisons shopping list</button>';
+    html += '<div class="btn-row">' +
+            '<button class="btn btn-ghost" onclick="autoPlan()">Auto-plan week</button>' +
+            '<button class="btn btn-ghost" onclick="clearWeek()">Clear week</button>' +
+            '</div>';
+    html += '</div>';
+
+    // Trainer note
+    html += '<div class="section"><div class="card"><details>' +
+            '<summary>From your trainer</summary>' +
+            '<div class="pt-note">Built for the <b>72 → 77 kg lean bulk</b> from your training log — a calorie ' +
+            'surplus with protein in every meal.' +
+            '<ul>' +
+            '<li>Hit <b>~180 g protein</b> and <b>~3000 kcal</b> most days; push a little higher on lower/upper days.</li>' +
+            '<li>Get <b>protein in all four slots</b> — that\'s what the shake and cottage-cheese snacks are for.</li>' +
+            '<li><b>Batch-cook</b> the chilli, bol and cottage pie on Sunday so the week looks after itself.</li>' +
+            '<li>Weigh in daily on the training page — if the 7-day average isn\'t creeping up ~0.25 kg/wk, add a snack.</li>' +
+            '</ul></div></details></div></div>';
+
+    // Data
+    html += '<div class="section"><div class="btn-row">' +
+            '<button class="btn btn-ghost" onclick="exportData()">Export backup</button>' +
+            '<button class="btn btn-ghost" onclick="document.getElementById(\'import-file\').click()">Import</button>' +
+            '</div>' +
+            '<input type="file" id="import-file" accept=".json,application/json" style="display:none" onchange="importData(event)">' +
+            '</div>';
+
+    app.innerHTML = html;
+    window.scrollTo(0, 0);
+  }
+
+  function selectDay(i) { SELDAY = i; renderDay(); }
+
+  function clearSlot(slotKey) {
+    var day = DAYS[SELDAY];
+    if (PLAN[day]) { delete PLAN[day][slotKey]; savePlan(); }
+    renderDay();
+  }
+
+  // ── Recipe picker ──
+  function openPicker(slotKey) {
+    var day = DAYS[SELDAY];
+    var current = (PLAN[day] || {})[slotKey];
+    var slotLabel = SLOTS.filter(function (s) { return s.key === slotKey; })[0].label;
+
+    var matches = [], others = [];
+    Object.keys(RECIPES).forEach(function (id) {
+      (RECIPES[id].type === slotKey ? matches : others).push(id);
+    });
+
+    var html = '<div class="section"><div class="section-label">' + day + ' · ' + slotLabel + '</div>';
+    html += '<div style="margin-bottom:0.75rem">' +
+            '<button class="btn btn-ghost" onclick="renderDay()">← Back to day</button></div>';
+
+    matches.forEach(function (id) { html += recipeCard(id, slotKey, current); });
+
+    if (others.length) {
+      html += '<details style="margin-top:0.5rem"><summary>Other meals</summary><div style="margin-top:0.6rem">';
+      others.forEach(function (id) { html += recipeCard(id, slotKey, current); });
+      html += '</div></details>';
+    }
+
+    html += '</div>';
+    app.innerHTML = html;
+    window.scrollTo(0, 0);
+  }
+
+  function recipeCard(id, slotKey, current) {
+    var r = RECIPES[id];
+    var isCurrent = id === current;
+    var html = '<div class="recipe">';
+    html += '<div class="recipe-top"><div>' +
+            '<div class="recipe-name">' + esc(r.name) + '</div>' +
+            '<div class="recipe-macros">' + r.kcal + ' kcal · ' + r.p + 'P · ' + r.c + 'C · ' + r.f + 'F</div>' +
+            (r.batch ? '<div class="recipe-batch">' + esc(r.batch) + '</div>' : '') +
+            '</div>' +
+            '<button class="add-btn' + (isCurrent ? ' current' : '') + '" onclick="assign(\'' + slotKey + '\',\'' + id + '\')">' +
+            (isCurrent ? '✓ In plan' : 'Add') + '</button></div>';
+    html += '<details><summary>Ingredients &amp; method</summary>' +
+            '<ul class="ing-list">';
+    r.ing.forEach(function (ing) {
+      html += '<li><span>' + esc(ing[0]) + '</span><span>' + fmtQty(ing[1], ing[2]) + '</span></li>';
+    });
+    html += '</ul><div class="recipe-detail"><b>Method.</b> ' + esc(r.note) + '</div></details>';
+    html += '</div>';
+    return html;
+  }
+
+  function assign(slotKey, id) {
+    var day = DAYS[SELDAY];
+    if (!PLAN[day]) PLAN[day] = {};
+    PLAN[day][slotKey] = id;
+    savePlan();
+    renderDay();
+  }
+
+  function autoPlan() {
+    if (plannedCount() && !confirm('Fill the whole week with a high-protein rotation? This replaces what\'s there.')) return;
+    var idx = { breakfast: 0, lunch: 0, dinner: 0, snack: 0 };
+    DAYS.forEach(function (d, i) {
+      PLAN[d] = {};
+      SLOTS.forEach(function (s) {
+        var arr = ROTA[s.key];
+        PLAN[d][s.key] = arr[i % arr.length];
+      });
+    });
+    savePlan();
+    renderDay();
+  }
+
+  function clearWeek() {
+    if (!confirm('Clear every meal from the week?')) return;
+    PLAN = {};
+    savePlan();
+    renderDay();
+  }
+
+  // ─────────────────────────────────────────────
+  // Shopping list
+  // ─────────────────────────────────────────────
+  function buildList() {
+    var map = {}; // key item|unit -> {item, unit, qty, cat}
+    DAYS.forEach(function (d) {
+      var slots = PLAN[d] || {};
+      SLOTS.forEach(function (s) {
+        var id = slots[s.key];
+        if (!id || !RECIPES[id]) return;
+        RECIPES[id].ing.forEach(function (ing) {
+          var key = ing[0] + '|' + ing[2];
+          if (!map[key]) map[key] = { item: ing[0], unit: ing[2], qty: 0, cat: catOf(ing[0]) };
+          map[key].qty += ing[1];
+        });
+      });
+    });
+    return map;
+  }
+
+  function openShop() {
+    var map = buildList();
+    var keys = Object.keys(map);
+
+    var html = '<div class="section"><div class="section-label">Morrisons — shopping list</div>';
+    html += '<div style="margin-bottom:0.75rem">' +
+            '<button class="btn btn-ghost" onclick="renderDay()">← Back to plan</button></div>';
+
+    if (!keys.length) {
+      html += '<div class="card"><div class="empty-note">No meals planned yet.<br>Add meals or tap <b>Auto-plan week</b>, ' +
+              'then your Morrisons list builds itself here.</div></div></div>';
+      app.innerHTML = html;
+      window.scrollTo(0, 0);
+      return;
+    }
+
+    var days = 0;
+    DAYS.forEach(function (d) { if (dayMacros(d).n) days++; });
+    html += '<div class="card" style="margin-bottom:0.75rem"><div class="macro-mini" style="margin-top:0">' +
+            '<div>Days planned <b>' + days + ' / 7</b></div>' +
+            '<div>Meals <b>' + plannedCount() + '</b></div>' +
+            '<div>Items <b>' + keys.length + '</b></div>' +
+            '<div>Ticked <b id="ticked-count">' + countTicked(map) + '</b></div>' +
+            '</div></div>';
+
+    html += '<div class="card">';
+    CAT_ORDER.forEach(function (cat) {
+      var inCat = keys.filter(function (k) { return map[k].cat === cat; });
+      if (!inCat.length) return;
+      inCat.sort(function (a, b) { return map[a].item < map[b].item ? -1 : 1; });
+      html += '<div class="aisle-head">' + cat + '</div>';
+      inCat.forEach(function (k) {
+        var it = map[k];
+        var done = CHECKED[k] ? ' done' : '';
+        html += '<div class="shop-row' + done + '" onclick="toggleShop(\'' + esc(k).replace(/'/g, "\\'") + '\')">' +
+                '<span class="check">✓</span>' +
+                '<span class="shop-name">' + esc(it.item) + '</span>' +
+                '<span class="shop-qty">' + fmtQty(it.qty, it.unit) + '</span></div>';
+      });
+    });
+    html += '</div>';
+
+    html += '<div class="btn-row">' +
+            '<button class="btn btn-ghost" onclick="copyList()">Copy list</button>' +
+            '<button class="btn btn-ghost" onclick="resetTicks()">Reset ticks</button>' +
+            '</div>';
+    html += '<div class="footnote" style="padding-left:0;padding-right:0">Quantities are totals across the week — ' +
+            'round up to the nearest pack in store. Tinned and dry goods you already have can be skipped.</div>';
+    html += '</div>';
+
+    app.innerHTML = html;
+    window.scrollTo(0, 0);
+  }
+
+  function countTicked(map) {
+    return Object.keys(map).filter(function (k) { return CHECKED[k]; }).length;
+  }
+
+  function toggleShop(key) {
+    if (CHECKED[key]) delete CHECKED[key]; else CHECKED[key] = true;
+    saveChecks();
+    openShop();
+  }
+
+  function resetTicks() {
+    CHECKED = {};
+    saveChecks();
+    openShop();
+  }
+
+  function copyList() {
+    var map = buildList();
+    var keys = Object.keys(map);
+    var lines = ['Morrisons shopping list', ''];
+    CAT_ORDER.forEach(function (cat) {
+      var inCat = keys.filter(function (k) { return map[k].cat === cat; });
+      if (!inCat.length) return;
+      inCat.sort(function (a, b) { return map[a].item < map[b].item ? -1 : 1; });
+      lines.push(cat.toUpperCase());
+      inCat.forEach(function (k) {
+        lines.push('- ' + map[k].item + '  ' + fmtQty(map[k].qty, map[k].unit));
+      });
+      lines.push('');
+    });
+    var text = lines.join('\n').trim();
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(
+        function () { alert('Shopping list copied.'); },
+        function () { fallbackCopy(text); }
+      );
+    } else {
+      fallbackCopy(text);
+    }
+  }
+
+  function fallbackCopy(text) {
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); alert('Shopping list copied.'); }
+    catch (e) { prompt('Copy your list:', text); }
+    document.body.removeChild(ta);
+  }
+
+  // ─────────────────────────────────────────────
+  // Backup / restore
+  // ─────────────────────────────────────────────
+  function exportData() {
+    var blob = new Blob([JSON.stringify({ plan: PLAN, checked: CHECKED }, null, 2)], { type: 'application/json' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'meal-plan-' + new Date().toISOString().slice(0, 10) + '.json';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  function importData(ev) {
+    var file = ev.target.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function () {
+      try {
+        var d = JSON.parse(reader.result);
+        if (!d.plan || typeof d.plan !== 'object') throw new Error('bad format');
+        if (confirm('Replace your current meal plan with this backup?')) {
+          PLAN = d.plan;
+          CHECKED = d.checked || {};
+          savePlan(); saveChecks();
+          renderDay();
+        }
+      } catch (e) {
+        alert('That file doesn\'t look like a meal-plan backup.');
+      }
+      ev.target.value = '';
+    };
+    reader.readAsText(file);
+  }
+
+  // ─────────────────────────────────────────────
+  // Boot
+  // ─────────────────────────────────────────────
+  var dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  var monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var now = new Date();
+  document.getElementById('date-display').textContent =
+    dayNames[now.getDay()] + ' ' + now.getDate() + ' ' + monthNames[now.getMonth()];
+
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+
+  renderDay();
+</script>
+</body>
+</html>
