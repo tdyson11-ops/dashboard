@@ -29,6 +29,7 @@ jobs:
         run: |
           git config user.email "action@github.com"
           git config user.name "GitHub Action"
-          git add data.json .whoop_token.enc
+          git add data.json
+          git add .whoop_token.enc 2>/dev/null || true
           git diff --staged --quiet || git commit -m "Update WHOOP data"
           git push
