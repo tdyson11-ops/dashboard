@@ -11,7 +11,7 @@ import requests
 CLIENT_ID     = sys.argv[1]
 CLIENT_SECRET = sys.argv[2]
 REDIRECT_URI  = 'http://localhost:8080/callback'
-SCOPE         = 'offline read:recovery read:cycles read:sleep read:body_measurement'
+SCOPE         = 'offline read:recovery read:cycles read:sleep'
 STATE         = secrets.token_hex(16)
 
 auth_url = (
