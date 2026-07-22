@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Shopping">
+  <meta name="theme-color" content="#0d0d0d">
+  <link rel="manifest" href="manifest-shopping.json">
+  <link rel="apple-touch-icon" href="sicon-180.png">
+  <title>Shopping — Tom Dyson</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #0d0d0d;
+      --card: #161616;
+      --border: #222;
+      --text: #f0f0f0;
+      --muted: #666;
+      --accent: #f59e0b;
+      --green: #22c55e;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      max-width: 430px;
+      margin: 0 auto;
+      padding-bottom: 3rem;
+    }
+
+    .header {
+      padding: 1.5rem 1.25rem 1rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+    .header-name { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; }
+    .header-sub {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+      margin-bottom: 0.3rem;
+    }
+    .back-link { font-size: 0.78rem; color: var(--muted); text-decoration: none; padding-bottom: 0.15rem; }
+
+    .section { padding: 1rem 1.25rem 0; }
+    .section-label {
+      font-size: 0.63rem;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--muted);
+      margin-bottom: 0.55rem;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.1rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .macro-mini {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.35rem 1rem;
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+    .macro-mini b { color: var(--text); font-weight: 600; }
+
+    .aisle-head {
+      font-size: 0.62rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--accent);
+      margin: 1rem 0 0.4rem;
+    }
+    .aisle-head:first-child { margin-top: 0; }
+
+    .shop-row {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      padding: 0.6rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.9rem;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .shop-row:last-child { border-bottom: none; }
+    .check {
+      flex: 0 0 auto;
+      width: 22px; height: 22px;
+      border: 1.5px solid var(--muted);
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.8rem; color: #0d0d0d;
+    }
+    .shop-row.done .check { background: var(--green); border-color: var(--green); }
+    .shop-row.done .shop-name { text-decoration: line-through; color: var(--muted); }
+    .shop-name { flex: 1; }
+    .shop-qty { color: var(--muted); font-weight: 600; white-space: nowrap; }
+    .shop-row.done .shop-qty { color: #3a3a3a; }
+
+    .btn {
+      display: block;
+      width: 100%;
+      background: var(--accent);
+      color: #0d0d0d;
+      border: none;
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: 0.9rem;
+      font-weight: 700;
+      padding: 0.8rem;
+      margin-top: 0.75rem;
+      cursor: pointer;
+      text-align: center;
+      text-decoration: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); font-weight: 500; }
+    .btn-row { display: flex; gap: 0.6rem; }
+
+    .plan-link {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      text-decoration: none;
+      color: var(--text);
+      -webkit-tap-highlight-color: transparent;
+    }
+    .plan-link-title { font-size: 0.92rem; font-weight: 600; }
+    .plan-link-sub { font-size: 0.7rem; color: var(--muted); margin-top: 0.2rem; }
+    .plan-link-arrow { color: var(--muted); font-size: 1.1rem; }
+
+    .empty-note { font-size: 0.85rem; color: var(--muted); text-align: center; padding: 1.5rem 0.5rem 1rem; line-height: 1.6; }
+    .empty-note b { color: var(--text); font-weight: 600; }
+
+    .footnote {
+      font-size: 0.65rem;
+      color: var(--muted);
+      line-height: 1.5;
+      padding: 0.75rem 1.25rem 0;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="header-sub" id="date-display"></div>
+    <div class="header-name">Shopping</div>
+  </div>
+  <a class="back-link" href="index.html">← Dashboard</a>
+</div>
+
+<div id="app"></div>
+
+<div class="footnote">
+  Built from the week you set in the Meal planner. Quantities are weekly totals —
+  round up to the nearest pack in store.
+</div>
+
+<script src="mealdata.js"></script>
+<script>
+  // Shared storage keys — same data the Meal planner writes.
+  var PLAN_KEY = 'meal-plan-v1';
+  var CUSTOM_KEY = 'meal-custom-v1';
+  var CHECK_KEY = 'meal-shop-checked-v1';
+
+  function loadObj(key) {
+    try {
+      var d = JSON.parse(localStorage.getItem(key));
+      if (d && typeof d === 'object') return d;
+    } catch (e) {}
+    return {};
+  }
+
+  var PLAN = {}, CUSTOM = {}, CHECKED = {};
+  function refreshData() {
+    PLAN = loadObj(PLAN_KEY);
+    CUSTOM = loadObj(CUSTOM_KEY);
+    CHECKED = loadObj(CHECK_KEY);
+  }
+  function saveChecks() { localStorage.setItem(CHECK_KEY, JSON.stringify(CHECKED)); }
+
+  var app = document.getElementById('app');
+
+  function planStats() {
+    var meals = 0, days = 0;
+    DAYS.forEach(function (d) {
+      var slots = PLAN[d] || {};
+      var any = false;
+      SLOTS.forEach(function (s) { if (mealById(slots[s.key], CUSTOM)) { meals++; any = true; } });
+      if (any) days++;
+    });
+    return { meals: meals, days: days };
+  }
+
+  function render() {
+    refreshData();
+    var map = buildShoppingList(PLAN, CUSTOM);
+    var keys = Object.keys(map);
+
+    var html = '<div class="section"><div class="section-label">Morrisons — this week</div>';
+
+    if (!keys.length) {
+      html += '<div class="card"><div class="empty-note">' +
+              'Nothing to buy yet.<br>Plan your week in the <b>Meal planner</b> and your ' +
+              'Morrisons list builds itself here.</div>' +
+              '<a class="btn" href="meals.html">Open the Meal planner</a></div>';
+      html += '</div>';
+      app.innerHTML = html;
+      return;
+    }
+
+    var st = planStats();
+    var ticked = keys.filter(function (k) { return CHECKED[k]; }).length;
+
+    // Summary
+    html += '<div class="card"><div class="macro-mini">' +
+            '<div>Days planned <b>' + st.days + ' / 7</b></div>' +
+            '<div>Meals <b>' + st.meals + '</b></div>' +
+            '<div>Items <b>' + keys.length + '</b></div>' +
+            '<div>Got <b>' + ticked + ' / ' + keys.length + '</b></div>' +
+            '</div></div>';
+
+    // Edit-plan shortcut
+    html += '<a class="card plan-link" href="meals.html">' +
+            '<div><div class="plan-link-title">Edit this week’s plan</div>' +
+            '<div class="plan-link-sub">add, swap or log meals</div></div>' +
+            '<div class="plan-link-arrow">›</div></a>';
+
+    // Aisle-grouped list
+    html += '<div class="card">';
+    CAT_ORDER.forEach(function (cat) {
+      var inCat = keys.filter(function (k) { return map[k].cat === cat; });
+      if (!inCat.length) return;
+      inCat.sort(function (a, b) { return map[a].item < map[b].item ? -1 : 1; });
+      html += '<div class="aisle-head">' + cat + '</div>';
+      inCat.forEach(function (k) {
+        var it = map[k];
+        var done = CHECKED[k] ? ' done' : '';
+        html += '<div class="shop-row' + done + '" data-key="' + esc(k) + '">' +
+                '<span class="check">✓</span>' +
+                '<span class="shop-name">' + esc(it.item) + '</span>' +
+                '<span class="shop-qty">' + fmtQty(it.qty, it.unit) + '</span></div>';
+      });
+    });
+    html += '</div>';
+
+    html += '<div class="btn-row">' +
+            '<button class="btn btn-ghost" onclick="copyList()">Copy list</button>' +
+            '<button class="btn btn-ghost" onclick="resetTicks()">Reset ticks</button>' +
+            '</div>';
+    html += '</div>';
+
+    app.innerHTML = html;
+
+    // Wire up row taps (delegated so line-through survives re-render)
+    Array.prototype.forEach.call(app.querySelectorAll('.shop-row'), function (row) {
+      row.addEventListener('click', function () { toggleRow(row.getAttribute('data-key')); });
+    });
+  }
+
+  function toggleRow(key) {
+    if (CHECKED[key]) delete CHECKED[key]; else CHECKED[key] = true;
+    saveChecks();
+    render();
+  }
+
+  function resetTicks() {
+    if (!confirm('Clear all the ticks?')) return;
+    CHECKED = {};
+    saveChecks();
+    render();
+  }
+
+  function copyList() {
+    var map = buildShoppingList(PLAN, CUSTOM);
+    var keys = Object.keys(map);
+    var lines = ['Morrisons shopping list', ''];
+    CAT_ORDER.forEach(function (cat) {
+      var inCat = keys.filter(function (k) { return map[k].cat === cat; });
+      if (!inCat.length) return;
+      inCat.sort(function (a, b) { return map[a].item < map[b].item ? -1 : 1; });
+      lines.push(cat.toUpperCase());
+      inCat.forEach(function (k) { lines.push('- ' + map[k].item + '  ' + fmtQty(map[k].qty, map[k].unit)); });
+      lines.push('');
+    });
+    var text = lines.join('\n').trim();
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () { alert('Shopping list copied.'); },
+        function () { fallbackCopy(text); });
+    } else {
+      fallbackCopy(text);
+    }
+  }
+
+  function fallbackCopy(text) {
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); alert('Shopping list copied.'); }
+    catch (e) { prompt('Copy your list:', text); }
+    document.body.removeChild(ta);
+  }
+
+  // ── Boot ──
+  var dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  var monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var now = new Date();
+  document.getElementById('date-display').textContent =
+    dayNames[now.getDay()] + ' ' + now.getDate() + ' ' + monthNames[now.getMonth()];
+
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+
+  // Re-read the plan whenever the app regains focus or another tab edits it,
+  // so planning in the Meals app shows up here without a manual refresh.
+  window.addEventListener('storage', render);
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) render(); });
+
+  render();
+</script>
+</body>
+</html>

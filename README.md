@@ -37,8 +37,20 @@ Add it to your phone's home screen: open the URL in Safari/Chrome, then **Share 
 - **Auto-plan week** fills the whole week with a varied, batch-friendly high-protein rotation in one tap
 - Each day shows calories and protein against the daily target (default **3000 kcal / 190 g protein** — edit `TARGET` at the top of the script to change)
 - **Log your own meal** on any slot — enter a name, portion/weight note and macros for anything cooked for you or eaten off-plan. Logged meals count toward the day's macros but are **not** added to the shopping list; tick "Save to My meals" to reuse recurring ones (e.g. a parent's regular dinner)
-- **Morrisons shopping list** aggregates every ingredient across the planned week, combines duplicates, and groups them by store aisle (Fruit & Veg, Meat & Poultry, Fish, Dairy, Bakery, Food Cupboard) with tick-off checkboxes and a Copy button
+- Tap **🛒 Morrisons shopping list** to jump to the Shopping app (below)
 - Like the training log, the plan lives in the browser's localStorage **on the device you use** — use Export for a JSON backup (Import restores it)
+
+Add it to your home screen the same way as the dashboard (**Share → Add to Home Screen**) and it installs as its own **Meals** app.
+
+## Shopping list
+
+`shopping.html` is a standalone, installable **Shopping** app driven by whatever you set in the meal planner:
+
+- Aggregates every ingredient across the planned week, combines duplicates (e.g. all the milk becomes one line) and groups them by Morrisons store aisle — Fruit & Veg, Meat & Poultry, Fish, Dairy, Bakery, Food Cupboard — in the order you walk the shop
+- **Tick items off** as you shop (the ticks persist); **Copy list** puts a plain-text version on the clipboard; **Reset ticks** clears them for next time
+- Meals you logged yourself are left off — it only lists the recipes you're actually cooking
+- Plan on Sunday/Monday night in the Meals app, then open the Shopping app in store — it re-reads the plan automatically. Add it to your home screen for its own **Shopping** icon
+- The recipe library, targets and aisle map are shared with the meal planner in **`mealdata.js`** (single source of truth — add or edit recipes there and both apps update)
 
 ## Updating data
 
