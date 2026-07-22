@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Meals">
+  <meta name="theme-color" content="#0d0d0d">
+  <link rel="manifest" href="manifest-meals.json">
+  <link rel="apple-touch-icon" href="micon-180.png">
+  <title>Meals — Tom Dyson</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #0d0d0d;
+      --card: #161616;
+      --border: #222;
+      --text: #f0f0f0;
+      --muted: #666;
+      --accent: #f59e0b;
+      --green: #22c55e;
+      --amber: #f59e0b;
+      --red: #ef4444;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      max-width: 430px;
+      margin: 0 auto;
+      padding-bottom: 3rem;
+    }
+
+    .header {
+      padding: 1.5rem 1.25rem 1rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+
+    .header-name { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; }
+
+    .header-sub {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+      margin-bottom: 0.3rem;
+    }
+
+    .back-link {
+      font-size: 0.78rem;
+      color: var(--muted);
+      text-decoration: none;
+      padding-bottom: 0.15rem;
+    }
+
+    .section { padding: 1rem 1.25rem 0; }
+
+    .section-label {
+      font-size: 0.63rem;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--muted);
+      margin-bottom: 0.55rem;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.1rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .divider { border: none; border-top: 1px solid var(--border); margin: 0.75rem 0; }
+
+    /* ── Day pills ── */
+    .day-strip {
+      display: flex;
+      gap: 0.4rem;
+      overflow-x: auto;
+      padding: 0 1.25rem 0.25rem;
+      -webkit-overflow-scrolling: touch;
+    }
+    .day-strip::-webkit-scrollbar { display: none; }
+
+    .day-pill {
+      flex: 0 0 auto;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 0.42rem 0.85rem;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      position: relative;
+    }
+    .day-pill.active { background: var(--accent); border-color: var(--accent); color: #0d0d0d; }
+    .day-pill .dot-today {
+      position: absolute; top: 5px; right: 7px;
+      width: 5px; height: 5px; border-radius: 50%;
+      background: var(--accent);
+    }
+    .day-pill.active .dot-today { background: #0d0d0d; }
+
+    /* ── Meal slot cards ── */
+    .slot {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 0.85rem 1rem;
+      margin-bottom: 0.6rem;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .slot-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 0.15rem;
+    }
+    .slot-label {
+      font-size: 0.6rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+    }
+    .slot-kcal { font-size: 0.65rem; color: var(--muted); }
+    .slot-body { display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+    .slot-name { font-size: 0.95rem; font-weight: 600; }
+    .slot-macros { font-size: 0.68rem; color: var(--accent); margin-top: 0.15rem; }
+    .slot-empty { font-size: 0.9rem; color: var(--muted); font-weight: 500; }
+    .slot-arrow { color: var(--muted); font-size: 1.1rem; padding-left: 0.5rem; }
+    .slot-remove {
+      color: var(--muted);
+      font-size: 1.1rem;
+      padding: 0 0.2rem 0 0.6rem;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* ── Macro totals ── */
+    .macro-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 0.78rem;
+      margin-bottom: 0.15rem;
+    }
+    .macro-row .lab { color: var(--muted); }
+    .macro-row .val { font-weight: 700; }
+    .bar { background: #222; border-radius: 4px; height: 6px; margin: 0.35rem 0 0.75rem; overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: 4px; background: var(--accent); }
+    .bar-fill.p { background: var(--green); }
+
+    .macro-mini {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.3rem 1rem;
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-top: 0.4rem;
+    }
+    .macro-mini b { color: var(--text); font-weight: 600; }
+
+    /* ── Buttons ── */
+    .btn {
+      display: block;
+      width: 100%;
+      background: var(--accent);
+      color: #0d0d0d;
+      border: none;
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: 0.9rem;
+      font-weight: 700;
+      padding: 0.8rem;
+      margin-top: 0.75rem;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); font-weight: 500; }
+    .btn-row { display: flex; gap: 0.6rem; }
+
+    /* ── Recipe picker cards ── */
+    .recipe {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 0.9rem 1rem;
+      margin-bottom: 0.6rem;
+    }
+    .recipe-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 0.6rem; }
+    .recipe-name { font-size: 0.95rem; font-weight: 600; }
+    .recipe-macros { font-size: 0.7rem; color: var(--accent); margin-top: 0.2rem; }
+    .recipe-batch { font-size: 0.65rem; color: var(--muted); margin-top: 0.15rem; }
+    .add-btn {
+      flex: 0 0 auto;
+      background: var(--accent);
+      color: #0d0d0d;
+      border: none;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.45rem 0.8rem;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .add-btn.current { background: #06170c; color: var(--green); border: 1px solid #10391f; }
+
+    summary { font-size: 0.72rem; font-weight: 600; color: var(--accent); cursor: pointer; -webkit-tap-highlight-color: transparent; list-style: none; margin-top: 0.5rem; }
+    summary::-webkit-details-marker { display: none; }
+    details[open] summary { margin-bottom: 0.4rem; }
+    .recipe-detail { font-size: 0.72rem; line-height: 1.55; color: var(--muted); }
+    .recipe-detail b { color: var(--text); font-weight: 600; }
+    .ing-list { margin: 0.2rem 0 0.5rem; padding-left: 0; list-style: none; }
+    .ing-list li { display: flex; justify-content: space-between; padding: 0.12rem 0; border-bottom: 1px dashed #1c1c1c; }
+    .ing-list li span:last-child { color: var(--text); font-weight: 500; white-space: nowrap; padding-left: 0.75rem; }
+
+    /* ── Log-your-own form ── */
+    input[type="text"], input[type="number"] {
+      background: #0f0f0f;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 16px; /* prevents iOS zoom */
+      padding: 0.55rem 0.65rem;
+      width: 100%;
+    }
+    input[type="text"]:focus, input[type="number"]:focus { outline: none; border-color: var(--accent); }
+    .cf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 0.5rem; }
+    .cf-lab { display: block; font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 0.2rem; }
+    .cf-reuse { display: flex; align-items: center; gap: 0.5rem; font-size: 0.78rem; color: var(--text); margin-top: 0.75rem; cursor: pointer; }
+    .cf-reuse input { width: 18px; height: 18px; accent-color: var(--accent); }
+    .cf-hint { font-size: 0.68rem; line-height: 1.5; color: var(--muted); margin-top: 0.6rem; }
+    .cf-remove { font-size: 0.68rem; color: var(--muted); margin-top: 0.6rem; text-align: right; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+
+    .logged-tag {
+      display: inline-block;
+      background: #1c1400;
+      color: var(--accent);
+      border: 1px solid #3a2b00;
+      border-radius: 6px;
+      padding: 0.08rem 0.4rem;
+      font-size: 0.55rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-left: 0.45rem;
+      vertical-align: middle;
+    }
+    .slot-portion { font-size: 0.68rem; color: var(--muted); margin-top: 0.15rem; }
+
+    /* ── Shopping list ── */
+    .aisle-head {
+      font-size: 0.62rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--accent);
+      margin: 1rem 0 0.4rem;
+    }
+    .shop-row {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      padding: 0.55rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.85rem;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .shop-row:last-child { border-bottom: none; }
+    .check {
+      flex: 0 0 auto;
+      width: 20px; height: 20px;
+      border: 1.5px solid var(--muted);
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem; color: #0d0d0d;
+    }
+    .shop-row.done .check { background: var(--green); border-color: var(--green); }
+    .shop-row.done .shop-name { text-decoration: line-through; color: var(--muted); }
+    .shop-name { flex: 1; }
+    .shop-qty { color: var(--muted); font-weight: 600; white-space: nowrap; }
+    .shop-row.done .shop-qty { color: #3a3a3a; }
+
+    .pt-note { font-size: 0.75rem; line-height: 1.6; color: var(--muted); }
+    .pt-note b { color: var(--text); font-weight: 600; }
+    .pt-note ul { margin: 0.4rem 0 0; padding-left: 1.1rem; }
+    .pt-note li { margin-bottom: 0.3rem; }
+
+    .empty-note { font-size: 0.82rem; color: var(--muted); text-align: center; padding: 1.5rem 0.5rem; line-height: 1.6; }
+
+    .footnote {
+      font-size: 0.65rem;
+      color: var(--muted);
+      line-height: 1.5;
+      padding: 0.75rem 1.25rem 0;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="header-sub" id="date-display"></div>
+    <div class="header-name">Meals</div>
+  </div>
+  <a class="back-link" href="index.html">← Dashboard</a>
+</div>
+
+<div id="app"></div>
+
+<div class="footnote">
+  Your weekly plan is stored on this device. Back it up with Export now and then.
+</div>
+
+<script src="mealdata.js"></script>
+<script>
+  // Recipe library, trainer targets and Morrisons aisle map live in mealdata.js
+
+  // ─────────────────────────────────────────────
+  // Storage
+  // ─────────────────────────────────────────────
+  var PLAN_KEY = 'meal-plan-v1';
+  var CHECK_KEY = 'meal-shop-checked-v1';
+  var CUSTOM_KEY = 'meal-custom-v1';
+
+  function loadObj(key) {
+    try {
+      var d = JSON.parse(localStorage.getItem(key));
+      if (d && typeof d === 'object') return d;
+    } catch (e) {}
+    return {};
+  }
+  function loadPlan() { return loadObj(PLAN_KEY); }
+  function savePlan() { localStorage.setItem(PLAN_KEY, JSON.stringify(PLAN)); }
+  function loadChecks() { return loadObj(CHECK_KEY); }
+  function saveChecks() { localStorage.setItem(CHECK_KEY, JSON.stringify(CHECKED)); }
+  function loadCustom() { return loadObj(CUSTOM_KEY); }
+  function saveCustom() { localStorage.setItem(CUSTOM_KEY, JSON.stringify(CUSTOM)); }
+
+  var PLAN = loadPlan();
+  var CHECKED = loadChecks();
+  var CUSTOM = loadCustom();
+
+  // A slot can hold a library recipe id OR a custom (logged) meal id.
+  // Custom meals count toward macros but carry no ingredients, so they
+  // never touch the shopping list — someone else is cooking them.
+  function getMeal(id) { return mealById(id, CUSTOM); }
+
+  // Drop one-off logged meals that no slot references any more.
+  function gcCustom() {
+    var used = {};
+    DAYS.forEach(function (d) {
+      var s = PLAN[d] || {};
+      SLOTS.forEach(function (sl) { if (s[sl.key]) used[s[sl.key]] = true; });
+    });
+    var changed = false;
+    Object.keys(CUSTOM).forEach(function (id) {
+      if (!CUSTOM[id].reuse && !used[id]) { delete CUSTOM[id]; changed = true; }
+    });
+    if (changed) saveCustom();
+  }
+
+  // ─────────────────────────────────────────────
+  // Helpers
+  // ─────────────────────────────────────────────
+  // esc, catOf, fmtQty, mealById & buildShoppingList live in mealdata.js
+
+  function dayMacros(day) {
+    var slots = PLAN[day] || {};
+    var m = { kcal: 0, p: 0, c: 0, f: 0, n: 0 };
+    SLOTS.forEach(function (s) {
+      var r = getMeal(slots[s.key]);
+      if (r) { m.kcal += r.kcal; m.p += r.p; m.c += r.c; m.f += r.f; m.n++; }
+    });
+    return m;
+  }
+
+  function plannedCount() {
+    var n = 0;
+    DAYS.forEach(function (d) { n += dayMacros(d).n; });
+    return n;
+  }
+
+  // ─────────────────────────────────────────────
+  // Views
+  // ─────────────────────────────────────────────
+  var app = document.getElementById('app');
+  var SELDAY = todayDow();
+
+  function todayDow() {
+    // JS: 0=Sun..6=Sat  ->  our index 0=Mon..6=Sun
+    var js = new Date().getDay();
+    return (js + 6) % 7;
+  }
+
+  function dayStrip() {
+    var td = todayDow();
+    var html = '<div class="day-strip">';
+    DAYS.forEach(function (d, i) {
+      var m = dayMacros(d);
+      var active = i === SELDAY ? ' active' : '';
+      var dot = i === td ? '<span class="dot-today"></span>' : '';
+      html += '<div class="day-pill' + active + '" onclick="selectDay(' + i + ')">' +
+              d + (m.n ? '' : '') + dot + '</div>';
+    });
+    html += '</div>';
+    return html;
+  }
+
+  function renderDay() {
+    gcCustom();
+    var day = DAYS[SELDAY];
+    var slots = PLAN[day] || {};
+    var m = dayMacros(day);
+
+    var html = '';
+    html += '<div class="section" style="padding-bottom:0.5rem">' + dayStrip() + '</div>';
+
+    // Meal slots
+    html += '<div class="section">';
+    SLOTS.forEach(function (s) {
+      var r = getMeal(slots[s.key]);
+      html += '<div class="slot">';
+      html += '<div class="slot-head"><span class="slot-label">' + s.label + '</span>';
+      if (r) html += '<span class="slot-kcal">' + r.kcal + ' kcal</span>';
+      html += '</div>';
+      if (r) {
+        var tag = r.custom ? '<span class="logged-tag">logged</span>' : '';
+        var portion = r.custom && r.portion ? '<div class="slot-portion">' + esc(r.portion) + '</div>' : '';
+        html += '<div class="slot-body">' +
+                '<div onclick="openPicker(\'' + s.key + '\')" style="flex:1">' +
+                '<div class="slot-name">' + esc(r.name) + tag + '</div>' +
+                portion +
+                '<div class="slot-macros">' + r.p + 'P · ' + r.c + 'C · ' + r.f + 'F</div>' +
+                '</div>' +
+                '<span class="slot-remove" onclick="clearSlot(\'' + s.key + '\')">×</span>' +
+                '<span class="slot-arrow" onclick="openPicker(\'' + s.key + '\')">›</span>' +
+                '</div>';
+      } else {
+        html += '<div class="slot-body" onclick="openPicker(\'' + s.key + '\')">' +
+                '<span class="slot-empty">+ Add ' + s.label.toLowerCase() + '</span>' +
+                '<span class="slot-arrow">›</span></div>';
+      }
+      html += '</div>';
+    });
+    html += '</div>';
+
+    // Day totals vs target
+    var kcalPct = Math.min(100, Math.round(m.kcal / TARGET.kcal * 100));
+    var pPct = Math.min(100, Math.round(m.p / TARGET.p * 100));
+    html += '<div class="section"><div class="section-label">' + day + ' totals</div><div class="card">';
+    html += '<div class="macro-row"><span class="lab">Calories</span>' +
+            '<span class="val">' + m.kcal + ' <span style="color:var(--muted);font-weight:400">/ ' + TARGET.kcal + ' kcal</span></span></div>';
+    html += '<div class="bar"><div class="bar-fill" style="width:' + kcalPct + '%"></div></div>';
+    html += '<div class="macro-row"><span class="lab">Protein</span>' +
+            '<span class="val">' + m.p + ' <span style="color:var(--muted);font-weight:400">/ ' + TARGET.p + ' g</span></span></div>';
+    html += '<div class="bar"><div class="bar-fill p" style="width:' + pPct + '%"></div></div>';
+    html += '<div class="macro-mini">' +
+            '<div>Carbs <b>' + m.c + ' g</b></div>' +
+            '<div>Fat <b>' + m.f + ' g</b></div>' +
+            '<div>Meals <b>' + m.n + ' / 4</b></div>' +
+            '<div>Surplus <b>' + (m.kcal - TARGET.kcal >= 0 ? '+' : '') + (m.kcal - TARGET.kcal) + '</b></div>' +
+            '</div>';
+    html += '</div></div>';
+
+    // Actions
+    html += '<div class="section">';
+    html += '<a class="btn" href="shopping.html" style="text-decoration:none;text-align:center">🛒 Morrisons shopping list</a>';
+    html += '<div class="btn-row">' +
+            '<button class="btn btn-ghost" onclick="autoPlan()">Auto-plan week</button>' +
+            '<button class="btn btn-ghost" onclick="clearWeek()">Clear week</button>' +
+            '</div>';
+    html += '</div>';
+
+    // Trainer note
+    html += '<div class="section"><div class="card"><details>' +
+            '<summary>From your trainer</summary>' +
+            '<div class="pt-note">Built for the <b>72 → 77 kg lean bulk</b> from your training log — a calorie ' +
+            'surplus with protein in every meal.' +
+            '<ul>' +
+            '<li>Hit <b>~190 g protein</b> and <b>~3000 kcal</b> most days; push a little higher on lower/upper days.</li>' +
+            '<li>Get <b>protein in all four slots</b> — that\'s what the shake and cottage-cheese snacks are for.</li>' +
+            '<li><b>Batch-cook</b> the chilli, bol and cottage pie on Sunday so the week looks after itself.</li>' +
+            '<li>Weigh in daily on the training page — if the 7-day average isn\'t creeping up ~0.25 kg/wk, add a snack.</li>' +
+            '</ul></div></details></div></div>';
+
+    // Data
+    html += '<div class="section"><div class="btn-row">' +
+            '<button class="btn btn-ghost" onclick="exportData()">Export backup</button>' +
+            '<button class="btn btn-ghost" onclick="document.getElementById(\'import-file\').click()">Import</button>' +
+            '</div>' +
+            '<input type="file" id="import-file" accept=".json,application/json" style="display:none" onchange="importData(event)">' +
+            '</div>';
+
+    app.innerHTML = html;
+    window.scrollTo(0, 0);
+  }
+
+  function selectDay(i) { SELDAY = i; renderDay(); }
+
+  function clearSlot(slotKey) {
+    var day = DAYS[SELDAY];
+    if (PLAN[day]) { delete PLAN[day][slotKey]; savePlan(); }
+    renderDay();
+  }
+
+  // ── Recipe picker ──
+  function openPicker(slotKey) {
+    var day = DAYS[SELDAY];
+    var current = (PLAN[day] || {})[slotKey];
+    var slotLabel = SLOTS.filter(function (s) { return s.key === slotKey; })[0].label;
+
+    var matches = [], others = [];
+    Object.keys(RECIPES).forEach(function (id) {
+      (RECIPES[id].type === slotKey ? matches : others).push(id);
+    });
+    var mine = Object.keys(CUSTOM).filter(function (id) { return CUSTOM[id].reuse; });
+
+    var html = '<div class="section"><div class="section-label">' + day + ' · ' + slotLabel + '</div>';
+    html += '<div style="margin-bottom:0.75rem">' +
+            '<button class="btn btn-ghost" onclick="renderDay()">← Back to day</button></div>';
+
+    // Log your own — anything, any portion. Counts for macros, not the shop.
+    html += logForm(slotKey);
+
+    // Saved custom meals (mum's dinners, off-plan bits you reuse)
+    if (mine.length) {
+      html += '<div class="section-label" style="margin-top:0.4rem">My meals</div>';
+      mine.forEach(function (id) { html += customCard(id, slotKey, current); });
+    }
+
+    // Library
+    html += '<div class="section-label" style="margin-top:0.4rem">Recipe library</div>';
+    matches.forEach(function (id) { html += recipeCard(id, slotKey, current); });
+
+    if (others.length) {
+      html += '<details style="margin-top:0.5rem"><summary>Other meals</summary><div style="margin-top:0.6rem">';
+      others.forEach(function (id) { html += recipeCard(id, slotKey, current); });
+      html += '</div></details>';
+    }
+
+    html += '</div>';
+    app.innerHTML = html;
+    window.scrollTo(0, 0);
+  }
+
+  // Free-form log form: name + portion note + macros. Portion is a plain
+  // text field so any weight/amount works ("big plate ~450 g", "2 slices").
+  function logForm(slotKey) {
+    return '<details class="recipe" style="border-color:#3a2b00">' +
+      '<summary style="color:var(--accent)">＋ Log your own meal</summary>' +
+      '<div style="margin-top:0.6rem">' +
+        '<input id="cf-name" type="text" placeholder="What was it? e.g. Mum\'s chicken curry &amp; rice">' +
+        '<input id="cf-portion" type="text" placeholder="Portion / weight (optional) e.g. large bowl ~450 g" style="margin-top:0.5rem">' +
+        '<div class="cf-grid">' +
+          '<div><label class="cf-lab">Calories</label>' +
+            '<input id="cf-kcal" type="number" inputmode="numeric" placeholder="kcal"></div>' +
+          '<div><label class="cf-lab">Protein (g)</label>' +
+            '<input id="cf-p" type="number" inputmode="numeric" placeholder="g"></div>' +
+          '<div><label class="cf-lab">Carbs (g)</label>' +
+            '<input id="cf-c" type="number" inputmode="numeric" placeholder="opt."></div>' +
+          '<div><label class="cf-lab">Fat (g)</label>' +
+            '<input id="cf-f" type="number" inputmode="numeric" placeholder="opt."></div>' +
+        '</div>' +
+        '<label class="cf-reuse"><input id="cf-reuse" type="checkbox"> Save to My meals for next time</label>' +
+        '<button class="btn" onclick="logCustom(\'' + slotKey + '\')">Log it to ' + slotKey + '</button>' +
+        '<div class="cf-hint">Logged meals count toward your daily macros but aren\'t added to the Morrisons list — for food someone else cooks or anything off-plan.</div>' +
+      '</div></details>';
+  }
+
+  function num(id) {
+    var v = parseFloat(document.getElementById(id).value);
+    return isNaN(v) ? 0 : v;
+  }
+
+  function logCustom(slotKey) {
+    var name = document.getElementById('cf-name').value.trim();
+    var kcal = num('cf-kcal');
+    if (!name) { alert('Give the meal a name.'); return; }
+    if (!kcal) { alert('Add an estimated calorie number.'); return; }
+    var reuse = document.getElementById('cf-reuse').checked;
+    var id = 'c_' + Date.now().toString(36) + Math.floor(Math.random() * 1000);
+    CUSTOM[id] = {
+      name: name,
+      portion: document.getElementById('cf-portion').value.trim(),
+      kcal: Math.round(kcal),
+      p: Math.round(num('cf-p')),
+      c: Math.round(num('cf-c')),
+      f: Math.round(num('cf-f')),
+      custom: true,
+      reuse: reuse
+    };
+    saveCustom();
+    assign(slotKey, id);
+  }
+
+  function customCard(id, slotKey, current) {
+    var r = CUSTOM[id];
+    var isCurrent = id === current;
+    var html = '<div class="recipe">';
+    html += '<div class="recipe-top"><div>' +
+            '<div class="recipe-name">' + esc(r.name) + '</div>' +
+            '<div class="recipe-macros">' + r.kcal + ' kcal · ' + r.p + 'P · ' + r.c + 'C · ' + r.f + 'F</div>' +
+            (r.portion ? '<div class="recipe-batch">' + esc(r.portion) + '</div>' : '') +
+            '</div>' +
+            '<button class="add-btn' + (isCurrent ? ' current' : '') + '" onclick="assign(\'' + slotKey + '\',\'' + id + '\')">' +
+            (isCurrent ? '✓ In plan' : 'Add') + '</button></div>';
+    html += '<div class="cf-remove" onclick="forgetMeal(\'' + id + '\',\'' + slotKey + '\')">Remove from My meals</div>';
+    html += '</div>';
+    return html;
+  }
+
+  // Keep any slot that already uses it working; just drop it from the list.
+  function forgetMeal(id, slotKey) {
+    if (CUSTOM[id]) { CUSTOM[id].reuse = false; saveCustom(); }
+    openPicker(slotKey);
+  }
+
+  function recipeCard(id, slotKey, current) {
+    var r = RECIPES[id];
+    var isCurrent = id === current;
+    var html = '<div class="recipe">';
+    html += '<div class="recipe-top"><div>' +
+            '<div class="recipe-name">' + esc(r.name) + '</div>' +
+            '<div class="recipe-macros">' + r.kcal + ' kcal · ' + r.p + 'P · ' + r.c + 'C · ' + r.f + 'F</div>' +
+            (r.batch ? '<div class="recipe-batch">' + esc(r.batch) + '</div>' : '') +
+            '</div>' +
+            '<button class="add-btn' + (isCurrent ? ' current' : '') + '" onclick="assign(\'' + slotKey + '\',\'' + id + '\')">' +
+            (isCurrent ? '✓ In plan' : 'Add') + '</button></div>';
+    html += '<details><summary>Ingredients &amp; method</summary>' +
+            '<ul class="ing-list">';
+    r.ing.forEach(function (ing) {
+      html += '<li><span>' + esc(ing[0]) + '</span><span>' + fmtQty(ing[1], ing[2]) + '</span></li>';
+    });
+    html += '</ul><div class="recipe-detail"><b>Method.</b> ' + esc(r.note) + '</div></details>';
+    html += '</div>';
+    return html;
+  }
+
+  function assign(slotKey, id) {
+    var day = DAYS[SELDAY];
+    if (!PLAN[day]) PLAN[day] = {};
+    PLAN[day][slotKey] = id;
+    savePlan();
+    renderDay();
+  }
+
+  function autoPlan() {
+    if (plannedCount() && !confirm('Fill the whole week with a high-protein rotation? This replaces what\'s there.')) return;
+    var idx = { breakfast: 0, lunch: 0, dinner: 0, snack: 0 };
+    DAYS.forEach(function (d, i) {
+      PLAN[d] = {};
+      SLOTS.forEach(function (s) {
+        var arr = ROTA[s.key];
+        PLAN[d][s.key] = arr[i % arr.length];
+      });
+    });
+    savePlan();
+    renderDay();
+  }
+
+  function clearWeek() {
+    if (!confirm('Clear every meal from the week?')) return;
+    PLAN = {};
+    savePlan();
+    renderDay();
+  }
+
+  // The Morrisons shopping list is its own installable app: shopping.html
+
+  // ─────────────────────────────────────────────
+  // Backup / restore
+  // ─────────────────────────────────────────────
+  function exportData() {
+    var blob = new Blob([JSON.stringify({ plan: PLAN, checked: CHECKED, custom: CUSTOM }, null, 2)], { type: 'application/json' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'meal-plan-' + new Date().toISOString().slice(0, 10) + '.json';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  function importData(ev) {
+    var file = ev.target.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function () {
+      try {
+        var d = JSON.parse(reader.result);
+        if (!d.plan || typeof d.plan !== 'object') throw new Error('bad format');
+        if (confirm('Replace your current meal plan with this backup?')) {
+          PLAN = d.plan;
+          CHECKED = d.checked || {};
+          CUSTOM = d.custom || {};
+          savePlan(); saveChecks(); saveCustom();
+          renderDay();
+        }
+      } catch (e) {
+        alert('That file doesn\'t look like a meal-plan backup.');
+      }
+      ev.target.value = '';
+    };
+    reader.readAsText(file);
+  }
+
+  // ─────────────────────────────────────────────
+  // Boot
+  // ─────────────────────────────────────────────
+  var dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  var monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var now = new Date();
+  document.getElementById('date-display').textContent =
+    dayNames[now.getDay()] + ' ' + now.getDate() + ' ' + monthNames[now.getMonth()];
+
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+
+  renderDay();
+</script>
+</body>
+</html>
