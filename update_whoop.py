@@ -90,40 +90,43 @@ if tokens.get('refresh_token'):
 
 headers = {'Authorization': 'Bearer ' + access_token}
 
-# ── Fetch latest recovery ──
-rec_resp = requests.get(
-    'https://api.prod.whoop.com/developer/v1/recovery?limit=1',
-    headers=headers
-)
-print(f'Recovery status: {rec_resp.status_code}')
-rec_resp.raise_for_status()
-rec_data = rec_resp.json()
+# WHOOP retired the v1 API; all data lives under /developer/v2 now.
+API = 'https://api.prod.whoop.com/developer/v2'
 
-score        = rec_data['records'][0]['score']
-recovery_pct = round(score['recovery_score'])
-hrv          = round(score['hrv_rmssd_milli'])
-rhr          = round(score['resting_heart_rate'])
 
-# ── Fetch latest sleep ──
-sleep_data = requests.get(
-    'https://api.prod.whoop.com/developer/v1/activity/sleep?limit=1',
-    headers=headers
-).json()
-sleep_score = round(sleep_data['records'][0]['score']['sleep_performance_percentage']) \
-    if sleep_data.get('records') else 0
+def latest_scored_record(path):
+    """Return the most recent record's `score` object, or None if unscored."""
+    r = requests.get(f'{API}/{path}?limit=1', headers=headers)
+    print(f'{path} status: {r.status_code}')
+    r.raise_for_status()
+    records = r.json().get('records', [])
+    if not records:
+        return None
+    return records[0].get('score')  # None while a record is still PENDING_SCORE
 
-# ── Fetch latest cycle (strain) ──
-cycle_data = requests.get(
-    'https://api.prod.whoop.com/developer/v1/cycle?limit=1',
-    headers=headers
-).json()
-strain = round(cycle_data['records'][0]['score']['strain'], 1) \
-    if cycle_data.get('records') and cycle_data['records'][0].get('score') else 0.0
-
-# ── Update data.json ──
+# Load existing data first so we can keep last-known values if a metric is
+# briefly unscored (a WHOOP blip should never blank the dashboard).
 with open('data.json', 'r') as f:
     data = json.load(f)
+prev = data.get('whoop', {})
 
+rec = latest_scored_record('recovery')
+if rec:
+    recovery_pct = round(rec['recovery_score'])
+    hrv          = round(rec['hrv_rmssd_milli'])
+    rhr          = round(rec['resting_heart_rate'])
+else:
+    recovery_pct = prev.get('recovery', 0)
+    hrv          = prev.get('hrv', 0)
+    rhr          = prev.get('rhr', 0)
+
+slp = latest_scored_record('activity/sleep')
+sleep_score = round(slp['sleep_performance_percentage']) if slp else prev.get('sleep_score', 0)
+
+cyc = latest_scored_record('cycle')
+strain = round(cyc['strain'], 1) if cyc else prev.get('strain', 0.0)
+
+# ── Update data.json ──
 data['whoop'] = {
     'recovery':    recovery_pct,
     'hrv':         hrv,
