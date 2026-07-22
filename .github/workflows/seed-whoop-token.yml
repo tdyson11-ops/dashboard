@@ -1,0 +1,48 @@
+name: Seed WHOOP Token
+
+# One-time setup: exchange a WHOOP login code for a refresh token and store it
+# encrypted, then immediately pull the latest data. Run manually from the
+# Actions tab (Run workflow) and paste the code from the WHOOP login redirect.
+
+on:
+  workflow_dispatch:
+    inputs:
+      code:
+        description: 'Paste the code from the WHOOP login redirect URL (the whole http://localhost:8080/callback?code=... URL is fine too)'
+        required: true
+
+jobs:
+  seed:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: pip install requests cryptography
+
+      - name: Exchange code for refresh token
+        env:
+          WHOOP_CLIENT_ID: ${{ secrets.WHOOP_CLIENT_ID }}
+          WHOOP_CLIENT_SECRET: ${{ secrets.WHOOP_CLIENT_SECRET }}
+          WHOOP_TOKEN_KEY: ${{ secrets.WHOOP_TOKEN_KEY }}
+          WHOOP_CODE: ${{ inputs.code }}
+        run: python3 seed_whoop_token.py
+
+      - name: Pull latest WHOOP data
+        env:
+          WHOOP_CLIENT_ID: ${{ secrets.WHOOP_CLIENT_ID }}
+          WHOOP_CLIENT_SECRET: ${{ secrets.WHOOP_CLIENT_SECRET }}
+          WHOOP_TOKEN_KEY: ${{ secrets.WHOOP_TOKEN_KEY }}
+        run: python3 update_whoop.py
+
+      - name: Commit token and data
+        if: always()  # persist the (possibly rotated) token even if the data fetch failed
+        run: |
+          git config user.email "action@github.com"
+          git config user.name "GitHub Action"
+          git add .whoop_token.enc data.json
+          git diff --staged --quiet || git commit -m "Seed WHOOP token and refresh data"
+          git push

@@ -15,19 +15,22 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install dependencies
-        run: pip install requests
+        run: pip install requests cryptography
 
       - name: Fetch WHOOP data
         env:
           WHOOP_CLIENT_ID: ${{ secrets.WHOOP_CLIENT_ID }}
           WHOOP_CLIENT_SECRET: ${{ secrets.WHOOP_CLIENT_SECRET }}
           WHOOP_REFRESH_TOKEN: ${{ secrets.WHOOP_REFRESH_TOKEN }}
+          WHOOP_TOKEN_KEY: ${{ secrets.WHOOP_TOKEN_KEY }}
         run: python3 update_whoop.py
 
       - name: Commit updated data
+        if: always()  # persist the rotated token even if the data fetch failed
         run: |
           git config user.email "action@github.com"
           git config user.name "GitHub Action"
           git add data.json
+          git add .whoop_token.enc 2>/dev/null || true
           git diff --staged --quiet || git commit -m "Update WHOOP data"
           git push

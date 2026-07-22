@@ -1,22 +1,22 @@
 {
-  "updated": "20 May 2026",
+  "updated": "22 July 2026",
   "focus": [
     "Review cash flow projections with Dad",
-    "Submit NHBC stage inspection request — Plots 7-9",
+    "Submit NHBC stage inspection request \u2014 Plots 7-9",
     "Revise for CM essay due Friday"
   ],
   "whoop": {
-    "recovery": 77,
-    "hrv": 58,
-    "rhr": 51,
-    "sleep_score": 78,
-    "strain": 12.4
+    "recovery": 94,
+    "hrv": 126,
+    "rhr": 42,
+    "sleep_score": 87,
+    "strain": 5.9
   },
   "cyden": {
     "plots_complete": 14,
     "plots_total": 32,
-    "current_stage": "Roof structure — Plots 15-18",
-    "next_milestone": "Slab pour — Plots 19-22 (26 May)",
+    "current_stage": "Roof structure \u2014 Plots 15-18",
+    "next_milestone": "Slab pour \u2014 Plots 19-22 (26 May)",
     "kpis": [
       {
         "label": "On programme",

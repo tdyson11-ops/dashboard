@@ -52,6 +52,35 @@ Add it to your home screen the same way as the dashboard (**Share → Add to Hom
 - Plan on Sunday/Monday night in the Meals app, then open the Shopping app in store — it re-reads the plan automatically. Add it to your home screen for its own **Shopping** icon
 - The recipe library, targets and aisle map are shared with the meal planner in **`mealdata.js`** (single source of truth — add or edit recipes there and both apps update)
 
+## Fuel (nutrition log)
+
+`nutrition.html` is a tap-to-log calorie/protein tracker (linked from the dashboard and training log):
+
+- Daily targets (3,200 kcal / 160g protein) with color-coded progress
+- Pre-loaded staple foods — tap once to log, tap +/− to adjust quantity
+- Custom foods can be logged once or saved as new staples ("Edit staples" to remove)
+- 7-day view with daily totals and average
+- Same localStorage + Export/Import backup model as the training log
+
+## WHOOP auto-update
+
+The `Update WHOOP Data` workflow refreshes `data.json` daily. WHOOP refresh tokens are
+**single-use** — every refresh returns a new token — so the workflow persists the current
+token in `.whoop_token.enc`, encrypted with the `WHOOP_TOKEN_KEY` secret, and commits it
+back to the repo. The `WHOOP_REFRESH_TOKEN` secret only seeds the first run.
+
+Required repo secrets (Settings → Secrets and variables → Actions):
+
+| Secret | Value |
+|---|---|
+| `WHOOP_CLIENT_ID` | From the WHOOP developer dashboard |
+| `WHOOP_CLIENT_SECRET` | From the WHOOP developer dashboard |
+| `WHOOP_REFRESH_TOKEN` | Fresh token from `python get_token.py <id> <secret>` |
+| `WHOOP_TOKEN_KEY` | Any long random string (encrypts the rotated token) |
+
+If the workflow ever fails with all tokens rejected: re-run `get_token.py`, update the
+`WHOOP_REFRESH_TOKEN` secret, and delete `.whoop_token.enc` from the repo.
+
 ## Updating data
 
 Edit `data.json` and push to GitHub — the dashboard updates within ~60 seconds.

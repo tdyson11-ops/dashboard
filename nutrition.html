@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Fuel">
+  <meta name="theme-color" content="#0d0d0d">
+  <link rel="manifest" href="manifest-fuel.json">
+  <link rel="apple-touch-icon" href="ficon-180.png">
+  <title>Fuel — Tom Dyson</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #0d0d0d;
+      --card: #161616;
+      --border: #222;
+      --text: #f0f0f0;
+      --muted: #666;
+      --accent: #f59e0b;
+      --green: #22c55e;
+      --amber: #f59e0b;
+      --red: #ef4444;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      max-width: 430px;
+      margin: 0 auto;
+      padding-bottom: 3rem;
+    }
+
+    .header {
+      padding: 1.5rem 1.25rem 1rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+
+    .header-name { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; }
+
+    .header-sub {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+      margin-bottom: 0.3rem;
+    }
+
+    .back-link { font-size: 0.78rem; color: var(--muted); text-decoration: none; padding-bottom: 0.15rem; }
+
+    .section { padding: 1rem 1.25rem 0; }
+
+    .section-label {
+      font-size: 0.63rem;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--muted);
+      margin-bottom: 0.55rem;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.1rem;
+      margin-bottom: 0.75rem;
+    }
+
+    /* ── Today totals ── */
+    .totals-row { display: flex; justify-content: space-between; align-items: baseline; }
+    .total-big { font-size: 1.9rem; font-weight: 700; letter-spacing: -0.02em; }
+    .total-target { font-size: 0.75rem; color: var(--muted); }
+
+    .progress-bar {
+      background: #222;
+      border-radius: 4px;
+      height: 6px;
+      margin: 0.5rem 0 0.9rem;
+      overflow: hidden;
+    }
+
+    .progress-fill { height: 100%; border-radius: 4px; background: var(--accent); transition: width 0.3s; }
+
+    .good { color: var(--green); }
+    .warn { color: var(--amber); }
+    .bad  { color: var(--red); }
+
+    .fill-good { background: var(--green); }
+    .fill-warn { background: var(--amber); }
+    .fill-bad  { background: var(--red); }
+
+    /* ── Staples ── */
+    .chip-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+
+    .chip {
+      background: #0f0f0f;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.6rem 0.7rem;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      position: relative;
+    }
+
+    .chip:active { border-color: var(--accent); }
+    .chip-name { font-size: 0.78rem; font-weight: 600; line-height: 1.25; }
+    .chip-macros { font-size: 0.65rem; color: var(--muted); margin-top: 0.2rem; }
+
+    .chip-del {
+      position: absolute;
+      top: 0.3rem;
+      right: 0.45rem;
+      color: var(--red);
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+
+    /* ── Inputs & buttons ── */
+    input {
+      background: #0f0f0f;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 16px;
+      padding: 0.5rem 0.6rem;
+      width: 100%;
+    }
+
+    input:focus { outline: none; border-color: var(--accent); }
+
+    .btn {
+      display: block;
+      width: 100%;
+      background: var(--accent);
+      color: #0d0d0d;
+      border: none;
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: 0.85rem;
+      font-weight: 700;
+      padding: 0.7rem;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); font-weight: 500; }
+    .btn-row { display: flex; gap: 0.6rem; margin-top: 0.6rem; }
+
+    .form-row { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 0.5rem; }
+
+    /* ── Log rows ── */
+    .log-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.8rem;
+    }
+
+    .log-row:last-child { border-bottom: none; }
+    .log-name { font-weight: 500; }
+    .log-qty { color: var(--accent); font-weight: 700; }
+    .log-macros { color: var(--muted); font-size: 0.7rem; }
+
+    .qty-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #0f0f0f;
+      color: var(--text);
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .qty-controls { display: flex; gap: 0.4rem; align-items: center; margin-left: 0.6rem; flex-shrink: 0; }
+
+    /* ── Week view ── */
+    .day-row {
+      display: grid;
+      grid-template-columns: 2.4rem 1fr auto;
+      gap: 0.6rem;
+      align-items: center;
+      padding: 0.32rem 0;
+      font-size: 0.72rem;
+    }
+
+    .day-label { color: var(--muted); }
+    .day-bar-track { background: #222; border-radius: 3px; height: 8px; overflow: hidden; position: relative; }
+    .day-bar { height: 100%; border-radius: 3px; }
+    .day-val { color: var(--muted); text-align: right; min-width: 6.5rem; }
+    .day-val strong { color: var(--text); font-weight: 600; }
+
+    summary {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--accent);
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    details[open] summary { margin-bottom: 0.6rem; }
+
+    .empty-note { font-size: 0.78rem; color: var(--muted); text-align: center; padding: 0.5rem 0; }
+
+    .footnote {
+      font-size: 0.65rem;
+      color: var(--muted);
+      line-height: 1.5;
+      padding: 0.75rem 1.25rem 0;
+      text-align: center;
+    }
+
+    a.nav-card {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      text-decoration: none;
+      color: var(--text);
+      -webkit-tap-highlight-color: transparent;
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="header-sub" id="date-display"></div>
+    <div class="header-name">Fuel</div>
+  </div>
+  <a class="back-link" href="index.html">← Dashboard</a>
+</div>
+
+<div id="app"></div>
+
+<div class="footnote">
+  Targets: 3,200 kcal · 160g protein · 80% whole foods.<br>
+  Data is stored on this device — Export a backup every week or two.
+</div>
+
+<script>
+  // ─────────────────────────────────────────────
+  // Targets & default staples (kcal / protein g per serving)
+  // ─────────────────────────────────────────────
+  var TARGET = { kcal: 3200, p: 160 };
+
+  var DEFAULT_FOODS = [
+    { name: 'The Shake (oats/milk/PB/banana/whey)', kcal: 1100, p: 50 },
+    { name: 'Whole milk 500ml',        kcal: 320, p: 17 },
+    { name: 'Egg',                     kcal: 72,  p: 6 },
+    { name: 'Oats 100g',               kcal: 380, p: 13 },
+    { name: 'Chicken breast 200g',     kcal: 330, p: 62 },
+    { name: 'Rice 250g cooked',        kcal: 320, p: 7 },
+    { name: 'Potatoes 300g',           kcal: 260, p: 6 },
+    { name: 'Greek yogurt 170g',       kcal: 165, p: 15 },
+    { name: 'Banana',                  kcal: 105, p: 1 },
+    { name: 'Peanut butter 1 tbsp',    kcal: 95,  p: 4 },
+    { name: 'Olive oil 1 tbsp',        kcal: 120, p: 0 },
+    { name: 'Whey scoop',              kcal: 120, p: 24 },
+    { name: 'Salmon fillet 150g',      kcal: 310, p: 31 },
+    { name: 'Beef mince 200g (10%)',   kcal: 350, p: 40 },
+    { name: 'Nuts 30g handful',        kcal: 180, p: 6 },
+    { name: 'Bread slice',             kcal: 90,  p: 3 },
+    { name: 'Takeaway meal (estimate)', kcal: 900, p: 35 }
+  ];
+
+  // ─────────────────────────────────────────────
+  // Storage
+  // ─────────────────────────────────────────────
+  var KEY = 'fuel-log-v1';
+
+  function load() {
+    try {
+      var d = JSON.parse(localStorage.getItem(KEY));
+      if (d && d.foods && d.log) return d;
+    } catch (e) {}
+    return { foods: DEFAULT_FOODS.slice(), log: [] };
+  }
+
+  function save() { localStorage.setItem(KEY, JSON.stringify(DB)); }
+
+  var DB = load();
+  var editingStaples = false;
+
+  // ─────────────────────────────────────────────
+  // Helpers
+  // ─────────────────────────────────────────────
+  function pad(n) { return String(n).padStart(2, '0'); }
+  function todayStr() {
+    var n = new Date();
+    return n.getFullYear() + '-' + pad(n.getMonth() + 1) + '-' + pad(n.getDate());
+  }
+  function dayLabel(iso) {
+    var d = new Date(iso + 'T12:00:00');
+    return ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][d.getDay()];
+  }
+  function esc(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function dayTotals(date) {
+    var kcal = 0, p = 0;
+    DB.log.forEach(function (e) {
+      if (e.date === date) { kcal += e.kcal * e.qty; p += e.p * e.qty; }
+    });
+    return { kcal: Math.round(kcal), p: Math.round(p) };
+  }
+
+  function kcalClass(kcal) {
+    if (kcal > 3500) return 'bad';
+    if (kcal >= 3000) return 'good';
+    return 'warn';
+  }
+
+  // ─────────────────────────────────────────────
+  // Render
+  // ─────────────────────────────────────────────
+  var app = document.getElementById('app');
+
+  function render() {
+    var today = todayStr();
+    var t = dayTotals(today);
+    var kcalPct = Math.min(100, Math.round(t.kcal / TARGET.kcal * 100));
+    var pPct = Math.min(100, Math.round(t.p / TARGET.p * 100));
+    var kCls = kcalClass(t.kcal);
+    var pCls = t.p >= 150 ? 'good' : 'warn';
+
+    var html = '';
+
+    // Today totals
+    html += '<div class="section"><div class="section-label">Today</div><div class="card">';
+    html += '<div class="totals-row"><span class="total-big ' + kCls + '">' + t.kcal.toLocaleString() + '</span>' +
+            '<span class="total-target">/ ' + TARGET.kcal.toLocaleString() + ' kcal</span></div>';
+    html += '<div class="progress-bar"><div class="progress-fill fill-' + kCls + '" style="width:' + kcalPct + '%"></div></div>';
+    html += '<div class="totals-row"><span class="total-big ' + pCls + '" style="font-size:1.3rem">' + t.p + 'g</span>' +
+            '<span class="total-target">/ ' + TARGET.p + 'g protein</span></div>';
+    html += '<div class="progress-bar" style="margin-bottom:0"><div class="progress-fill fill-' + pCls + '" style="width:' + pPct + '%"></div></div>';
+    html += '</div></div>';
+
+    // Staples
+    html += '<div class="section"><div class="section-label">Tap to log</div><div class="card">';
+    html += '<div class="chip-grid">';
+    DB.foods.forEach(function (f, i) {
+      html += '<div class="chip" onclick="' + (editingStaples ? 'removeFood(' + i + ')' : 'addEntry(' + i + ')') + '">' +
+              (editingStaples ? '<span class="chip-del">×</span>' : '') +
+              '<div class="chip-name">' + esc(f.name) + '</div>' +
+              '<div class="chip-macros">' + f.kcal + ' kcal · ' + f.p + 'g</div></div>';
+    });
+    html += '</div>';
+    html += '<div class="btn-row"><button class="btn btn-ghost" onclick="toggleEdit()">' +
+            (editingStaples ? 'Done editing' : 'Edit staples') + '</button></div>';
+    html += '</div>';
+
+    // Custom add
+    html += '<div class="card"><details><summary>Add something else</summary>';
+    html += '<div class="form-row">' +
+            '<input id="cf-name" placeholder="Food">' +
+            '<input id="cf-kcal" type="number" inputmode="numeric" placeholder="kcal">' +
+            '<input id="cf-p" type="number" inputmode="numeric" placeholder="g prot">' +
+            '</div>';
+    html += '<div class="btn-row">' +
+            '<button class="btn btn-ghost" onclick="addCustom(false)">Log once</button>' +
+            '<button class="btn" onclick="addCustom(true)">Log + save staple</button>' +
+            '</div></details></div></div>';
+
+    // Today's log
+    html += '<div class="section"><div class="section-label">Logged today</div><div class="card">';
+    var entries = DB.log.filter(function (e) { return e.date === today; });
+    if (!entries.length) {
+      html += '<div class="empty-note">Nothing yet. Breakfast doesn’t log itself.</div>';
+    } else {
+      entries.forEach(function (e) {
+        var idx = DB.log.indexOf(e);
+        html += '<div class="log-row">' +
+                '<div><span class="log-qty">' + e.qty + '×</span> <span class="log-name">' + esc(e.name) + '</span>' +
+                '<div class="log-macros">' + Math.round(e.kcal * e.qty) + ' kcal · ' + Math.round(e.p * e.qty) + 'g protein</div></div>' +
+                '<div class="qty-controls">' +
+                '<button class="qty-btn" onclick="changeQty(' + idx + ',-1)">−</button>' +
+                '<button class="qty-btn" onclick="changeQty(' + idx + ',1)">+</button>' +
+                '</div></div>';
+      });
+    }
+    html += '</div></div>';
+
+    // Last 7 days
+    html += '<div class="section"><div class="section-label">Last 7 days</div><div class="card">';
+    var sumK = 0, sumP = 0, daysWithData = 0;
+    var rows = '';
+    for (var i = 6; i >= 0; i--) {
+      var d = new Date();
+      d.setDate(d.getDate() - i);
+      var iso = d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+      var dt = dayTotals(iso);
+      if (dt.kcal > 0) { sumK += dt.kcal; sumP += dt.p; daysWithData++; }
+      var pct = Math.min(100, Math.round(dt.kcal / TARGET.kcal * 100));
+      var cls = dt.kcal ? kcalClass(dt.kcal) : 'warn';
+      rows += '<div class="day-row"><span class="day-label">' + (i === 0 ? 'Today' : dayLabel(iso)) + '</span>' +
+              '<div class="day-bar-track"><div class="day-bar fill-' + cls + '" style="width:' + pct + '%"></div></div>' +
+              '<span class="day-val"><strong>' + dt.kcal.toLocaleString() + '</strong> · ' + dt.p + 'g</span></div>';
+    }
+    html += rows;
+    if (daysWithData) {
+      html += '<div class="day-row" style="border-top:1px solid var(--border);margin-top:0.4rem;padding-top:0.55rem">' +
+              '<span class="day-label">Avg</span><span></span>' +
+              '<span class="day-val"><strong>' + Math.round(sumK / daysWithData).toLocaleString() + '</strong> · ' +
+              Math.round(sumP / daysWithData) + 'g</span></div>';
+    }
+    html += '</div>';
+
+    // Cross-link + backup
+    html += '<a class="card nav-card" href="training.html"><div>' +
+            '<div class="chip-name" style="font-size:0.95rem">Training log</div>' +
+            '<div class="chip-macros">log today’s session</div></div><div style="color:var(--muted)">›</div></a>';
+    html += '<div class="btn-row">' +
+            '<button class="btn btn-ghost" onclick="exportData()">Export backup</button>' +
+            '<button class="btn btn-ghost" onclick="document.getElementById(\'import-file\').click()">Import</button>' +
+            '</div>';
+    html += '<input type="file" id="import-file" accept=".json,application/json" style="display:none" onchange="importData(event)">';
+    html += '</div>';
+
+    app.innerHTML = html;
+  }
+
+  // ─────────────────────────────────────────────
+  // Actions
+  // ─────────────────────────────────────────────
+  function addEntry(foodIdx) {
+    var f = DB.foods[foodIdx];
+    var today = todayStr();
+    var existing = DB.log.find(function (e) {
+      return e.date === today && e.name === f.name && e.kcal === f.kcal && e.p === f.p;
+    });
+    if (existing) existing.qty += 1;
+    else DB.log.push({ date: today, name: f.name, kcal: f.kcal, p: f.p, qty: 1 });
+    save();
+    render();
+  }
+
+  function changeQty(logIdx, delta) {
+    var e = DB.log[logIdx];
+    if (!e) return;
+    e.qty += delta;
+    if (e.qty <= 0) DB.log.splice(logIdx, 1);
+    save();
+    render();
+  }
+
+  function toggleEdit() {
+    editingStaples = !editingStaples;
+    render();
+  }
+
+  function removeFood(idx) {
+    if (confirm('Remove "' + DB.foods[idx].name + '" from staples? (Already-logged entries keep their values.)')) {
+      DB.foods.splice(idx, 1);
+      save();
+      render();
+    }
+  }
+
+  function addCustom(saveStaple) {
+    var name = document.getElementById('cf-name').value.trim();
+    var kcal = parseInt(document.getElementById('cf-kcal').value, 10);
+    var p = parseInt(document.getElementById('cf-p').value, 10) || 0;
+    if (!name || !kcal) { alert('Need at least a name and calories.'); return; }
+    if (saveStaple) DB.foods.push({ name: name, kcal: kcal, p: p });
+    DB.log.push({ date: todayStr(), name: name, kcal: kcal, p: p, qty: 1 });
+    save();
+    render();
+  }
+
+  // ─────────────────────────────────────────────
+  // Backup / restore
+  // ─────────────────────────────────────────────
+  function exportData() {
+    var blob = new Blob([JSON.stringify(DB, null, 2)], { type: 'application/json' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'fuel-backup-' + todayStr() + '.json';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  function importData(ev) {
+    var file = ev.target.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function () {
+      try {
+        var d = JSON.parse(reader.result);
+        if (!d.foods || !d.log) throw new Error('bad format');
+        if (confirm('Replace current food log with this backup (' + d.log.length + ' entries)?')) {
+          DB = d;
+          save();
+          render();
+        }
+      } catch (e) {
+        alert('That file doesn’t look like a Fuel backup.');
+      }
+      ev.target.value = '';
+    };
+    reader.readAsText(file);
+  }
+
+  // ─────────────────────────────────────────────
+  // Boot
+  // ─────────────────────────────────────────────
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+
+  var days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var now = new Date();
+  document.getElementById('date-display').textContent =
+    days[now.getDay()] + ' ' + now.getDate() + ' ' + months[now.getMonth()];
+
+  render();
+</script>
+</body>
+</html>
