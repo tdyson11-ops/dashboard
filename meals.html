@@ -227,6 +227,41 @@
     .ing-list li { display: flex; justify-content: space-between; padding: 0.12rem 0; border-bottom: 1px dashed #1c1c1c; }
     .ing-list li span:last-child { color: var(--text); font-weight: 500; white-space: nowrap; padding-left: 0.75rem; }
 
+    /* ── Log-your-own form ── */
+    input[type="text"], input[type="number"] {
+      background: #0f0f0f;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 16px; /* prevents iOS zoom */
+      padding: 0.55rem 0.65rem;
+      width: 100%;
+    }
+    input[type="text"]:focus, input[type="number"]:focus { outline: none; border-color: var(--accent); }
+    .cf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 0.5rem; }
+    .cf-lab { display: block; font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 0.2rem; }
+    .cf-reuse { display: flex; align-items: center; gap: 0.5rem; font-size: 0.78rem; color: var(--text); margin-top: 0.75rem; cursor: pointer; }
+    .cf-reuse input { width: 18px; height: 18px; accent-color: var(--accent); }
+    .cf-hint { font-size: 0.68rem; line-height: 1.5; color: var(--muted); margin-top: 0.6rem; }
+    .cf-remove { font-size: 0.68rem; color: var(--muted); margin-top: 0.6rem; text-align: right; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+
+    .logged-tag {
+      display: inline-block;
+      background: #1c1400;
+      color: var(--accent);
+      border: 1px solid #3a2b00;
+      border-radius: 6px;
+      padding: 0.08rem 0.4rem;
+      font-size: 0.55rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-left: 0.45rem;
+      vertical-align: middle;
+    }
+    .slot-portion { font-size: 0.68rem; color: var(--muted); margin-top: 0.15rem; }
+
     /* ── Shopping list ── */
     .aisle-head {
       font-size: 0.62rem;
@@ -297,7 +332,7 @@
   // Trainer targets — lean bulk 72 → 77 kg
   // High protein, calorie surplus. Tune here.
   // ─────────────────────────────────────────────
-  var TARGET = { kcal: 3000, p: 180 };
+  var TARGET = { kcal: 3000, p: 190 };
 
   // ─────────────────────────────────────────────
   // Morrisons aisle map (item -> section)
@@ -447,27 +482,44 @@
   // ─────────────────────────────────────────────
   var PLAN_KEY = 'meal-plan-v1';
   var CHECK_KEY = 'meal-shop-checked-v1';
+  var CUSTOM_KEY = 'meal-custom-v1';
 
-  function loadPlan() {
+  function loadObj(key) {
     try {
-      var d = JSON.parse(localStorage.getItem(PLAN_KEY));
+      var d = JSON.parse(localStorage.getItem(key));
       if (d && typeof d === 'object') return d;
     } catch (e) {}
     return {};
   }
+  function loadPlan() { return loadObj(PLAN_KEY); }
   function savePlan() { localStorage.setItem(PLAN_KEY, JSON.stringify(PLAN)); }
-
-  function loadChecks() {
-    try {
-      var d = JSON.parse(localStorage.getItem(CHECK_KEY));
-      if (d && typeof d === 'object') return d;
-    } catch (e) {}
-    return {};
-  }
+  function loadChecks() { return loadObj(CHECK_KEY); }
   function saveChecks() { localStorage.setItem(CHECK_KEY, JSON.stringify(CHECKED)); }
+  function loadCustom() { return loadObj(CUSTOM_KEY); }
+  function saveCustom() { localStorage.setItem(CUSTOM_KEY, JSON.stringify(CUSTOM)); }
 
   var PLAN = loadPlan();
   var CHECKED = loadChecks();
+  var CUSTOM = loadCustom();
+
+  // A slot can hold a library recipe id OR a custom (logged) meal id.
+  // Custom meals count toward macros but carry no ingredients, so they
+  // never touch the shopping list — someone else is cooking them.
+  function getMeal(id) { return RECIPES[id] || CUSTOM[id] || null; }
+
+  // Drop one-off logged meals that no slot references any more.
+  function gcCustom() {
+    var used = {};
+    DAYS.forEach(function (d) {
+      var s = PLAN[d] || {};
+      SLOTS.forEach(function (sl) { if (s[sl.key]) used[s[sl.key]] = true; });
+    });
+    var changed = false;
+    Object.keys(CUSTOM).forEach(function (id) {
+      if (!CUSTOM[id].reuse && !used[id]) { delete CUSTOM[id]; changed = true; }
+    });
+    if (changed) saveCustom();
+  }
 
   // ─────────────────────────────────────────────
   // Helpers
@@ -487,11 +539,8 @@
     var slots = PLAN[day] || {};
     var m = { kcal: 0, p: 0, c: 0, f: 0, n: 0 };
     SLOTS.forEach(function (s) {
-      var id = slots[s.key];
-      if (id && RECIPES[id]) {
-        var r = RECIPES[id];
-        m.kcal += r.kcal; m.p += r.p; m.c += r.c; m.f += r.f; m.n++;
-      }
+      var r = getMeal(slots[s.key]);
+      if (r) { m.kcal += r.kcal; m.p += r.p; m.c += r.c; m.f += r.f; m.n++; }
     });
     return m;
   }
@@ -529,6 +578,7 @@
   }
 
   function renderDay() {
+    gcCustom();
     var day = DAYS[SELDAY];
     var slots = PLAN[day] || {};
     var m = dayMacros(day);
@@ -539,16 +589,18 @@
     // Meal slots
     html += '<div class="section">';
     SLOTS.forEach(function (s) {
-      var id = slots[s.key];
+      var r = getMeal(slots[s.key]);
       html += '<div class="slot">';
       html += '<div class="slot-head"><span class="slot-label">' + s.label + '</span>';
-      if (id && RECIPES[id]) html += '<span class="slot-kcal">' + RECIPES[id].kcal + ' kcal</span>';
+      if (r) html += '<span class="slot-kcal">' + r.kcal + ' kcal</span>';
       html += '</div>';
-      if (id && RECIPES[id]) {
-        var r = RECIPES[id];
+      if (r) {
+        var tag = r.custom ? '<span class="logged-tag">logged</span>' : '';
+        var portion = r.custom && r.portion ? '<div class="slot-portion">' + esc(r.portion) + '</div>' : '';
         html += '<div class="slot-body">' +
                 '<div onclick="openPicker(\'' + s.key + '\')" style="flex:1">' +
-                '<div class="slot-name">' + esc(r.name) + '</div>' +
+                '<div class="slot-name">' + esc(r.name) + tag + '</div>' +
+                portion +
                 '<div class="slot-macros">' + r.p + 'P · ' + r.c + 'C · ' + r.f + 'F</div>' +
                 '</div>' +
                 '<span class="slot-remove" onclick="clearSlot(\'' + s.key + '\')">×</span>' +
@@ -596,7 +648,7 @@
             '<div class="pt-note">Built for the <b>72 → 77 kg lean bulk</b> from your training log — a calorie ' +
             'surplus with protein in every meal.' +
             '<ul>' +
-            '<li>Hit <b>~180 g protein</b> and <b>~3000 kcal</b> most days; push a little higher on lower/upper days.</li>' +
+            '<li>Hit <b>~190 g protein</b> and <b>~3000 kcal</b> most days; push a little higher on lower/upper days.</li>' +
             '<li>Get <b>protein in all four slots</b> — that\'s what the shake and cottage-cheese snacks are for.</li>' +
             '<li><b>Batch-cook</b> the chilli, bol and cottage pie on Sunday so the week looks after itself.</li>' +
             '<li>Weigh in daily on the training page — if the 7-day average isn\'t creeping up ~0.25 kg/wk, add a snack.</li>' +
@@ -632,11 +684,23 @@
     Object.keys(RECIPES).forEach(function (id) {
       (RECIPES[id].type === slotKey ? matches : others).push(id);
     });
+    var mine = Object.keys(CUSTOM).filter(function (id) { return CUSTOM[id].reuse; });
 
     var html = '<div class="section"><div class="section-label">' + day + ' · ' + slotLabel + '</div>';
     html += '<div style="margin-bottom:0.75rem">' +
             '<button class="btn btn-ghost" onclick="renderDay()">← Back to day</button></div>';
 
+    // Log your own — anything, any portion. Counts for macros, not the shop.
+    html += logForm(slotKey);
+
+    // Saved custom meals (mum's dinners, off-plan bits you reuse)
+    if (mine.length) {
+      html += '<div class="section-label" style="margin-top:0.4rem">My meals</div>';
+      mine.forEach(function (id) { html += customCard(id, slotKey, current); });
+    }
+
+    // Library
+    html += '<div class="section-label" style="margin-top:0.4rem">Recipe library</div>';
     matches.forEach(function (id) { html += recipeCard(id, slotKey, current); });
 
     if (others.length) {
@@ -648,6 +712,78 @@
     html += '</div>';
     app.innerHTML = html;
     window.scrollTo(0, 0);
+  }
+
+  // Free-form log form: name + portion note + macros. Portion is a plain
+  // text field so any weight/amount works ("big plate ~450 g", "2 slices").
+  function logForm(slotKey) {
+    return '<details class="recipe" style="border-color:#3a2b00">' +
+      '<summary style="color:var(--accent)">＋ Log your own meal</summary>' +
+      '<div style="margin-top:0.6rem">' +
+        '<input id="cf-name" type="text" placeholder="What was it? e.g. Mum\'s chicken curry &amp; rice">' +
+        '<input id="cf-portion" type="text" placeholder="Portion / weight (optional) e.g. large bowl ~450 g" style="margin-top:0.5rem">' +
+        '<div class="cf-grid">' +
+          '<div><label class="cf-lab">Calories</label>' +
+            '<input id="cf-kcal" type="number" inputmode="numeric" placeholder="kcal"></div>' +
+          '<div><label class="cf-lab">Protein (g)</label>' +
+            '<input id="cf-p" type="number" inputmode="numeric" placeholder="g"></div>' +
+          '<div><label class="cf-lab">Carbs (g)</label>' +
+            '<input id="cf-c" type="number" inputmode="numeric" placeholder="opt."></div>' +
+          '<div><label class="cf-lab">Fat (g)</label>' +
+            '<input id="cf-f" type="number" inputmode="numeric" placeholder="opt."></div>' +
+        '</div>' +
+        '<label class="cf-reuse"><input id="cf-reuse" type="checkbox"> Save to My meals for next time</label>' +
+        '<button class="btn" onclick="logCustom(\'' + slotKey + '\')">Log it to ' + slotKey + '</button>' +
+        '<div class="cf-hint">Logged meals count toward your daily macros but aren\'t added to the Morrisons list — for food someone else cooks or anything off-plan.</div>' +
+      '</div></details>';
+  }
+
+  function num(id) {
+    var v = parseFloat(document.getElementById(id).value);
+    return isNaN(v) ? 0 : v;
+  }
+
+  function logCustom(slotKey) {
+    var name = document.getElementById('cf-name').value.trim();
+    var kcal = num('cf-kcal');
+    if (!name) { alert('Give the meal a name.'); return; }
+    if (!kcal) { alert('Add an estimated calorie number.'); return; }
+    var reuse = document.getElementById('cf-reuse').checked;
+    var id = 'c_' + Date.now().toString(36) + Math.floor(Math.random() * 1000);
+    CUSTOM[id] = {
+      name: name,
+      portion: document.getElementById('cf-portion').value.trim(),
+      kcal: Math.round(kcal),
+      p: Math.round(num('cf-p')),
+      c: Math.round(num('cf-c')),
+      f: Math.round(num('cf-f')),
+      custom: true,
+      reuse: reuse
+    };
+    saveCustom();
+    assign(slotKey, id);
+  }
+
+  function customCard(id, slotKey, current) {
+    var r = CUSTOM[id];
+    var isCurrent = id === current;
+    var html = '<div class="recipe">';
+    html += '<div class="recipe-top"><div>' +
+            '<div class="recipe-name">' + esc(r.name) + '</div>' +
+            '<div class="recipe-macros">' + r.kcal + ' kcal · ' + r.p + 'P · ' + r.c + 'C · ' + r.f + 'F</div>' +
+            (r.portion ? '<div class="recipe-batch">' + esc(r.portion) + '</div>' : '') +
+            '</div>' +
+            '<button class="add-btn' + (isCurrent ? ' current' : '') + '" onclick="assign(\'' + slotKey + '\',\'' + id + '\')">' +
+            (isCurrent ? '✓ In plan' : 'Add') + '</button></div>';
+    html += '<div class="cf-remove" onclick="forgetMeal(\'' + id + '\',\'' + slotKey + '\')">Remove from My meals</div>';
+    html += '</div>';
+    return html;
+  }
+
+  // Keep any slot that already uses it working; just drop it from the list.
+  function forgetMeal(id, slotKey) {
+    if (CUSTOM[id]) { CUSTOM[id].reuse = false; saveCustom(); }
+    openPicker(slotKey);
   }
 
   function recipeCard(id, slotKey, current) {
@@ -708,9 +844,9 @@
     DAYS.forEach(function (d) {
       var slots = PLAN[d] || {};
       SLOTS.forEach(function (s) {
-        var id = slots[s.key];
-        if (!id || !RECIPES[id]) return;
-        RECIPES[id].ing.forEach(function (ing) {
+        var r = getMeal(slots[s.key]);
+        if (!r || !r.ing || !r.ing.length) return; // logged meals carry no ingredients
+        r.ing.forEach(function (ing) {
           var key = ing[0] + '|' + ing[2];
           if (!map[key]) map[key] = { item: ing[0], unit: ing[2], qty: 0, cat: catOf(ing[0]) };
           map[key].qty += ing[1];
@@ -767,7 +903,8 @@
             '<button class="btn btn-ghost" onclick="resetTicks()">Reset ticks</button>' +
             '</div>';
     html += '<div class="footnote" style="padding-left:0;padding-right:0">Quantities are totals across the week — ' +
-            'round up to the nearest pack in store. Tinned and dry goods you already have can be skipped.</div>';
+            'round up to the nearest pack in store. Tinned and dry goods you already have can be skipped. ' +
+            'Meals you logged yourself aren\'t listed here — only the recipes you\'re cooking.</div>';
     html += '</div>';
 
     app.innerHTML = html;
@@ -831,7 +968,7 @@
   // Backup / restore
   // ─────────────────────────────────────────────
   function exportData() {
-    var blob = new Blob([JSON.stringify({ plan: PLAN, checked: CHECKED }, null, 2)], { type: 'application/json' });
+    var blob = new Blob([JSON.stringify({ plan: PLAN, checked: CHECKED, custom: CUSTOM }, null, 2)], { type: 'application/json' });
     var a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     a.download = 'meal-plan-' + new Date().toISOString().slice(0, 10) + '.json';
@@ -850,7 +987,8 @@
         if (confirm('Replace your current meal plan with this backup?')) {
           PLAN = d.plan;
           CHECKED = d.checked || {};
-          savePlan(); saveChecks();
+          CUSTOM = d.custom || {};
+          savePlan(); saveChecks(); saveCustom();
           renderDay();
         }
       } catch (e) {
