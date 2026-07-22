@@ -10,7 +10,7 @@ from cryptography.fernet import Fernet, InvalidToken
 
 CLIENT_ID     = os.environ['WHOOP_CLIENT_ID'].strip()
 CLIENT_SECRET = os.environ['WHOOP_CLIENT_SECRET'].strip()
-SEED_TOKEN    = os.environ['WHOOP_REFRESH_TOKEN'].strip()
+SEED_TOKEN    = os.environ.get('WHOOP_REFRESH_TOKEN', '').strip()
 TOKEN_KEY     = os.environ.get('WHOOP_TOKEN_KEY', '').strip()
 
 # WHOOP refresh tokens are single-use: every refresh returns a new one and
