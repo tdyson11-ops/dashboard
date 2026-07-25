@@ -112,9 +112,12 @@ Or edit it directly on GitHub.com (pencil icon) for quick updates from your phon
 | `habits` | Array of daily habit names — tap to tick on the dashboard (ticks stored per device in localStorage) |
 | `pillars` | Array of `{ name, status }` — status: `ticking`, `ontrack`, or `atrisk` |
 | `goals` | Array of `{ name, status }` — status text drives the pill colour (`At risk` = amber, `Done` = green, else neutral) |
-| `site_notes` | Array of `{ name, tag }` — shown under Site Notes (collapsible) |
-| `pillar_notes` | Array of `{ icon, name }` — `icon` is an emoji |
+| `site_notes` | Array of `{ name, tag }` — **seeds** the editable Site Notes on first load |
+| `pillar_notes` | Array of `{ icon, name }` — **seeds** the editable Pillar Notes on first load (`icon` is an emoji) |
 
-The **Command Center** components (Pillars, Goals, Uni modules, Site/Pillar notes) mirror the
-Notion dashboard and are edited via `data.json`. The **Habits** tracker is interactive — ticks are
-stored in the browser's localStorage on the device you use, like the training log.
+The **Command Center** components mirror the Notion dashboard. Pillars, Goals and Uni modules are
+edited via `data.json`. **Site Notes** and **Pillar Notes** are editable directly on the dashboard —
+tap a note to edit its title, tag/emoji and body, or **+ Add note** / delete. **Habits** are ticked
+on the dashboard too. All three (notes + habit ticks) are stored in the browser's localStorage on the
+device you use — `data.json` only provides the initial note content the first time the page loads on a
+device.
