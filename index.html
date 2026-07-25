@@ -466,6 +466,62 @@
     }
 
     .note-chip .emoji { font-size: 1rem; }
+    .note-row .emoji { font-size: 1rem; margin-right: 0.15rem; }
+    .note-row > div { min-width: 0; }
+    .note-body-preview {
+      font-size: 0.7rem;
+      color: var(--muted);
+      margin-top: 0.2rem;
+      line-height: 1.35;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    /* ── Note editor ── */
+    .note-editor { padding: 0.65rem 0; }
+    .note-editor input, .note-editor textarea {
+      width: 100%;
+      background: #0f0f0f;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 16px;
+      padding: 0.5rem 0.6rem;
+      margin-bottom: 0.5rem;
+    }
+    .note-editor input:focus, .note-editor textarea:focus { outline: none; border-color: var(--accent); }
+    .note-editor textarea { min-height: 72px; resize: vertical; line-height: 1.45; }
+    .note-editor .btn-row { display: flex; gap: 0.5rem; }
+    .note-btn {
+      flex: 1;
+      border: none;
+      border-radius: 8px;
+      padding: 0.55rem;
+      font-family: inherit;
+      font-weight: 600;
+      font-size: 0.8rem;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .note-btn.save   { background: var(--accent); color: #0d0d0d; }
+    .note-btn.cancel { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+    .note-btn.del    { background: transparent; color: var(--red); border: 1px solid #3d0000; }
+
+    .note-add {
+      width: 100%;
+      margin-top: 0.6rem;
+      background: transparent;
+      border: 1px dashed var(--border);
+      color: var(--muted);
+      border-radius: 8px;
+      padding: 0.55rem;
+      font-family: inherit;
+      font-size: 0.78rem;
+      font-weight: 500;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
 
     /* ── Collapsible sections ── */
     details.card > summary {
@@ -664,6 +720,7 @@
   <details class="card">
     <summary><span>Categories <span class="summary-sub" id="site-notes-count"></span></span><span class="chev">›</span></summary>
     <div id="site-notes-list"></div>
+    <button class="note-add" onclick="addNote('site')">+ Add note</button>
   </details>
 </div>
 
@@ -672,7 +729,8 @@
   <div class="section-label">Pillar Notes</div>
   <details class="card">
     <summary><span>Areas <span class="summary-sub" id="pillar-notes-count"></span></span><span class="chev">›</span></summary>
-    <div class="note-grid" id="pillar-notes-grid" style="margin-top:0.25rem"></div>
+    <div id="pillar-notes-list"></div>
+    <button class="note-add" onclick="addNote('pillar')">+ Add note</button>
   </details>
 </div>
 
@@ -799,22 +857,109 @@
     }).join('');
   }
 
-  // ── Site notes & Pillar notes ──
-  function renderSiteNotes(notes) {
-    notes = notes || [];
-    document.getElementById('site-notes-count').textContent = '· ' + notes.length;
-    document.getElementById('site-notes-list').innerHTML = notes.map(function (n) {
-      return '<div class="note-row"><span>' + esc(n.name) + '</span>' +
-        (n.tag ? '<span class="tag-chip">' + esc(n.tag) + '</span>' : '') + '</div>';
+  // ── Site notes & Pillar notes (editable, saved on this device) ──
+  var NKEY = 'dash-notes-v1';
+  var notesState = { site: [], pillar: [] };
+  var editing = { site: null, pillar: null };
+  var NOTE_CFG = {
+    site:   { list: 'site-notes-list',   count: 'site-notes-count',   secondLabel: 'Tag (optional)' },
+    pillar: { list: 'pillar-notes-list', count: 'pillar-notes-count', secondLabel: 'Emoji (optional)' }
+  };
+
+  function attr(s) { return esc(s).replace(/"/g, '&quot;'); }
+
+  function loadNotes(defaults) {
+    try {
+      var stored = JSON.parse(localStorage.getItem(NKEY));
+      if (stored && stored.site && stored.pillar) return stored;
+    } catch (e) {}
+    // First run: seed from data.json defaults
+    var seed = {
+      site:   (defaults.site   || []).map(function (n) { return { title: n.name, tag: n.tag || '', body: '' }; }),
+      pillar: (defaults.pillar || []).map(function (n) { return { title: n.name, icon: n.icon || '📝', body: '' }; })
+    };
+    localStorage.setItem(NKEY, JSON.stringify(seed));
+    return seed;
+  }
+  function saveNotes() { localStorage.setItem(NKEY, JSON.stringify(notesState)); }
+
+  function renderNoteSection(section) {
+    var cfg = NOTE_CFG[section];
+    var arr = notesState[section] || [];
+    document.getElementById(cfg.count).textContent = '· ' + arr.length;
+    document.getElementById(cfg.list).innerHTML = arr.map(function (n, i) {
+      if (editing[section] === i) {
+        var second = section === 'site' ? (n.tag || '') : (n.icon || '');
+        return '<div class="note-editor">' +
+          '<input id="ne-title" placeholder="Title" value="' + attr(n.title) + '">' +
+          '<input id="ne-second" placeholder="' + cfg.secondLabel + '" value="' + attr(second) + '">' +
+          '<textarea id="ne-body" placeholder="Write your notes…">' + esc(n.body || '') + '</textarea>' +
+          '<div class="btn-row">' +
+            '<button class="note-btn save" onclick="saveNote(\'' + section + '\')">Save</button>' +
+            '<button class="note-btn cancel" onclick="cancelNote(\'' + section + '\')">Cancel</button>' +
+            '<button class="note-btn del" onclick="deleteNote(\'' + section + '\',' + i + ')">Delete</button>' +
+          '</div></div>';
+      }
+      var lead = section === 'pillar' ? '<span class="emoji">' + (n.icon || '•') + '</span>' : '';
+      var right = (section === 'site' && n.tag) ? '<span class="tag-chip">' + esc(n.tag) + '</span>' : '';
+      var body = n.body ? '<div class="note-body-preview">' + esc(n.body) + '</div>' : '';
+      return '<div class="note-row" onclick="startEditNote(\'' + section + '\',' + i + ')">' +
+        '<div>' + lead + esc(n.title || '(untitled)') + body + '</div>' + right + '</div>';
     }).join('');
   }
-  function renderPillarNotes(notes) {
-    notes = notes || [];
-    document.getElementById('pillar-notes-count').textContent = '· ' + notes.length;
-    document.getElementById('pillar-notes-grid').innerHTML = notes.map(function (n) {
-      return '<div class="note-chip"><span class="emoji">' + (n.icon || '•') + '</span>' +
-        '<span>' + esc(n.name) + '</span></div>';
-    }).join('');
+
+  function startEditNote(section, i) { editing[section] = i; renderNoteSection(section); }
+
+  function addNote(section) {
+    notesState[section].push(section === 'site'
+      ? { title: '', tag: '', body: '' }
+      : { title: '', icon: '📝', body: '' });
+    editing[section] = notesState[section].length - 1;
+    renderNoteSection(section);
+    var el = document.getElementById('ne-title');
+    if (el) el.focus();
+  }
+
+  function saveNote(section) {
+    var i = editing[section];
+    if (i == null) return;
+    var title  = document.getElementById('ne-title').value.trim();
+    var second = document.getElementById('ne-second').value.trim();
+    var body   = document.getElementById('ne-body').value;
+    if (!title && !body) {
+      notesState[section].splice(i, 1); // nothing entered — drop it
+    } else {
+      var note = notesState[section][i];
+      note.title = title || '(untitled)';
+      note.body = body;
+      if (section === 'site') note.tag = second; else note.icon = second || '📝';
+    }
+    editing[section] = null;
+    saveNotes();
+    renderNoteSection(section);
+  }
+
+  function cancelNote(section) {
+    var i = editing[section];
+    if (i != null) {
+      var n = notesState[section][i];
+      if (n && !n.title && !n.body) notesState[section].splice(i, 1); // drop a blank new note
+    }
+    editing[section] = null;
+    renderNoteSection(section);
+  }
+
+  function deleteNote(section, i) {
+    notesState[section].splice(i, 1);
+    editing[section] = null;
+    saveNotes();
+    renderNoteSection(section);
+  }
+
+  function initNotes(defaults) {
+    notesState = loadNotes(defaults);
+    renderNoteSection('site');
+    renderNoteSection('pillar');
   }
 
   // ── Load data ──
@@ -891,8 +1036,7 @@
       renderPillars(d.pillars);
       renderGoals(d.goals);
       renderModules(d.university && d.university.modules);
-      renderSiteNotes(d.site_notes);
-      renderPillarNotes(d.pillar_notes);
+      initNotes({ site: d.site_notes, pillar: d.pillar_notes });
     })
     .catch(function() {
       document.getElementById('last-updated').textContent = 'Could not load data.json';
