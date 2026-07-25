@@ -120,4 +120,5 @@ edited via `data.json`. **Site Notes** and **Pillar Notes** are editable directl
 tap a note to edit its title, tag/emoji and body, or **+ Add note** / delete. **Habits** are ticked
 on the dashboard too. All three (notes + habit ticks) are stored in the browser's localStorage on the
 device you use — `data.json` only provides the initial note content the first time the page loads on a
-device.
+device. Use the **Backup** card at the bottom of the dashboard to **Export** your notes and habit ticks
+to a JSON file (and **Import** to restore them on the same or another device).

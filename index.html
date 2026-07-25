@@ -523,6 +523,29 @@
       -webkit-tap-highlight-color: transparent;
     }
 
+    /* ── Backup ── */
+    .backup-row { display: flex; gap: 0.6rem; }
+    .backup-btn {
+      flex: 1;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 10px;
+      padding: 0.7rem;
+      font-family: inherit;
+      font-size: 0.8rem;
+      font-weight: 500;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .backup-note {
+      font-size: 0.65rem;
+      color: var(--muted);
+      text-align: center;
+      margin-top: 0.55rem;
+      line-height: 1.5;
+    }
+
     /* ── Collapsible sections ── */
     details.card > summary {
       list-style: none;
@@ -732,6 +755,19 @@
     <div id="pillar-notes-list"></div>
     <button class="note-add" onclick="addNote('pillar')">+ Add note</button>
   </details>
+</div>
+
+<!-- BACKUP -->
+<div class="section">
+  <div class="section-label">Backup</div>
+  <div class="card">
+    <div class="backup-row">
+      <button class="backup-btn" onclick="exportBackup()">Export backup</button>
+      <button class="backup-btn" onclick="document.getElementById('backup-file').click()">Import</button>
+    </div>
+    <input type="file" id="backup-file" accept=".json,application/json" style="display:none" onchange="importBackup(event)">
+    <div class="backup-note">Saves your notes and habit ticks to a file. Keep a copy every week or two — this data lives only on this device.</div>
+  </div>
 </div>
 
 <script>
@@ -960,6 +996,52 @@
     notesState = loadNotes(defaults);
     renderNoteSection('site');
     renderNoteSection('pillar');
+  }
+
+  // ── Backup / restore (notes + habit ticks) ──
+  function exportBackup() {
+    var payload = { _type: 'tom-dashboard-backup', exported: todayKey(), notes: null, habits: null };
+    try { payload.notes  = JSON.parse(localStorage.getItem(NKEY)); } catch (e) {}
+    try { payload.habits = JSON.parse(localStorage.getItem(HKEY)); } catch (e) {}
+    var blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'dashboard-backup-' + todayKey() + '.json';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  function importBackup(ev) {
+    var file = ev.target.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function () {
+      try {
+        var d = JSON.parse(reader.result);
+        if (!d || (d.notes === undefined && d.habits === undefined)) throw new Error('bad');
+        var when = d.exported ? ' (from ' + d.exported + ')' : '';
+        if (!confirm('Restore this backup' + when + '? It replaces your current notes and habit ticks on this device.')) {
+          ev.target.value = '';
+          return;
+        }
+        if (d.notes && d.notes.site && d.notes.pillar) {
+          localStorage.setItem(NKEY, JSON.stringify(d.notes));
+          notesState = d.notes;
+          editing = { site: null, pillar: null };
+          renderNoteSection('site');
+          renderNoteSection('pillar');
+        }
+        if (d.habits) {
+          localStorage.setItem(HKEY, JSON.stringify(d.habits));
+          renderHabits(window.__HABITS);
+        }
+        alert('Backup restored.');
+      } catch (e) {
+        alert('That file doesn’t look like a dashboard backup.');
+      }
+      ev.target.value = '';
+    };
+    reader.readAsText(file);
   }
 
   // ── Load data ──
