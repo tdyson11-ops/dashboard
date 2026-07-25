@@ -108,3 +108,13 @@ Or edit it directly on GitHub.com (pencil icon) for quick updates from your phon
 | `university.deadline_label` | Short label for the deadline |
 | `university.grade_target` | Target grade |
 | `university.current_avg` | Current module average |
+| `university.modules` | Array of `{ name, term, progress }` — `progress` is 0–100 |
+| `habits` | Array of daily habit names — tap to tick on the dashboard (ticks stored per device in localStorage) |
+| `pillars` | Array of `{ name, status }` — status: `ticking`, `ontrack`, or `atrisk` |
+| `goals` | Array of `{ name, status }` — status text drives the pill colour (`At risk` = amber, `Done` = green, else neutral) |
+| `site_notes` | Array of `{ name, tag }` — shown under Site Notes (collapsible) |
+| `pillar_notes` | Array of `{ icon, name }` — `icon` is an emoji |
+
+The **Command Center** components (Pillars, Goals, Uni modules, Site/Pillar notes) mirror the
+Notion dashboard and are edited via `data.json`. The **Habits** tracker is interactive — ticks are
+stored in the browser's localStorage on the device you use, like the training log.

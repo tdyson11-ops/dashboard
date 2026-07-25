@@ -319,6 +319,172 @@
 
     .avg-value { font-weight: 700; color: var(--green); }
 
+    /* ── Status pills (Pillars / Goals) ── */
+    .line-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.6rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.83rem;
+      line-height: 1.35;
+    }
+
+    .line-item:first-child { padding-top: 0; }
+    .line-item:last-child { border-bottom: none; padding-bottom: 0; }
+
+    .pill {
+      flex-shrink: 0;
+      font-size: 0.6rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      padding: 0.16rem 0.5rem;
+      border-radius: 6px;
+      border: 1px solid transparent;
+      white-space: nowrap;
+    }
+
+    .pill-neutral { background: #172231; color: #93b4d1; border-color: #26374a; }
+    .pill-green   { background: #06170c; color: #4ade80; border-color: #12401f; }
+    .pill-amber   { background: #1c1400; color: #f59e0b; border-color: #3a2b00; }
+    .pill-red     { background: #1c0000; color: #ef4444; border-color: #3d0000; }
+
+    /* ── Habits ── */
+    .habit-row {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      padding: 0.55rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.83rem;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .habit-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .habit-row:first-child { padding-top: 0; }
+
+    .habit-check {
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      border: 1.5px solid var(--border);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      color: #0d0d0d;
+      transition: background 0.12s;
+    }
+
+    .habit-row.done .habit-check { background: var(--green); border-color: var(--green); }
+    .habit-row.done .habit-label { color: var(--muted); text-decoration: line-through; }
+
+    .habit-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 0.4rem;
+    }
+
+    .habit-count { font-size: 0.8rem; font-weight: 700; }
+    .habit-week { display: flex; gap: 0.3rem; margin-top: 0.75rem; }
+
+    .habit-day {
+      flex: 1;
+      height: 6px;
+      border-radius: 3px;
+      background: #222;
+    }
+
+    .habit-day.full    { background: var(--green); }
+    .habit-day.partial { background: var(--amber); }
+    .habit-day.today   { outline: 1px solid var(--muted); outline-offset: 1px; }
+
+    /* ── Uni modules ── */
+    .mod-row { padding: 0.55rem 0; border-bottom: 1px solid var(--border); }
+    .mod-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .mod-row:first-child { padding-top: 0; }
+
+    .mod-top { display: flex; justify-content: space-between; align-items: baseline; gap: 0.5rem; }
+    .mod-name { font-size: 0.8rem; }
+
+    .mod-term {
+      font-size: 0.58rem;
+      font-weight: 600;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.05rem 0.32rem;
+      margin-left: 0.4rem;
+    }
+
+    .mod-pct { font-size: 0.72rem; font-weight: 600; color: var(--muted); flex-shrink: 0; }
+    .mod-bar { background: #222; border-radius: 3px; height: 4px; margin-top: 0.4rem; overflow: hidden; }
+    .mod-fill { height: 100%; border-radius: 3px; background: var(--accent); }
+
+    /* ── Site notes / tags ── */
+    .note-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.82rem;
+    }
+
+    .note-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .note-row:first-child { padding-top: 0; }
+
+    .tag-chip {
+      flex-shrink: 0;
+      font-size: 0.6rem;
+      font-weight: 600;
+      color: var(--muted);
+      background: #101010;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.14rem 0.45rem;
+    }
+
+    /* ── Pillar notes ── */
+    .note-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+
+    .note-chip {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: #101010;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.55rem 0.6rem;
+      font-size: 0.8rem;
+      font-weight: 500;
+    }
+
+    .note-chip .emoji { font-size: 1rem; }
+
+    /* ── Collapsible sections ── */
+    details.card > summary {
+      list-style: none;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    details.card > summary::-webkit-details-marker { display: none; }
+    details.card > summary .chev { color: var(--muted); transition: transform 0.15s; }
+    details.card[open] > summary .chev { transform: rotate(90deg); }
+    details.card[open] > summary { margin-bottom: 0.75rem; }
+    .summary-sub { font-size: 0.68rem; color: var(--muted); font-weight: 400; }
+
     /* ── Error state ── */
     .error-msg {
       font-size: 0.78rem;
@@ -390,6 +556,19 @@
   </div>
 </div>
 
+<!-- HABITS -->
+<div class="section">
+  <div class="section-label">Habits 💪</div>
+  <div class="card">
+    <div class="habit-head">
+      <span style="font-size:0.8rem;color:var(--muted)">Today</span>
+      <span class="habit-count" id="habit-count">—</span>
+    </div>
+    <div id="habit-list"></div>
+    <div class="habit-week" id="habit-week"></div>
+  </div>
+</div>
+
 <!-- TRAINING -->
 <div class="section">
   <div class="section-label">Training</div>
@@ -428,6 +607,18 @@
   </a>
 </div>
 
+<!-- PILLARS -->
+<div class="section">
+  <div class="section-label">Pillars</div>
+  <div class="card" id="pillars-card"></div>
+</div>
+
+<!-- GOALS -->
+<div class="section">
+  <div class="section-label">Goals &amp; Milestones</div>
+  <div class="card" id="goals-card"></div>
+</div>
+
 <!-- CYDEN -->
 <div class="section">
   <div class="section-label">Cyden — Site</div>
@@ -464,6 +655,25 @@
       <span class="avg-value" id="uni-avg">—</span>
     </div>
   </div>
+  <div class="card" id="modules-card"></div>
+</div>
+
+<!-- SITE NOTES -->
+<div class="section">
+  <div class="section-label">Site Notes</div>
+  <details class="card">
+    <summary><span>Categories <span class="summary-sub" id="site-notes-count"></span></span><span class="chev">›</span></summary>
+    <div id="site-notes-list"></div>
+  </details>
+</div>
+
+<!-- PILLAR NOTES -->
+<div class="section">
+  <div class="section-label">Pillar Notes</div>
+  <details class="card">
+    <summary><span>Areas <span class="summary-sub" id="pillar-notes-count"></span></span><span class="chev">›</span></summary>
+    <div class="note-grid" id="pillar-notes-grid" style="margin-top:0.25rem"></div>
+  </details>
 </div>
 
 <script>
@@ -498,6 +708,114 @@
 
   // ── Circumference for r=34 ──
   const CIRC = 2 * Math.PI * 34;
+
+  // ── Helpers ──
+  function esc(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+  function todayKey() {
+    var n = new Date();
+    return n.getFullYear() + '-' + pad(n.getMonth() + 1) + '-' + pad(n.getDate());
+  }
+  function dateKeyAgo(k) {
+    var d = new Date(); d.setDate(d.getDate() - k);
+    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+  }
+
+  // ── Habits (interactive, stored on this device) ──
+  var HKEY = 'dash-habits-v1';
+  window.__HABITS = [];
+  function loadHabitState() {
+    try { return JSON.parse(localStorage.getItem(HKEY)) || {}; } catch (e) { return {}; }
+  }
+  function toggleHabit(i) {
+    var state = loadHabitState();
+    var tk = todayKey();
+    if (!state[tk]) state[tk] = {};
+    if (state[tk][i]) delete state[tk][i]; else state[tk][i] = true;
+    localStorage.setItem(HKEY, JSON.stringify(state));
+    renderHabits(window.__HABITS);
+  }
+  function renderHabits(habits) {
+    habits = habits || [];
+    var state = loadHabitState();
+    var today = state[todayKey()] || {};
+    var done = 0;
+    for (var i = 0; i < habits.length; i++) if (today[i]) done++;
+    document.getElementById('habit-count').textContent = done + ' / ' + habits.length;
+    document.getElementById('habit-list').innerHTML = habits.map(function (h, idx) {
+      var d = today[idx];
+      return '<div class="habit-row' + (d ? ' done' : '') + '" onclick="toggleHabit(' + idx + ')">' +
+        '<span class="habit-check">' + (d ? '✓' : '') + '</span>' +
+        '<span class="habit-label">' + esc(h) + '</span></div>';
+    }).join('');
+    var cells = '';
+    for (var day = 6; day >= 0; day--) {
+      var dayState = state[dateKeyAgo(day)] || {};
+      var c = 0;
+      for (var j = 0; j < habits.length; j++) if (dayState[j]) c++;
+      var cls = (habits.length && c === habits.length) ? 'full' : (c > 0 ? 'partial' : '');
+      cells += '<div class="habit-day ' + cls + (day === 0 ? ' today' : '') + '"></div>';
+    }
+    document.getElementById('habit-week').innerHTML = cells;
+  }
+
+  // ── Pillars & Goals ──
+  var PILLAR_STATUS = {
+    ticking: { label: 'Ticking over', cls: 'pill-neutral' },
+    ontrack: { label: 'On track',    cls: 'pill-green' },
+    atrisk:  { label: 'At risk',     cls: 'pill-amber' }
+  };
+  function goalPillClass(status) {
+    var s = (status || '').toLowerCase();
+    if (s.indexOf('risk') >= 0) return 'pill-amber';
+    if (s.indexOf('done') >= 0 || s.indexOf('complete') >= 0) return 'pill-green';
+    return 'pill-neutral';
+  }
+  function renderPillars(pillars) {
+    document.getElementById('pillars-card').innerHTML = (pillars || []).map(function (p) {
+      var st = PILLAR_STATUS[p.status] || { label: p.status, cls: 'pill-neutral' };
+      return '<div class="line-item"><span>' + esc(p.name) + '</span>' +
+        '<span class="pill ' + st.cls + '">' + esc(st.label) + '</span></div>';
+    }).join('');
+  }
+  function renderGoals(goals) {
+    document.getElementById('goals-card').innerHTML = (goals || []).map(function (g) {
+      return '<div class="line-item"><span>' + esc(g.name) + '</span>' +
+        '<span class="pill ' + goalPillClass(g.status) + '">' + esc(g.status) + '</span></div>';
+    }).join('');
+  }
+
+  // ── Uni modules ──
+  function renderModules(mods) {
+    var card = document.getElementById('modules-card');
+    if (!mods || !mods.length) { card.style.display = 'none'; return; }
+    card.innerHTML = mods.map(function (m) {
+      var col = m.progress >= 50 ? 'var(--green)' : (m.progress >= 25 ? 'var(--amber)' : 'var(--muted)');
+      return '<div class="mod-row"><div class="mod-top">' +
+        '<span class="mod-name">' + esc(m.name) + '<span class="mod-term">' + esc(m.term) + '</span></span>' +
+        '<span class="mod-pct">' + m.progress + '%</span></div>' +
+        '<div class="mod-bar"><div class="mod-fill" style="width:' + m.progress + '%;background:' + col + '"></div></div></div>';
+    }).join('');
+  }
+
+  // ── Site notes & Pillar notes ──
+  function renderSiteNotes(notes) {
+    notes = notes || [];
+    document.getElementById('site-notes-count').textContent = '· ' + notes.length;
+    document.getElementById('site-notes-list').innerHTML = notes.map(function (n) {
+      return '<div class="note-row"><span>' + esc(n.name) + '</span>' +
+        (n.tag ? '<span class="tag-chip">' + esc(n.tag) + '</span>' : '') + '</div>';
+    }).join('');
+  }
+  function renderPillarNotes(notes) {
+    notes = notes || [];
+    document.getElementById('pillar-notes-count').textContent = '· ' + notes.length;
+    document.getElementById('pillar-notes-grid').innerHTML = notes.map(function (n) {
+      return '<div class="note-chip"><span class="emoji">' + (n.icon || '•') + '</span>' +
+        '<span>' + esc(n.name) + '</span></div>';
+    }).join('');
+  }
 
   // ── Load data ──
   fetch('data.json?v=' + Date.now())
@@ -566,6 +884,15 @@
 
       document.getElementById('uni-avg').textContent =
         d.university.current_avg + ' (target: ' + d.university.grade_target + ')';
+
+      // New Command-Center components
+      window.__HABITS = d.habits || [];
+      renderHabits(window.__HABITS);
+      renderPillars(d.pillars);
+      renderGoals(d.goals);
+      renderModules(d.university && d.university.modules);
+      renderSiteNotes(d.site_notes);
+      renderPillarNotes(d.pillar_notes);
     })
     .catch(function() {
       document.getElementById('last-updated').textContent = 'Could not load data.json';

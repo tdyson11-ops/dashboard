@@ -2,7 +2,7 @@
   "updated": "24 July 2026",
   "focus": [
     "Review cash flow projections with Dad",
-    "Submit NHBC stage inspection request \u2014 Plots 7-9",
+    "Submit NHBC stage inspection request — Plots 7-9",
     "Revise for CM essay due Friday"
   ],
   "whoop": {
@@ -12,11 +12,39 @@
     "sleep_score": 90,
     "strain": 4.3
   },
+  "habits": [
+    "Shoulder rehab — 10 min",
+    "Train (per plan)",
+    "Hit 3,200 kcal / 160g protein",
+    "Study / CPD — 30 min",
+    "In bed by 11pm"
+  ],
+  "pillars": [
+    { "name": "Become MD of Cyden by ~2030", "status": "ticking" },
+    { "name": "Modernise Cyden — digital systems, every department", "status": "ticking" },
+    { "name": "Reach 4-star eventing before 30", "status": "ticking" },
+    { "name": "Hybrid athlete — Seville Marathon, strength, tennis", "status": "ontrack" },
+    { "name": "First-class degree at Leeds Beckett", "status": "atrisk" },
+    { "name": "Stabilise in the cottage, finish North Thoresby at the right time", "status": "atrisk" },
+    { "name": "Protect the family estate and Cyden succession", "status": "ticking" },
+    { "name": "Build a serious future with Annie", "status": "ontrack" },
+    { "name": "Daily discipline — operate like the future version now", "status": "ticking" }
+  ],
+  "goals": [
+    { "name": "Become MD of Cyden", "status": "In progress" },
+    { "name": "First-class degree", "status": "At risk" },
+    { "name": "Seville Marathon sub-4:30", "status": "In progress" },
+    { "name": "Modernise Cyden — digital systems across departments", "status": "In progress" },
+    { "name": "Protect estate & Cyden succession", "status": "In progress" },
+    { "name": "Reach 4-star eventing", "status": "In progress" },
+    { "name": "Settle interim housing & North Thoresby", "status": "In progress" },
+    { "name": "Health — 5kg lean muscle in 90 days", "status": "In progress" }
+  ],
   "cyden": {
     "plots_complete": 14,
     "plots_total": 32,
-    "current_stage": "Roof structure \u2014 Plots 15-18",
-    "next_milestone": "Slab pour \u2014 Plots 19-22 (26 May)",
+    "current_stage": "Roof structure — Plots 15-18",
+    "next_milestone": "Slab pour — Plots 19-22 (26 May)",
     "kpis": [
       {
         "label": "On programme",
@@ -35,11 +63,43 @@
       }
     ]
   },
+  "site_notes": [
+    { "name": "Items to do", "tag": "NHBC" },
+    { "name": "Site plans", "tag": "Build Programme" },
+    { "name": "Trades", "tag": "Subcontractors" },
+    { "name": "H&S", "tag": "Health & Safety" },
+    { "name": "Materials", "tag": "Materials" },
+    { "name": "Customers", "tag": "Client" },
+    { "name": "Riff Raff", "tag": "General" }
+  ],
   "university": {
     "module": "Construction Management (Hons)",
     "next_deadline": "2026-05-22",
     "deadline_label": "Essay submission",
     "grade_target": "First",
-    "current_avg": "71%"
-  }
+    "current_avg": "71%",
+    "modules": [
+      { "name": "Construction Technology", "term": "T1", "progress": 0 },
+      { "name": "Managing Projects", "term": "T1", "progress": 0 },
+      { "name": "Law in the Built Environment", "term": "T1", "progress": 0 },
+      { "name": "Materials Science & Structures", "term": "T1", "progress": 25 },
+      { "name": "Construction Communication & Apps", "term": "T1", "progress": 25 },
+      { "name": "Professional Development & CPD Portfolio", "term": "T2", "progress": 25 },
+      { "name": "Contract Practice", "term": "T1", "progress": 25 },
+      { "name": "Building Science & Services", "term": "T1", "progress": 50 },
+      { "name": "Site Management & Safety", "term": "T1", "progress": 50 }
+    ]
+  },
+  "pillar_notes": [
+    { "icon": "🏗", "name": "CYDEN" },
+    { "icon": "🐴", "name": "Horses" },
+    { "icon": "⚙️", "name": "Daily operations" },
+    { "icon": "💪", "name": "Fitness" },
+    { "icon": "🎓", "name": "UNI" },
+    { "icon": "👑", "name": "Succession" },
+    { "icon": "💻", "name": "Digitilisation" },
+    { "icon": "📦", "name": "Moving out" },
+    { "icon": "🛒", "name": "Shopping" },
+    { "icon": "🚗", "name": "IAM driving" }
+  ]
 }
