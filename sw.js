@@ -13,6 +13,9 @@ self.addEventListener('activate', function (e) {
 
 self.addEventListener('fetch', function (e) {
   if (e.request.method !== 'GET') return;
+  // Only handle our own files. Leave cross-origin requests (Firebase auth /
+  // Firestore streams, Google Fonts) untouched so sync works normally.
+  if (new URL(e.request.url).origin !== self.location.origin) return;
   e.respondWith(
     fetch(e.request)
       .then(function (res) {

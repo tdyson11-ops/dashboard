@@ -62,6 +62,30 @@ Add it to your home screen the same way as the dashboard (**Share → Add to Hom
 - 7-day view with daily totals and average
 - Same localStorage + Export/Import backup model as the training log
 
+## Cross-device sync
+
+`sync.js` mirrors the apps' data to a Firebase (Firestore) project so logging on one device
+shows up on every device. Loaded by the Fuel, Meal planner, Shopping and Training apps.
+
+- Sign in once per device via the sync bar at the bottom of any app; the session is remembered
+- The apps keep working entirely from localStorage — sync just keeps a cloud copy in step
+- The cloud copy is the source of truth: on a fresh device, sign in and it pulls your data down.
+  Sign in on the device that already holds your data **first** — it seeds the cloud
+- `persist.js` additionally asks the browser to keep each app's local storage from being evicted
+- Firebase web config lives in `sync.js` (public by design). Auth uses Email/Password; Firestore
+  rules restrict every document to its owner:
+
+  ```
+  rules_version = '2';
+  service cloud.firestore {
+    match /databases/{database}/documents {
+      match /users/{uid}/{document=**} {
+        allow read, write: if request.auth != null && request.auth.uid == uid;
+      }
+    }
+  }
+  ```
+
 ## WHOOP auto-update
 
 The `Update WHOOP Data` workflow refreshes `data.json` daily. WHOOP refresh tokens are
