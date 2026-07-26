@@ -32,7 +32,9 @@ const SYNC_KEYS = [
   'training-log-v1',      // Training log
   'meal-plan-v1',         // Meal planner — the week
   'meal-custom-v1',       // Meal planner — logged/custom meals
-  'meal-shop-checked-v1'  // Shopping — ticked items
+  'meal-shop-checked-v1', // Shopping — ticked items
+  'dash-notes-v1',        // Dashboard — Site & Pillar notes
+  'dash-habits-v1'        // Dashboard — habit ticks
 ];
 const REV_KEY = 'sync-rev';                       // last applied revision (per device, not synced)
 const CLIENT_ID = Math.random().toString(36).slice(2) + Date.now().toString(36);
@@ -74,9 +76,9 @@ function startSync(uid) {
       localStorage.setItem(REV_KEY, String(lastRev));
       return;
     }
+    const remote = d.data || {};
     if ((d.rev || 0) > lastRev) {           // a newer copy from another device
       let changed = false;
-      const remote = d.data || {};
       SYNC_KEYS.forEach(function (k) {
         const rv = (remote[k] !== undefined) ? remote[k] : null;
         if (rv !== null && rv !== localStorage.getItem(k)) {
@@ -86,8 +88,15 @@ function startSync(uid) {
       });
       lastRev = d.rev || 0;
       localStorage.setItem(REV_KEY, String(lastRev));
-      if (changed) location.reload();       // simplest reliable way to re-render every app
+      if (changed) { location.reload(); return; } // re-render every app; comes back to reconcile below
     }
+    // Preserve local data when this device has keys the cloud doesn't yet
+    // (e.g. the dashboard's notes/habits joining an account that only had
+    // meal/training data). Contribute them up instead of leaving them local-only.
+    const hasLocalOnly = SYNC_KEYS.some(function (k) {
+      return localStorage.getItem(k) !== null && remote[k] === undefined;
+    });
+    if (hasLocalOnly) schedulePush();
   }, function (err) {
     console.warn('[sync] snapshot error', err);
     renderBar('error', (err && err.code) || 'error');

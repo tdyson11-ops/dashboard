@@ -12,6 +12,8 @@
   <title>Tom Dyson</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="persist.js"></script>
+  <script type="module" src="sync.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -927,9 +929,9 @@
       if (editing[section] === i) {
         var second = section === 'site' ? (n.tag || '') : (n.icon || '');
         return '<div class="note-editor">' +
-          '<input id="ne-title" placeholder="Title" value="' + attr(n.title) + '">' +
-          '<input id="ne-second" placeholder="' + cfg.secondLabel + '" value="' + attr(second) + '">' +
-          '<textarea id="ne-body" placeholder="Write your notes…">' + esc(n.body || '') + '</textarea>' +
+          '<input class="ne-title" placeholder="Title" value="' + attr(n.title) + '">' +
+          '<input class="ne-second" placeholder="' + cfg.secondLabel + '" value="' + attr(second) + '">' +
+          '<textarea class="ne-body" placeholder="Write your notes…">' + esc(n.body || '') + '</textarea>' +
           '<div class="btn-row">' +
             '<button class="note-btn save" onclick="saveNote(\'' + section + '\')">Save</button>' +
             '<button class="note-btn cancel" onclick="cancelNote(\'' + section + '\')">Cancel</button>' +
@@ -944,24 +946,38 @@
     }).join('');
   }
 
-  function startEditNote(section, i) { editing[section] = i; renderNoteSection(section); }
+  // Close any editor open in the other section so only one is ever open —
+  // and so the section-scoped field lookups below never collide.
+  function closeOther(section) {
+    var other = section === 'site' ? 'pillar' : 'site';
+    if (editing[other] != null) { editing[other] = null; renderNoteSection(other); }
+  }
+
+  function startEditNote(section, i) {
+    closeOther(section);
+    editing[section] = i;
+    renderNoteSection(section);
+  }
 
   function addNote(section) {
+    closeOther(section);
     notesState[section].push(section === 'site'
       ? { title: '', tag: '', body: '' }
       : { title: '', icon: '📝', body: '' });
     editing[section] = notesState[section].length - 1;
     renderNoteSection(section);
-    var el = document.getElementById('ne-title');
+    var el = document.getElementById(NOTE_CFG[section].list).querySelector('.ne-title');
     if (el) el.focus();
   }
 
   function saveNote(section) {
     var i = editing[section];
     if (i == null) return;
-    var title  = document.getElementById('ne-title').value.trim();
-    var second = document.getElementById('ne-second').value.trim();
-    var body   = document.getElementById('ne-body').value;
+    // Read fields from THIS section's editor only (scoped, not by shared id).
+    var root   = document.getElementById(NOTE_CFG[section].list);
+    var title  = root.querySelector('.ne-title').value.trim();
+    var second = root.querySelector('.ne-second').value.trim();
+    var body   = root.querySelector('.ne-body').value;
     if (!title && !body) {
       notesState[section].splice(i, 1); // nothing entered — drop it
     } else {
