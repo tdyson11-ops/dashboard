@@ -65,7 +65,8 @@ Add it to your home screen the same way as the dashboard (**Share → Add to Hom
 ## Cross-device sync
 
 `sync.js` mirrors the apps' data to a Firebase (Firestore) project so logging on one device
-shows up on every device. Loaded by the Fuel, Meal planner, Shopping and Training apps.
+shows up on every device. Loaded by the Dashboard, Fuel, Meal planner, Shopping and Training apps
+(the Dashboard syncs its Site/Pillar notes and habit ticks).
 
 - Sign in once per device via the sync bar at the bottom of any app; the session is remembered
 - The apps keep working entirely from localStorage — sync just keeps a cloud copy in step
@@ -142,7 +143,7 @@ Or edit it directly on GitHub.com (pencil icon) for quick updates from your phon
 The **Command Center** components mirror the Notion dashboard. Pillars, Goals and Uni modules are
 edited via `data.json`. **Site Notes** and **Pillar Notes** are editable directly on the dashboard —
 tap a note to edit its title, tag/emoji and body, or **+ Add note** / delete. **Habits** are ticked
-on the dashboard too. All three (notes + habit ticks) are stored in the browser's localStorage on the
-device you use — `data.json` only provides the initial note content the first time the page loads on a
-device. Use the **Backup** card at the bottom of the dashboard to **Export** your notes and habit ticks
-to a JSON file (and **Import** to restore them on the same or another device).
+on the dashboard too. Notes and habit ticks are stored in the browser's localStorage and **synced across
+devices** when signed in via the sync bar (see Cross-device sync above) — `data.json` only provides the
+initial note content the first time the page loads on a device. The **Backup** card at the bottom also
+lets you **Export**/**Import** notes and habit ticks as a JSON file for an offline safety net.
