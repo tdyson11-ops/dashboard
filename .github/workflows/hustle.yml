@@ -49,7 +49,22 @@ jobs:
             echo "LEADS_CSV secret is empty — nothing to do."
           fi
 
+      # Until the API key is added, skip rather than fail — otherwise the cron
+      # emails a red X every weekday morning before you've even set it up.
+      - name: Check it's configured
+        id: ready
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          if [ -n "$ANTHROPIC_API_KEY" ]; then
+            echo "go=yes" >> "$GITHUB_OUTPUT"
+          else
+            echo "go=no" >> "$GITHUB_OUTPUT"
+            echo "::notice::ANTHROPIC_API_KEY not set — skipping. Add it in Settings → Secrets to switch the engine on."
+          fi
+
       - name: Run the engine
+        if: steps.ready.outputs.go == 'yes'
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           WP_CLIENT_USER: ${{ secrets.WP_CLIENT_USER }}
@@ -66,7 +81,7 @@ jobs:
           retention-days: 14
 
       - name: Save the updated lead list back to the secret
-        if: steps.pick.outputs.mode == 'outreach' && hashFiles('leads.csv') != ''
+        if: steps.ready.outputs.go == 'yes' && steps.pick.outputs.mode == 'outreach' && hashFiles('leads.csv') != ''
         env:
           GH_TOKEN: ${{ secrets.LEADS_WRITE_TOKEN }}
         run: |
