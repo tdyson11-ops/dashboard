@@ -508,6 +508,9 @@
     .note-btn.cancel { background: transparent; color: var(--muted); border: 1px solid var(--border); }
     .note-btn.del    { background: transparent; color: var(--red); border: 1px solid #3d0000; }
 
+    .note-actions { display: flex; gap: 0.5rem; margin-top: 0.6rem; }
+    .note-actions .note-add { margin-top: 0; }
+
     .note-add {
       width: 100%;
       margin-top: 0.6rem;
@@ -743,7 +746,10 @@
   <details class="card">
     <summary><span>Categories <span class="summary-sub" id="site-notes-count"></span></span><span class="chev">›</span></summary>
     <div id="site-notes-list"></div>
-    <button class="note-add" onclick="addNote('site')">+ Add note</button>
+    <div class="note-actions">
+      <button class="note-add" onclick="addNote('site')">+ Add note</button>
+      <button class="note-add" onclick="restoreNotes('site')">Restore defaults</button>
+    </div>
   </details>
 </div>
 
@@ -753,7 +759,10 @@
   <details class="card">
     <summary><span>Areas <span class="summary-sub" id="pillar-notes-count"></span></span><span class="chev">›</span></summary>
     <div id="pillar-notes-list"></div>
-    <button class="note-add" onclick="addNote('pillar')">+ Add note</button>
+    <div class="note-actions">
+      <button class="note-add" onclick="addNote('pillar')">+ Add note</button>
+      <button class="note-add" onclick="restoreNotes('pillar')">Restore defaults</button>
+    </div>
   </details>
 </div>
 
@@ -902,20 +911,69 @@
     pillar: { list: 'pillar-notes-list', count: 'pillar-notes-count', secondLabel: 'Emoji (optional)' }
   };
 
-  function attr(s) { return esc(s).replace(/"/g, '&quot;'); }
+  function attr(s) { return esc(s == null ? '' : s).replace(/"/g, '&quot;'); }
+  function normTitle(s) { return String(s == null ? '' : s).trim().toLowerCase(); }
 
-  function loadNotes(defaults) {
+  // Defaults from data.json, kept so "Restore defaults" can rebuild a section.
+  var NOTE_DEFAULTS = { site: [], pillar: [] };
+
+  function defaultsFor(section) {
+    return (NOTE_DEFAULTS[section] || []).map(function (n) {
+      return section === 'site'
+        ? { title: n.name, tag: n.tag || '', body: '' }
+        : { title: n.name, icon: n.icon || '📝', body: '' };
+    });
+  }
+
+  function loadNotes() {
     try {
       var stored = JSON.parse(localStorage.getItem(NKEY));
       if (stored && stored.site && stored.pillar) return stored;
     } catch (e) {}
     // First run: seed from data.json defaults
-    var seed = {
-      site:   (defaults.site   || []).map(function (n) { return { title: n.name, tag: n.tag || '', body: '' }; }),
-      pillar: (defaults.pillar || []).map(function (n) { return { title: n.name, icon: n.icon || '📝', body: '' }; })
-    };
+    var seed = { site: defaultsFor('site'), pillar: defaultsFor('pillar') };
     localStorage.setItem(NKEY, JSON.stringify(seed));
     return seed;
+  }
+
+  // Rebuild a section from the defaults, keeping anything you've written.
+  function restoreNotes(section) {
+    var defs = defaultsFor(section);
+    var label = section === 'site' ? 'Site Notes' : 'Areas';
+    if (!defs.length) { alert('Defaults aren’t loaded yet — give the dashboard a moment and try again.'); return; }
+    if (!confirm('Restore the default ' + label + '? Missing ones come back and titles are repaired — anything you’ve written in a note is kept.')) return;
+
+    var existing = notesState[section] || [];
+    var used = {};
+    var rebuilt = defs.map(function (d) {
+      for (var i = 0; i < existing.length; i++) {
+        if (!used[i] && existing[i] && normTitle(existing[i].title) === normTitle(d.title)) {
+          used[i] = true;
+          d.body = existing[i].body || '';   // keep what you wrote
+          break;
+        }
+      }
+      return d;
+    });
+
+    // Keep your own extra notes, but drop empty debris left by the old
+    // shared-id bug (a note here titled after one of the other section's).
+    var otherNames = {};
+    (NOTE_DEFAULTS[section === 'site' ? 'pillar' : 'site'] || []).forEach(function (n) {
+      otherNames[normTitle(n.name)] = true;
+    });
+    existing.forEach(function (n, i) {
+      if (used[i] || !n) return;
+      var hasBody = !!String(n.body || '').trim();
+      var t = normTitle(n.title);
+      if (!hasBody && (!t || t === '(untitled)' || otherNames[t])) return;
+      rebuilt.push(n);
+    });
+
+    notesState[section] = rebuilt;
+    editing[section] = null;
+    saveNotes();
+    renderNoteSection(section);
   }
   function saveNotes() { localStorage.setItem(NKEY, JSON.stringify(notesState)); }
 
@@ -927,9 +985,9 @@
       if (editing[section] === i) {
         var second = section === 'site' ? (n.tag || '') : (n.icon || '');
         return '<div class="note-editor">' +
-          '<input id="ne-title" placeholder="Title" value="' + attr(n.title) + '">' +
-          '<input id="ne-second" placeholder="' + cfg.secondLabel + '" value="' + attr(second) + '">' +
-          '<textarea id="ne-body" placeholder="Write your notes…">' + esc(n.body || '') + '</textarea>' +
+          '<input id="ne-title-' + section + '" placeholder="Title" value="' + attr(n.title) + '">' +
+          '<input id="ne-second-' + section + '" placeholder="' + cfg.secondLabel + '" value="' + attr(second) + '">' +
+          '<textarea id="ne-body-' + section + '" placeholder="Write your notes…">' + esc(n.body || '') + '</textarea>' +
           '<div class="btn-row">' +
             '<button class="note-btn save" onclick="saveNote(\'' + section + '\')">Save</button>' +
             '<button class="note-btn cancel" onclick="cancelNote(\'' + section + '\')">Cancel</button>' +
@@ -952,16 +1010,22 @@
       : { title: '', icon: '📝', body: '' });
     editing[section] = notesState[section].length - 1;
     renderNoteSection(section);
-    var el = document.getElementById('ne-title');
+    var el = document.getElementById('ne-title-' + section);
     if (el) el.focus();
   }
 
   function saveNote(section) {
     var i = editing[section];
     if (i == null) return;
-    var title  = document.getElementById('ne-title').value.trim();
-    var second = document.getElementById('ne-second').value.trim();
-    var body   = document.getElementById('ne-body').value;
+    // Section-scoped ids: both editors can be open at once, and each must
+    // read its own fields (a shared id would read whichever came first).
+    var titleEl  = document.getElementById('ne-title-' + section);
+    var secondEl = document.getElementById('ne-second-' + section);
+    var bodyEl   = document.getElementById('ne-body-' + section);
+    if (!titleEl || !secondEl || !bodyEl) { editing[section] = null; return; }
+    var title  = titleEl.value.trim();
+    var second = secondEl.value.trim();
+    var body   = bodyEl.value;
     if (!title && !body) {
       notesState[section].splice(i, 1); // nothing entered — drop it
     } else {
@@ -993,7 +1057,8 @@
   }
 
   function initNotes(defaults) {
-    notesState = loadNotes(defaults);
+    NOTE_DEFAULTS = { site: (defaults && defaults.site) || [], pillar: (defaults && defaults.pillar) || [] };
+    notesState = loadNotes();
     renderNoteSection('site');
     renderNoteSection('pillar');
   }
