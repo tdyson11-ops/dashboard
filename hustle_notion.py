@@ -27,6 +27,8 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
+import hustle_state
+
 ROOT = Path(__file__).resolve().parent
 CONFIG_PATH = ROOT / "hustle.json"
 
@@ -182,7 +184,43 @@ def bullet(content):
             "bulleted_list_item": {"rich_text": text(content)}}
 
 
-def snapshot_blocks(cfg):
+PIPELINE_STAGES = [
+    ("leads", "Leads on the list"),
+    ("samples", "Samples sent"),
+    ("replies", "Replies"),
+    ("calls", "Calls booked"),
+    ("clients", "Paying clients"),
+]
+
+
+def pipeline_blocks(pipeline):
+    """The funnel, with the drop-off between each step."""
+    if not pipeline:
+        return [heading("Pipeline"),
+                para("Not available — set FIREBASE_EMAIL and FIREBASE_PASSWORD to "
+                     "mirror the counters you tap on your phone.")]
+
+    blocks = [heading("Pipeline")]
+    prev = None
+    for key, label in PIPELINE_STAGES:
+        n = pipeline.get(key, 0)
+        line = f"{label}: {n}"
+        if prev is not None and prev > 0:
+            line += f"  ({round(n / prev * 100)}% of the step before)"
+        blocks.append(bullet(line))
+        prev = n
+
+    leads = pipeline.get("leads", 0)
+    clients = pipeline.get("clients", 0)
+    if leads > 0:
+        blocks.append(para(
+            f"End to end: {round(clients / leads * 100, 1)}% of leads became clients."
+            + (f" At that rate, one more client takes about "
+               f"{round(leads / clients)} more leads." if clients else "")))
+    return blocks
+
+
+def snapshot_blocks(cfg, pipeline=None):
     active = [c for c in cfg.get("clients", []) if c.get("status", "active") == "active"]
     price = cfg["offer"]["price"]
     mrr = sum(float(c.get("price", price)) for c in active)
@@ -204,6 +242,8 @@ def snapshot_blocks(cfg):
                 f"last pack {c.get('last_delivered', 'none yet')}"))
     else:
         blocks.append(para("None yet."))
+
+    blocks += pipeline_blocks(pipeline)
 
     deliveries = cfg.get("deliveries", [])[:8]
     if deliveries:
@@ -245,7 +285,7 @@ def ensure_snapshot(token, parent, cfg):
     return page["id"]
 
 
-def sync_snapshot(token, page, cfg):
+def sync_snapshot(token, page, cfg, pipeline=None):
     # Notion has no "replace page body", so clear the old blocks then append.
     children = call("GET", f"/blocks/{page}/children?page_size=100", token)
     for block in children.get("results", []):
@@ -254,7 +294,7 @@ def sync_snapshot(token, page, cfg):
         except RuntimeError as e:
             print(f"  could not clear a block: {e}", file=sys.stderr)
 
-    blocks = snapshot_blocks(cfg)
+    blocks = snapshot_blocks(cfg, pipeline)
     for i in range(0, len(blocks), 100):
         call("PATCH", f"/blocks/{page}/children", token, {"children": blocks[i:i + 100]})
     print(f"  snapshot rewritten ({len(blocks)} blocks)")
@@ -275,10 +315,16 @@ def sync(cfg):
         return False
 
     print("Notion:")
+    pipeline = hustle_state.fetch_pipeline()
+    if pipeline:
+        print(f"  pipeline read from sync: {pipeline}")
+    else:
+        print("  pipeline not available (no Firebase credentials, or nothing synced yet)")
+
     db_id = ensure_database(token, parent, cfg)
     n = sync_clients(token, db_id, cfg)
     page = ensure_snapshot(token, parent, cfg)
-    sync_snapshot(token, page, cfg)
+    sync_snapshot(token, page, cfg, pipeline)
     print(f"  done — {n} client(s) mirrored")
     return True
 

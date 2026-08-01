@@ -156,8 +156,27 @@ reuses them — move or rename them in Notion and the sync still finds them. A c
 from `hustle.json` is archived in Notion rather than deleted.
 
 Notion is a **mirror, not a source** — it's rewritten from `hustle.json` on every run, so
-edits made in Notion are overwritten. Pipeline counters aren't included: those live in your
-browser's localStorage, so the workflow can't see them.
+edits made in Notion are overwritten.
+
+#### Pipeline counters
+
+The funnel you tap on your phone lives in localStorage, so it isn't in `hustle.json` — but
+`sync.js` already mirrors it to Firestore, and `hustle_state.py` reads it back from there.
+Add two more secrets and the snapshot gains a **Pipeline** section with the drop-off between
+each stage and how many leads one more client currently costs you:
+
+| Secret | Value |
+|---|---|
+| `FIREBASE_EMAIL` | The email you sign in with on the sync bar |
+| `FIREBASE_PASSWORD` | That account's password |
+
+The project id and web API key are read out of `sync.js`, so there's nothing else to set.
+Leave these unset and everything else still syncs — the Pipeline section just says it's
+unavailable.
+
+This does mean your dashboard account's password sits in a repo secret. It only reaches
+your own Firestore document, which holds dashboard data and nothing else, but it's a real
+trade — skip these two secrets if you'd rather not, and read the funnel on your phone.
 
 A Notion *connector* (the kind you authorise on claude.ai) only works inside a chat, which
 is why this uses an integration token instead — a scheduled job has no chat to borrow from.
