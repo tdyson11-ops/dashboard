@@ -1,0 +1,92 @@
+{
+  "updated": "2026-08-01",
+  "currency": "GBP",
+  "target_mrr": 1000,
+  "offer": {
+    "name": "Local Search Autopilot",
+    "niche": "Independent gyms, PT studios and sports-therapy clinics",
+    "area": "Cheshire & Greater Manchester",
+    "price": 250,
+    "clients_needed": 4,
+    "promise": "Four search-optimised articles, twelve social captions and four Google Business posts a month — written, scheduled and published for you. You approve; you never write.",
+    "deliverables": [
+      "4 x 900-word blog posts targeting local search terms",
+      "12 x social captions (Instagram / Facebook)",
+      "4 x Google Business Profile posts",
+      "1 x monthly email to their list",
+      "Posted straight to their site as drafts — one tap to publish"
+    ],
+    "why_this_niche": "You train, you eat like an athlete, you already speak the language. A gym owner can tell in two sentences whether the person emailing them has ever set foot in a squat rack. That credibility is the whole sale, and it is the one thing a competitor cannot copy from you."
+  },
+  "settings": {
+    "model": "claude-opus-5",
+    "effort": "medium",
+    "posts_per_month": 4,
+    "social_per_month": 12,
+    "gbp_per_month": 4,
+    "outreach_per_run": 4,
+    "publish_status": "draft",
+    "sender": {
+      "name": "Tom Dyson",
+      "email": "",
+      "phone": ""
+    }
+  },
+  "clients": [],
+  "pipeline_seed": {
+    "leads": 0,
+    "samples": 0,
+    "replies": 0,
+    "calls": 0,
+    "clients": 0
+  },
+  "deliveries": [],
+  "runs": {},
+  "plan": [
+    {
+      "week": "Week 1",
+      "task": "Build the lead list — 60 gyms/PT studios with a website and a visible email"
+    },
+    {
+      "week": "Week 1",
+      "task": "Add ANTHROPIC_API_KEY + LEADS_CSV to GitHub secrets, run the outreach workflow once by hand"
+    },
+    {
+      "week": "Week 1",
+      "task": "Send the first 20 approved emails (4/day, weekday mornings)"
+    },
+    {
+      "week": "Week 2",
+      "task": "Send the next 20. Reply to every response within the hour"
+    },
+    {
+      "week": "Week 2",
+      "task": "First call booked — offer the first month at £125 to remove the risk"
+    },
+    {
+      "week": "Week 3",
+      "task": "Client 1 live. Run the delivery workflow, check the pack, send it"
+    },
+    {
+      "week": "Week 4",
+      "task": "Send the last 20 emails. Ask client 1 for one referral"
+    },
+    {
+      "week": "Week 5",
+      "task": "Clients 2 and 3 live. Raise price to £250 for new sign-ups"
+    },
+    {
+      "week": "Week 6",
+      "task": "Client 4 live — £1,000/month. Stop outreach, or keep going to £2k"
+    },
+    {
+      "week": "Admin",
+      "task": "Past £1,000 of trading income in a tax year: register as a sole trader with HMRC"
+    }
+  ],
+  "admin_notes": [
+    "UK trading allowance is £1,000 per tax year. Below that, nothing to declare. You will pass it in month one, so register as a sole trader with HMRC when you do — it takes ten minutes and the deadline is 5 October after the tax year ends.",
+    "Cold email to a limited company is legal under PECR with a clear opt-out in every message. Sole traders and partnerships count as individuals and need consent — so only email businesses that are registered companies, and drop anyone who asks, permanently.",
+    "Keep the client's approval in writing before anything is published live. The engine writes drafts by default for exactly this reason."
+  ]
+}

@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Hustle">
+  <meta name="theme-color" content="#0d0d0d">
+  <link rel="manifest" href="manifest-hustle.json">
+  <link rel="apple-touch-icon" href="hicon-180.png">
+  <title>Hustle — Tom Dyson</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="persist.js"></script>
+  <script type="module" src="sync.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #0d0d0d;
+      --card: #161616;
+      --border: #222;
+      --text: #f0f0f0;
+      --muted: #666;
+      --accent: #f59e0b;
+      --green: #22c55e;
+      --blue: #60a5fa;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      max-width: 430px;
+      margin: 0 auto;
+      padding-bottom: 4rem;
+    }
+
+    .header {
+      padding: 1.5rem 1.25rem 1rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+    .header-name { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; }
+    .header-sub {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+      margin-bottom: 0.3rem;
+    }
+    .back-link { font-size: 0.78rem; color: var(--muted); text-decoration: none; padding-bottom: 0.15rem; }
+
+    .section { padding: 1rem 1.25rem 0; }
+    .section-label {
+      font-size: 0.63rem;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--muted);
+      margin-bottom: 0.55rem;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.1rem;
+      margin-bottom: 0.75rem;
+    }
+
+    /* MRR */
+    .mrr-top { display: flex; align-items: baseline; justify-content: space-between; }
+    .mrr-now { font-size: 2.4rem; font-weight: 700; letter-spacing: -0.03em; line-height: 1; }
+    .mrr-target { font-size: 0.8rem; color: var(--muted); font-weight: 600; }
+    .bar {
+      height: 8px;
+      background: #222;
+      border-radius: 4px;
+      overflow: hidden;
+      margin: 0.9rem 0 0.6rem;
+    }
+    .bar-fill { height: 100%; background: var(--accent); border-radius: 4px; transition: width 0.4s; }
+    .mrr-note { font-size: 0.78rem; color: var(--muted); line-height: 1.5; }
+    .mrr-note b { color: var(--text); font-weight: 600; }
+
+    /* queue */
+    .task {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.7rem;
+      padding: 0.65rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.88rem;
+      line-height: 1.45;
+    }
+    .task:last-child { border-bottom: none; }
+    .task-num {
+      flex: 0 0 auto;
+      width: 20px; height: 20px;
+      border-radius: 6px;
+      background: #222;
+      color: var(--accent);
+      font-size: 0.68rem;
+      font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      margin-top: 0.1rem;
+    }
+    .task-time { color: var(--muted); font-size: 0.72rem; white-space: nowrap; margin-top: 0.15rem; }
+
+    /* pipeline */
+    .stage {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.55rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .stage:last-child { border-bottom: none; }
+    .stage-name { flex: 1; font-size: 0.85rem; }
+    .stage-conv { font-size: 0.68rem; color: var(--muted); margin-left: 0.35rem; }
+    .stage-count {
+      font-size: 1.05rem;
+      font-weight: 700;
+      min-width: 2ch;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+    .step {
+      width: 30px; height: 30px;
+      border: 1px solid var(--border);
+      background: #1c1c1c;
+      color: var(--text);
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 1rem;
+      line-height: 1;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .step:active { background: #262626; }
+
+    /* clients */
+    .client-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 0.6rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .client-row:last-child { border-bottom: none; }
+    .client-name { font-size: 0.9rem; font-weight: 600; }
+    .client-meta { font-size: 0.72rem; color: var(--muted); margin-top: 0.15rem; }
+    .client-price { font-weight: 700; font-size: 0.9rem; white-space: nowrap; }
+
+    .empty { font-size: 0.82rem; color: var(--muted); line-height: 1.55; }
+
+    /* plan */
+    .plan-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.7rem;
+      padding: 0.6rem 0;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .plan-row:last-child { border-bottom: none; }
+    .check {
+      flex: 0 0 auto;
+      width: 22px; height: 22px;
+      border: 1.5px solid var(--muted);
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.8rem; color: #0d0d0d;
+      margin-top: 0.05rem;
+    }
+    .plan-row.done .check { background: var(--green); border-color: var(--green); }
+    .plan-row.done .plan-task { text-decoration: line-through; color: var(--muted); }
+    .plan-week {
+      font-size: 0.6rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--accent);
+    }
+    .plan-task { font-size: 0.85rem; line-height: 1.45; margin-top: 0.1rem; }
+
+    .kv { font-size: 0.8rem; color: var(--muted); line-height: 1.7; }
+    .kv b { color: var(--text); font-weight: 600; }
+
+    .bullet {
+      font-size: 0.82rem;
+      line-height: 1.55;
+      padding-left: 0.9rem;
+      position: relative;
+      margin-bottom: 0.45rem;
+    }
+    .bullet:last-child { margin-bottom: 0; }
+    .bullet::before { content: '·'; position: absolute; left: 0; color: var(--accent); font-weight: 700; }
+
+    .note { font-size: 0.78rem; color: var(--muted); line-height: 1.6; margin-bottom: 0.7rem; }
+    .note:last-child { margin-bottom: 0; }
+    .note b { color: var(--text); font-weight: 600; }
+
+    .btn {
+      display: block;
+      width: 100%;
+      background: #1c1c1c;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: 0.82rem;
+      font-weight: 600;
+      padding: 0.7rem;
+      margin-top: 0.6rem;
+      cursor: pointer;
+      text-align: center;
+      text-decoration: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn:active { background: #262626; }
+
+    .pill {
+      display: inline-block;
+      font-size: 0.62rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 700;
+      padding: 0.2rem 0.45rem;
+      border-radius: 5px;
+      background: #222;
+      color: var(--muted);
+    }
+    .pill.live { background: rgba(34,197,94,0.15); color: var(--green); }
+    .pill.wait { background: rgba(245,158,11,0.15); color: var(--accent); }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="header-sub">Side hustle</div>
+    <div class="header-name">Hustle</div>
+  </div>
+  <a class="back-link" href="index.html">← Dashboard</a>
+</div>
+
+<div class="section">
+  <div class="section-label">Monthly recurring revenue</div>
+  <div class="card">
+    <div class="mrr-top">
+      <div class="mrr-now" id="mrr">£0</div>
+      <div class="mrr-target" id="mrrTarget">of £1,000</div>
+    </div>
+    <div class="bar"><div class="bar-fill" id="mrrBar" style="width:0%"></div></div>
+    <div class="mrr-note" id="mrrNote">—</div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-label">Today — 20 minutes</div>
+  <div class="card" id="queue"></div>
+</div>
+
+<div class="section">
+  <div class="section-label">Pipeline</div>
+  <div class="card" id="pipeline"></div>
+</div>
+
+<div class="section">
+  <div class="section-label">Clients</div>
+  <div class="card" id="clients"></div>
+</div>
+
+<div class="section">
+  <div class="section-label">The robot</div>
+  <div class="card" id="automation"></div>
+</div>
+
+<div class="section">
+  <div class="section-label">What you sell</div>
+  <div class="card" id="offer"></div>
+</div>
+
+<div class="section">
+  <div class="section-label">Six weeks to £1k</div>
+  <div class="card" id="plan"></div>
+</div>
+
+<div class="section">
+  <div class="section-label">Money &amp; admin</div>
+  <div class="card" id="admin"></div>
+</div>
+
+<script>
+var KEY = 'hustle-state-v1';
+var STAGES = [
+  { id: 'leads',   name: 'Leads on the list' },
+  { id: 'samples', name: 'Samples sent' },
+  { id: 'replies', name: 'Replies' },
+  { id: 'calls',   name: 'Calls booked' },
+  { id: 'clients', name: 'Paying clients' }
+];
+
+var CFG = null;
+var state = load();
+
+function load() {
+  try {
+    var s = JSON.parse(localStorage.getItem(KEY));
+    if (s && typeof s === 'object') return s;
+  } catch (e) {}
+  return { pipeline: {}, plan: {} };
+}
+
+function save() {
+  localStorage.setItem(KEY, JSON.stringify(state));
+  window.dispatchEvent(new Event('hustle-changed'));
+}
+
+function money(n) {
+  return '£' + Number(n || 0).toLocaleString('en-GB');
+}
+
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+  });
+}
+
+fetch('hustle.json?v=' + Date.now())
+  .then(function (r) { return r.json(); })
+  .then(function (cfg) {
+    CFG = cfg;
+    STAGES.forEach(function (s) {
+      if (state.pipeline[s.id] == null) {
+        state.pipeline[s.id] = (cfg.pipeline_seed || {})[s.id] || 0;
+      }
+    });
+    render();
+  })
+  .catch(function () {
+    document.getElementById('queue').innerHTML =
+      '<div class="empty">Could not load hustle.json.</div>';
+  });
+
+// Sync may replace localStorage from another device — re-render when it does.
+window.addEventListener('storage', function (e) {
+  if (e.key === KEY) { state = load(); if (CFG) render(); }
+});
+
+function render() {
+  renderMrr();
+  renderQueue();
+  renderPipeline();
+  renderClients();
+  renderAutomation();
+  renderOffer();
+  renderPlan();
+  renderAdmin();
+}
+
+function activeClients() {
+  return (CFG.clients || []).filter(function (c) {
+    return (c.status || 'active') === 'active';
+  });
+}
+
+function mrr() {
+  return activeClients().reduce(function (sum, c) {
+    return sum + Number(c.price != null ? c.price : CFG.offer.price);
+  }, 0);
+}
+
+function renderMrr() {
+  var now = mrr();
+  var target = CFG.target_mrr;
+  var price = CFG.offer.price;
+  var gap = Math.max(0, Math.ceil((target - now) / price));
+
+  document.getElementById('mrr').textContent = money(now);
+  document.getElementById('mrrTarget').textContent = 'of ' + money(target);
+  document.getElementById('mrrBar').style.width =
+    Math.min(100, (now / target) * 100) + '%';
+
+  var note;
+  if (now >= target) {
+    note = 'Target hit. Every client past this point is profit on top — or the '
+         + 'point where you raise the price and stop selling.';
+  } else {
+    note = '<b>' + gap + ' more client' + (gap === 1 ? '' : 's')
+         + '</b> at ' + money(price) + '/month gets you there. '
+         + 'That is roughly <b>' + (gap * 25) + ' emails</b> at the 4% reply-to-close '
+         + 'rate this kind of offer usually runs at.';
+  }
+  document.getElementById('mrrNote').innerHTML = note;
+}
+
+function renderQueue() {
+  var runs = CFG.runs || {};
+  var packs = (runs.outreach || {}).packs || 0;
+  var remaining = (runs.outreach || {}).remaining;
+  var short = activeClients().length < (CFG.offer.clients_needed || 4);
+  var tasks = [];
+
+  if (!runs.outreach) {
+    tasks.push(['Add ANTHROPIC_API_KEY and LEADS_CSV to the repo secrets, then run the Side Hustle workflow by hand once', '10 min']);
+    tasks.push(['Build the lead list — 60 gyms with a website and a visible email address', '1 hr, once']);
+  } else if (packs > 0) {
+    tasks.push(['Open this morning’s artifact — ' + packs + ' email' + (packs === 1 ? '' : 's') + ' written and waiting. Read each one, change one detail so it is yours, send', '10 min']);
+  } else if (remaining === 0) {
+    tasks.push(['Lead list is empty. Add 40 more businesses to the LEADS_CSV secret', '30 min']);
+  }
+
+  tasks.push(['Reply to every response within the hour. A reply inside 60 minutes is worth more than a better email', 'as they land']);
+
+  if (short && (state.pipeline.replies || 0) > (state.pipeline.calls || 0)) {
+    tasks.push(['You have replies with no call booked. Offer two specific times, not "let me know when suits"', '2 min']);
+  }
+  if (activeClients().length > 0) {
+    tasks.push(['Skim this month’s pack for each client before it goes out. You are checking for anything untrue, not for prose', '5 min/client']);
+  }
+
+  document.getElementById('queue').innerHTML = tasks.map(function (t, i) {
+    return '<div class="task">'
+      + '<div class="task-num">' + (i + 1) + '</div>'
+      + '<div style="flex:1">' + esc(t[0]) + '</div>'
+      + '<div class="task-time">' + esc(t[1]) + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+function renderPipeline() {
+  var html = STAGES.map(function (s, i) {
+    var n = state.pipeline[s.id] || 0;
+    var conv = '';
+    if (i > 0) {
+      var prev = state.pipeline[STAGES[i - 1].id] || 0;
+      if (prev > 0) conv = '<span class="stage-conv">' + Math.round((n / prev) * 100) + '%</span>';
+    }
+    return '<div class="stage">'
+      + '<button class="step" data-stage="' + s.id + '" data-d="-1">–</button>'
+      + '<button class="step" data-stage="' + s.id + '" data-d="1">+</button>'
+      + '<div class="stage-name">' + esc(s.name) + conv + '</div>'
+      + '<div class="stage-count">' + n + '</div>'
+      + '</div>';
+  }).join('');
+  var el = document.getElementById('pipeline');
+  el.innerHTML = html;
+  el.querySelectorAll('.step').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var id = b.dataset.stage;
+      state.pipeline[id] = Math.max(0, (state.pipeline[id] || 0) + Number(b.dataset.d));
+      save();
+      renderPipeline();
+    });
+  });
+}
+
+function renderClients() {
+  var list = CFG.clients || [];
+  var el = document.getElementById('clients');
+  if (!list.length) {
+    el.innerHTML = '<div class="empty">No clients yet.<br><br>'
+      + 'Clients live in <b>hustle.json</b> — the engine needs the town and the '
+      + 'focus to write anything. Add one from your phone by editing that file '
+      + 'on GitHub.</div>'
+      + '<button class="btn" id="copyClient">Copy a blank client entry</button>';
+    var btn = document.getElementById('copyClient');
+    if (btn) btn.addEventListener('click', function () {
+      var blank = {
+        name: 'Iron Works Gym', slug: 'iron-works-gym', town: 'Macclesfield',
+        focus: 'strength training and small-group PT', website: '',
+        price: CFG.offer.price, status: 'active', wordpress_url: ''
+      };
+      navigator.clipboard.writeText(JSON.stringify(blank, null, 2)).then(function () {
+        btn.textContent = 'Copied — paste into "clients" in hustle.json';
+      });
+    });
+    return;
+  }
+  el.innerHTML = list.map(function (c) {
+    var live = (c.status || 'active') === 'active';
+    var last = c.last_delivered ? 'Last pack ' + esc(c.last_delivered) : 'No pack sent yet';
+    return '<div class="client-row"><div>'
+      + '<div class="client-name">' + esc(c.name) + ' '
+      + '<span class="pill ' + (live ? 'live' : 'wait') + '">' + (live ? 'Live' : 'Paused') + '</span></div>'
+      + '<div class="client-meta">' + esc(c.town || '') + ' · ' + last + '</div>'
+      + '</div><div class="client-price">' + money(c.price != null ? c.price : CFG.offer.price) + '</div></div>';
+  }).join('');
+}
+
+function fmtWhen(iso) {
+  if (!iso) return 'never';
+  var d = new Date(iso);
+  if (isNaN(d)) return 'never';
+  var days = Math.floor((Date.now() - d) / 86400000);
+  if (days === 0) return 'today';
+  if (days === 1) return 'yesterday';
+  return days + ' days ago';
+}
+
+function renderAutomation() {
+  var runs = CFG.runs || {};
+  var o = runs.outreach || {};
+  var d = runs.deliver || {};
+  document.getElementById('automation').innerHTML =
+      '<div class="kv"><b>Outreach</b> — weekday mornings, 7am.<br>'
+    + 'Last run ' + fmtWhen(o.at) + ''
+    + (o.packs != null ? ', wrote ' + o.packs + ' pack' + (o.packs === 1 ? '' : 's') : '')
+    + (o.remaining != null ? '. ' + o.remaining + ' lead' + (o.remaining === 1 ? '' : 's') + ' left on the list' : '') + '.</div>'
+    + '<div class="kv" style="margin-top:0.7rem"><b>Delivery</b> — 1st of the month, 8am.<br>'
+    + 'Last run ' + fmtWhen(d.at)
+    + (d.clients != null ? ', ' + d.clients + ' client pack' + (d.clients === 1 ? '' : 's') : '') + '.</div>'
+    + '<div class="note" style="margin-top:0.9rem">The robot writes. It never sends '
+    + 'a cold email and never publishes live — both of those stay in your hands, '
+    + 'on purpose.</div>';
+}
+
+function renderOffer() {
+  var o = CFG.offer;
+  document.getElementById('offer').innerHTML =
+      '<div class="client-name">' + esc(o.name) + ' — ' + money(o.price) + '/month</div>'
+    + '<div class="client-meta" style="margin-bottom:0.8rem">' + esc(o.niche) + ' · ' + esc(o.area) + '</div>'
+    + '<div class="note">' + esc(o.promise) + '</div>'
+    + (o.deliverables || []).map(function (d) {
+        return '<div class="bullet">' + esc(d) + '</div>';
+      }).join('')
+    + '<div class="note" style="margin-top:0.9rem"><b>Why gyms:</b> ' + esc(o.why_this_niche) + '</div>';
+}
+
+function renderPlan() {
+  var el = document.getElementById('plan');
+  el.innerHTML = (CFG.plan || []).map(function (p, i) {
+    var done = !!state.plan[i];
+    return '<div class="plan-row' + (done ? ' done' : '') + '" data-i="' + i + '">'
+      + '<div class="check">' + (done ? '✓' : '') + '</div>'
+      + '<div style="flex:1"><div class="plan-week">' + esc(p.week) + '</div>'
+      + '<div class="plan-task">' + esc(p.task) + '</div></div></div>';
+  }).join('');
+  el.querySelectorAll('.plan-row').forEach(function (row) {
+    row.addEventListener('click', function () {
+      var i = row.dataset.i;
+      state.plan[i] = !state.plan[i];
+      save();
+      renderPlan();
+    });
+  });
+}
+
+function renderAdmin() {
+  document.getElementById('admin').innerHTML =
+    (CFG.admin_notes || []).map(function (n) {
+      return '<div class="note">' + esc(n) + '</div>';
+    }).join('');
+}
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(function () {});
+}
+</script>
+</body>
+</html>

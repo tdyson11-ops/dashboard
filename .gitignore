@@ -1,2 +1,8 @@
 __pycache__/
 *.pyc
+
+# Lead list and outreach drafts hold people's names and email addresses.
+# They stay out of the repo — see the Side hustle section of the README.
+leads.csv
+outbox/
+.env

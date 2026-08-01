@@ -1,0 +1,88 @@
+name: Side Hustle
+
+on:
+  schedule:
+    - cron: '0 6 * * 1-5'   # 7am BST, weekdays — outreach packs waiting when you wake up
+    - cron: '0 7 1 * *'     # 8am BST on the 1st — the month's client content
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Which job to run'
+        type: choice
+        options: [outreach, deliver]
+        default: outreach
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Work out which job this is
+        id: pick
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "mode=${{ inputs.mode }}" >> "$GITHUB_OUTPUT"
+          elif [ "${{ github.event.schedule }}" = "0 7 1 * *" ]; then
+            echo "mode=deliver" >> "$GITHUB_OUTPUT"
+          else
+            echo "mode=outreach" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install dependencies
+        run: pip install --quiet anthropic
+
+      # The lead list holds names and email addresses, so it never lives in the
+      # repo. It's kept in a secret and written to disk only for this run.
+      - name: Restore lead list
+        if: steps.pick.outputs.mode == 'outreach'
+        env:
+          LEADS_CSV: ${{ secrets.LEADS_CSV }}
+        run: |
+          if [ -n "$LEADS_CSV" ]; then
+            printf '%s\n' "$LEADS_CSV" > leads.csv
+            echo "Leads: $(( $(wc -l < leads.csv) - 1 ))"
+          else
+            echo "LEADS_CSV secret is empty — nothing to do."
+          fi
+
+      - name: Run the engine
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          WP_CLIENT_USER: ${{ secrets.WP_CLIENT_USER }}
+          WP_CLIENT_APP_PASSWORD: ${{ secrets.WP_CLIENT_APP_PASSWORD }}
+        run: python3 hustle_engine.py ${{ steps.pick.outputs.mode }}
+
+      # Outreach output contains lead names — artifact only, never committed.
+      - name: Upload outreach packs
+        if: steps.pick.outputs.mode == 'outreach' && hashFiles('outbox/**') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: outreach-${{ github.run_number }}
+          path: outbox/
+          retention-days: 14
+
+      - name: Save the updated lead list back to the secret
+        if: steps.pick.outputs.mode == 'outreach' && hashFiles('leads.csv') != ''
+        env:
+          GH_TOKEN: ${{ secrets.LEADS_WRITE_TOKEN }}
+        run: |
+          if [ -n "$GH_TOKEN" ]; then
+            gh secret set LEADS_CSV --repo "$GITHUB_REPOSITORY" < leads.csv
+            echo "Lead statuses saved."
+          else
+            echo "No LEADS_WRITE_TOKEN — lead statuses not persisted."
+            echo "Set it, or the same leads will be regenerated next run."
+          fi
+
+      - name: Commit client content and dashboard state
+        run: |
+          rm -f leads.csv
+          git config user.email "action@github.com"
+          git config user.name "GitHub Action"
+          git add hustle.json clients 2>/dev/null || true
+          git diff --staged --quiet || git commit -m "Hustle: ${{ steps.pick.outputs.mode }} run"
+          git push

@@ -62,6 +62,85 @@ Add it to your home screen the same way as the dashboard (**Share → Add to Hom
 - 7-day view with daily totals and average
 - Same localStorage + Export/Import backup model as the training log
 
+## Side hustle
+
+`hustle.html` is a standalone **Hustle** app (linked from the dashboard) for running one
+specific business to £1,000/month: **AI-written local content for independent gyms and PT
+studios, £250 per client per month.** Four clients is the target.
+
+The split that makes it work: **the robot writes, you decide.** Content production —
+the part that would otherwise eat a day a month per client — is fully automated. Cold
+emails are never sent automatically and client posts are never published live
+automatically, because both are irreversible and outward-facing.
+
+### The app
+
+- **MRR to £1,000**, with how many clients are still missing and roughly how many emails that means
+- **Today's 20 minutes** — a short queue that changes with the stage you're at
+- **Pipeline** — tap ± on leads → samples → replies → calls → clients; it shows the conversion rate between each step so you can see which stage is actually broken
+- **Clients**, **the robot's last run**, the offer, a six-week plan and the tax/PECR notes
+
+Pipeline counts and plan ticks live in localStorage and sync across devices. Everything
+else comes from `hustle.json`.
+
+### The engine
+
+`hustle_engine.py` has two modes, both driven by the `Side Hustle` workflow:
+
+| Mode | Runs | What it does |
+|---|---|---|
+| `outreach` | Weekdays 7am | For each lead marked `new`: writes a real 900-word article *for that specific business* plus a personalised cold email. Lands in `outbox/` as a workflow artifact |
+| `deliver` | 1st of the month, 8am | For each active client: plans the month, then writes 4 blog posts, 12 social captions, 4 Google Business posts and a newsletter into `clients/<slug>/<YYYY-MM>/` |
+
+The free sample is the whole pitch — it's a real article they can publish whether or not
+they ever reply, which is why it has to be good rather than a teaser.
+
+Run either by hand from the Actions tab (**Side Hustle → Run workflow**) to test.
+
+### Setup
+
+| Secret | Needed for | Value |
+|---|---|---|
+| `ANTHROPIC_API_KEY` | Both | From the [Anthropic console](https://console.anthropic.com). Runs cost roughly 20p per client per month |
+| `LEADS_CSV` | Outreach | The lead list, pasted in whole (see below) |
+| `LEADS_WRITE_TOKEN` | Outreach | Optional. A PAT with `secrets: write` so the workflow can save lead statuses back. Without it the same leads regenerate each run |
+
+**The lead list never goes in the repo** — it holds names and email addresses. It lives in
+the `LEADS_CSV` secret and is written to disk only for the length of a run; `outbox/` is
+gitignored and comes back as an artifact you download. Columns:
+
+```csv
+business,contact,email,town,website,focus,status,notes
+Iron Works Gym,Dave,dave@ironworks.co.uk,Macclesfield,ironworks.co.uk,strength training and small-group PT,new,
+```
+
+Only rows with `status` of `new` are picked up, four per run.
+
+### Adding a client
+
+Add an entry to `clients` in `hustle.json` (the app has a **Copy a blank client entry**
+button). `town` and `focus` are what the engine writes from, so they need to be real:
+
+```json
+{
+  "name": "Iron Works Gym", "slug": "iron-works-gym",
+  "town": "Macclesfield", "focus": "strength training and small-group PT",
+  "price": 250, "status": "active",
+  "wordpress_url": "https://ironworks.co.uk"
+}
+```
+
+Set `wordpress_url` plus `WP_<SLUG>_USER` and `WP_<SLUG>_APP_PASSWORD` secrets (slug
+uppercased, hyphens as underscores) and posts go straight into their site — **as drafts**,
+so nothing appears on a client's site without a human pressing publish. Change
+`publish_status` to `"publish"` per client once you trust it.
+
+### Before you start
+
+- **UK trading allowance is £1,000 per tax year.** You'll pass it in month one — register as a sole trader with HMRC when you do.
+- **Cold email under PECR:** fine to a registered company with an opt-out in every message; sole traders and partnerships count as individuals and need consent. Only email limited companies, and honour removals permanently.
+- **Get client sign-off in writing** before anything is published live.
+
 ## Cross-device sync
 
 `sync.js` mirrors the apps' data to a Firebase (Firestore) project so logging on one device
