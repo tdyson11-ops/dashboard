@@ -122,6 +122,34 @@
       margin-top: 0.2rem;
     }
 
+    .focus-item.editable { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+    .focus-text { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+    .focus-item.done .focus-text { color: var(--muted); text-decoration: line-through; }
+    .focus-item.done .focus-num { color: var(--green); }
+
+    .focus-tick {
+      width: 20px;
+      height: 20px;
+      border-radius: 6px;
+      border: 1.5px solid var(--border);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.72rem;
+      color: #0d0d0d;
+      margin-top: 0.05rem;
+    }
+
+    .focus-item.done .focus-tick { background: var(--green); border-color: var(--green); }
+
+    .focus-empty {
+      font-size: 0.8rem;
+      color: var(--muted);
+      text-align: center;
+      padding: 0.4rem 0;
+    }
+
     /* ── WHOOP ── */
     .whoop-grid {
       display: grid;
@@ -203,96 +231,21 @@
     .nav-card-sub { font-size: 0.7rem; color: var(--muted); margin-top: 0.2rem; }
     .nav-card-arrow { color: var(--muted); font-size: 1.1rem; }
 
-    /* ── Cyden ── */
-    .row-between {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-    }
-
-    .row-label {
-      font-size: 0.8rem;
-      color: var(--muted);
-    }
-
-    .row-value {
-      font-size: 0.9rem;
-      font-weight: 700;
-    }
-
-    .progress-bar {
-      background: #222;
-      border-radius: 4px;
-      height: 5px;
-      margin: 0.65rem 0;
-      overflow: hidden;
-    }
-
-    .progress-fill {
-      height: 100%;
-      border-radius: 4px;
-      background: var(--accent);
-    }
-
-    .progress-meta {
-      display: flex;
-      justify-content: space-between;
-      font-size: 0.7rem;
-      color: var(--muted);
-    }
-
-    .site-info {
-      font-size: 0.78rem;
-      color: var(--muted);
-      margin-top: 0.4rem;
-    }
-
-    .site-info strong { color: var(--text); font-weight: 500; }
-
-    .divider {
-      border: none;
-      border-top: 1px solid var(--border);
-      margin: 0.75rem 0;
-    }
-
-    .kpi-row {
+    /* ── University deadlines ── */
+    .deadline-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 0.42rem 0;
-      font-size: 0.8rem;
+      gap: 0.6rem;
+      padding: 0.55rem 0;
       border-bottom: 1px solid var(--border);
     }
 
-    .kpi-row:last-child { border-bottom: none; }
+    .deadline-row:first-child { padding-top: 0; }
+    .deadline-row:last-child { border-bottom: none; padding-bottom: 0; }
 
-    .kpi-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      display: inline-block;
-      margin-right: 0.5rem;
-      flex-shrink: 0;
-    }
-
-    .dot-green { background: var(--green); }
-    .dot-amber { background: var(--amber); }
-    .dot-red   { background: var(--red); }
-
-    .kpi-value { font-weight: 600; }
-
-    /* ── University ── */
-    .uni-module {
-      font-size: 0.72rem;
-      color: var(--muted);
-      margin-bottom: 0.2rem;
-    }
-
-    .uni-deadline {
-      font-size: 1.15rem;
-      font-weight: 700;
-      letter-spacing: -0.01em;
-    }
+    .deadline-name { font-size: 0.82rem; font-weight: 500; }
+    .deadline-date { font-size: 0.68rem; color: var(--muted); margin-top: 0.15rem; }
 
     .days-badge {
       display: inline-block;
@@ -303,7 +256,7 @@
       padding: 0.18rem 0.55rem;
       font-size: 0.68rem;
       font-weight: 600;
-      margin-top: 0.5rem;
+      flex-shrink: 0;
     }
 
     .days-badge.urgent {
@@ -312,14 +265,11 @@
       border-color: #3d0000;
     }
 
-    .uni-avg {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 0.78rem;
+    .days-badge.passed {
+      background: #101010;
+      color: var(--muted);
+      border-color: var(--border);
     }
-
-    .avg-value { font-weight: 700; color: var(--green); }
 
     /* ── Status pills (Pillars / Goals) ── */
     .line-item {
@@ -393,6 +343,22 @@
 
     .habit-count { font-size: 0.8rem; font-weight: 700; }
     .habit-week { display: flex; gap: 0.3rem; margin-top: 0.75rem; }
+
+    /* 30-day score */
+    .habit-score {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-top: 0.85rem;
+      padding-top: 0.75rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .score-big { font-size: 1.5rem; font-weight: 700; line-height: 1; letter-spacing: -0.02em; }
+    .score-label { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-top: 0.25rem; }
+    .score-right { text-align: right; }
+    .score-streak { font-size: 0.85rem; font-weight: 700; }
+    .score-sub { font-size: 0.62rem; color: var(--muted); margin-top: 0.2rem; }
 
     .habit-day {
       flex: 1;
@@ -596,6 +562,10 @@
     <div id="focus-list">
       <div class="focus-item"><span class="focus-num">—</span><span>Loading...</span></div>
     </div>
+    <div class="note-actions">
+      <button class="note-add" onclick="addFocus()">+ Add focus</button>
+      <button class="note-add" onclick="clearDoneFocus()">Clear done</button>
+    </div>
   </div>
 </div>
 
@@ -650,6 +620,16 @@
     </div>
     <div id="habit-list"></div>
     <div class="habit-week" id="habit-week"></div>
+    <div class="habit-score">
+      <div>
+        <div class="score-big" id="habit-avg">—</div>
+        <div class="score-label">30-day average</div>
+      </div>
+      <div class="score-right">
+        <div class="score-streak" id="habit-streak">—</div>
+        <div class="score-sub" id="habit-days">—</div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -703,42 +683,10 @@
   <div class="card" id="goals-card"></div>
 </div>
 
-<!-- CYDEN -->
-<div class="section">
-  <div class="section-label">Cyden — Site</div>
-  <div class="card">
-    <div class="row-between">
-      <span class="row-label">Units complete</span>
-      <span class="row-value" id="plots-fraction">—</span>
-    </div>
-    <div class="progress-bar">
-      <div class="progress-fill" id="plots-bar" style="width:0%"></div>
-    </div>
-    <div class="progress-meta">
-      <span id="plots-pct">0%</span>
-      <span id="plots-remaining">—</span>
-    </div>
-    <hr class="divider">
-    <div class="site-info" id="current-stage"></div>
-    <div class="site-info" id="next-milestone"></div>
-    <hr class="divider">
-    <div id="kpi-list"></div>
-  </div>
-</div>
-
 <!-- UNIVERSITY -->
 <div class="section">
   <div class="section-label">University — Leeds Beckett</div>
-  <div class="card">
-    <div class="uni-module" id="uni-module">—</div>
-    <div class="uni-deadline" id="uni-deadline-label">—</div>
-    <div id="days-badge-container"></div>
-    <hr class="divider" style="margin-top:0.75rem;">
-    <div class="uni-avg">
-      <span style="color:var(--muted)">Current average</span>
-      <span class="avg-value" id="uni-avg">—</span>
-    </div>
-  </div>
+  <div class="card" id="deadlines-card"></div>
   <div class="card" id="modules-card"></div>
 </div>
 
@@ -777,7 +725,7 @@
       <button class="backup-btn" onclick="document.getElementById('backup-file').click()">Import</button>
     </div>
     <input type="file" id="backup-file" accept=".json,application/json" style="display:none" onchange="importBackup(event)">
-    <div class="backup-note">Saves your notes and habit ticks to a file. Keep a copy every week or two — this data lives only on this device.</div>
+    <div class="backup-note">Saves your focus list, notes and habit ticks to a file. Keep a copy every week or two — this data lives only on this device.</div>
   </div>
 </div>
 
@@ -827,6 +775,112 @@
     return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
   }
 
+  // ── Today's Focus (editable, stored on this device) ──
+  var FKEY = 'dash-focus-v1';
+  var FOCUS_DEFAULTS = [];
+  var focusState = [];
+  var editingFocus = null;
+
+  function loadFocus() {
+    try {
+      var stored = JSON.parse(localStorage.getItem(FKEY));
+      if (Array.isArray(stored)) return stored;
+    } catch (e) {}
+    var seed = FOCUS_DEFAULTS.map(function (t) { return { text: t, done: false }; });
+    localStorage.setItem(FKEY, JSON.stringify(seed));
+    return seed;
+  }
+  function saveFocus() { localStorage.setItem(FKEY, JSON.stringify(focusState)); }
+
+  function focusInput() { return document.querySelector('#focus-list .fe-text'); }
+
+  function renderFocus() {
+    var list = document.getElementById('focus-list');
+    if (!focusState.length) {
+      list.innerHTML = '<div class="focus-empty">Nothing set — tap “+ Add focus”.</div>';
+      return;
+    }
+    list.innerHTML = focusState.map(function (f, i) {
+      if (editingFocus === i) {
+        return '<div class="note-editor">' +
+          '<input class="fe-text" placeholder="What are you focusing on?" value="' + attr(f.text) + '"' +
+          ' onkeydown="if(event.key===\'Enter\')saveFocusItem()">' +
+          '<div class="btn-row">' +
+            '<button class="note-btn save" onclick="saveFocusItem()">Save</button>' +
+            '<button class="note-btn cancel" onclick="cancelFocus()">Cancel</button>' +
+            '<button class="note-btn del" onclick="deleteFocus(' + i + ')">Delete</button>' +
+          '</div></div>';
+      }
+      return '<div class="focus-item editable' + (f.done ? ' done' : '') + '">' +
+        '<span class="focus-num">' + (i + 1) + '</span>' +
+        '<span class="focus-text" onclick="startEditFocus(' + i + ')">' + esc(f.text) + '</span>' +
+        '<span class="focus-tick" onclick="toggleFocus(' + i + ')">' + (f.done ? '✓' : '') + '</span>' +
+        '</div>';
+    }).join('');
+  }
+
+  function startEditFocus(i) {
+    editingFocus = i;
+    renderFocus();
+    var el = focusInput();
+    if (el) { el.focus(); el.select(); }
+  }
+
+  function toggleFocus(i) {
+    if (!focusState[i]) return;
+    focusState[i].done = !focusState[i].done;
+    saveFocus();
+    renderFocus();
+  }
+
+  function addFocus() {
+    focusState.push({ text: '', done: false });
+    editingFocus = focusState.length - 1;
+    renderFocus();
+    var el = focusInput();
+    if (el) el.focus();
+  }
+
+  function saveFocusItem() {
+    var i = editingFocus;
+    if (i == null) return;
+    var el = focusInput();
+    if (!el) return;
+    var text = el.value.trim();
+    if (!text) focusState.splice(i, 1);          // nothing entered — drop it
+    else focusState[i].text = text;
+    editingFocus = null;
+    saveFocus();
+    renderFocus();
+  }
+
+  function cancelFocus() {
+    var i = editingFocus;
+    if (i != null && focusState[i] && !focusState[i].text) focusState.splice(i, 1);
+    editingFocus = null;
+    renderFocus();
+  }
+
+  function deleteFocus(i) {
+    focusState.splice(i, 1);
+    editingFocus = null;
+    saveFocus();
+    renderFocus();
+  }
+
+  function clearDoneFocus() {
+    focusState = focusState.filter(function (f) { return !f.done; });
+    editingFocus = null;
+    saveFocus();
+    renderFocus();
+  }
+
+  function initFocus(defaults) {
+    FOCUS_DEFAULTS = defaults || [];
+    focusState = loadFocus();
+    renderFocus();
+  }
+
   // ── Habits (interactive, stored on this device) ──
   var HKEY = 'dash-habits-v1';
   window.__HABITS = [];
@@ -863,6 +917,59 @@
       cells += '<div class="habit-day ' + cls + (day === 0 ? ' today' : '') + '"></div>';
     }
     document.getElementById('habit-week').innerHTML = cells;
+
+    renderHabitScore(habits, state);
+  }
+
+  // How many habits were ticked `daysBack` days ago.
+  function dayTicks(state, daysBack, n) {
+    var s = state[dateKeyAgo(daysBack)] || {};
+    var c = 0;
+    for (var i = 0; i < n; i++) if (s[i]) c++;
+    return c;
+  }
+
+  // 30-day average: percentage of habit boxes ticked, measured from the first
+  // day you logged anything (within the window) to today — so a missed day
+  // counts against you, but the weeks before you started tracking don't.
+  function renderHabitScore(habits, state) {
+    var n = habits.length;
+    var avgEl = document.getElementById('habit-avg');
+    var streakEl = document.getElementById('habit-streak');
+    var daysEl = document.getElementById('habit-days');
+    if (!avgEl) return;
+
+    var firstIdx = -1;
+    for (var d = 29; d >= 0; d--) {
+      if (state[dateKeyAgo(d)]) { firstIdx = d; break; }
+    }
+
+    if (!n || firstIdx < 0) {
+      avgEl.textContent = '—';
+      avgEl.className = 'score-big';
+      streakEl.textContent = '—';
+      daysEl.textContent = 'start ticking to build a score';
+      return;
+    }
+
+    var done = 0;
+    for (var k = firstIdx; k >= 0; k--) done += dayTicks(state, k, n);
+    var daysTracked = firstIdx + 1;
+    var pct = Math.round(done / (daysTracked * n) * 100);
+
+    avgEl.textContent = pct + '%';
+    avgEl.className = 'score-big ' + (pct >= 80 ? 'good' : pct >= 50 ? 'warn' : 'bad');
+
+    // Streak of days with every habit ticked. Today only breaks it once it's
+    // over, so a part-finished day doesn't zero the count.
+    var streak = 0;
+    var start = dayTicks(state, 0, n) === n ? 0 : 1;
+    for (var s = start; s < 365; s++) {
+      if (dayTicks(state, s, n) === n) streak++; else break;
+    }
+    streakEl.textContent = streak + (streak === 1 ? ' day' : ' days');
+    streakEl.className = 'score-streak ' + (streak > 0 ? 'good' : '');
+    daysEl.textContent = 'streak · ' + daysTracked + 'd tracked';
   }
 
   // ── Pillars & Goals ──
@@ -888,6 +995,34 @@
     document.getElementById('goals-card').innerHTML = (goals || []).map(function (g) {
       return '<div class="line-item"><span>' + esc(g.name) + '</span>' +
         '<span class="pill ' + goalPillClass(g.status) + '">' + esc(g.status) + '</span></div>';
+    }).join('');
+  }
+
+  // ── Uni submission deadlines ──
+  function renderDeadlines(deadlines) {
+    var card = document.getElementById('deadlines-card');
+    if (!card) return;
+    var list = (deadlines || []).slice().sort(function (a, b) {
+      return a.date < b.date ? -1 : a.date > b.date ? 1 : 0;
+    });
+    if (!list.length) {
+      card.innerHTML = '<div class="focus-empty">No submission dates yet — they go in when term starts.</div>';
+      return;
+    }
+    var today = new Date();
+    today.setHours(0, 0, 0, 0);
+    card.innerHTML = list.map(function (dl) {
+      var d = new Date(dl.date + 'T12:00:00');
+      var daysLeft = Math.ceil((d - today) / 86400000);
+      var cls = daysLeft < 0 ? ' passed' : (daysLeft <= 7 ? ' urgent' : '');
+      var label = daysLeft < 0 ? 'passed'
+                : daysLeft === 0 ? 'today'
+                : daysLeft + ' day' + (daysLeft !== 1 ? 's' : '');
+      var sub = (dl.module ? esc(dl.module) + ' · ' : '') + d.getDate() + ' ' + months[d.getMonth()];
+      return '<div class="deadline-row"><div>' +
+        '<div class="deadline-name">' + esc(dl.name) + '</div>' +
+        '<div class="deadline-date">' + sub + '</div></div>' +
+        '<span class="days-badge' + cls + '">' + label + '</span></div>';
     }).join('');
   }
 
@@ -1079,9 +1214,10 @@
 
   // ── Backup / restore (notes + habit ticks) ──
   function exportBackup() {
-    var payload = { _type: 'tom-dashboard-backup', exported: todayKey(), notes: null, habits: null };
+    var payload = { _type: 'tom-dashboard-backup', exported: todayKey(), notes: null, habits: null, focus: null };
     try { payload.notes  = JSON.parse(localStorage.getItem(NKEY)); } catch (e) {}
     try { payload.habits = JSON.parse(localStorage.getItem(HKEY)); } catch (e) {}
+    try { payload.focus  = JSON.parse(localStorage.getItem(FKEY)); } catch (e) {}
     var blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
     var a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
@@ -1097,9 +1233,9 @@
     reader.onload = function () {
       try {
         var d = JSON.parse(reader.result);
-        if (!d || (d.notes === undefined && d.habits === undefined)) throw new Error('bad');
+        if (!d || (d.notes === undefined && d.habits === undefined && d.focus === undefined)) throw new Error('bad');
         var when = d.exported ? ' (from ' + d.exported + ')' : '';
-        if (!confirm('Restore this backup' + when + '? It replaces your current notes and habit ticks on this device.')) {
+        if (!confirm('Restore this backup' + when + '? It replaces your current focus, notes and habit ticks on this device.')) {
           ev.target.value = '';
           return;
         }
@@ -1113,6 +1249,12 @@
         if (d.habits) {
           localStorage.setItem(HKEY, JSON.stringify(d.habits));
           renderHabits(window.__HABITS);
+        }
+        if (Array.isArray(d.focus)) {
+          localStorage.setItem(FKEY, JSON.stringify(d.focus));
+          focusState = d.focus;
+          editingFocus = null;
+          renderFocus();
         }
         alert('Backup restored.');
       } catch (e) {
@@ -1132,13 +1274,6 @@
     .then(function(d) {
       document.getElementById('last-updated').textContent = 'Updated ' + d.updated;
 
-      // Focus
-      var fl = document.getElementById('focus-list');
-      fl.innerHTML = d.focus.map(function(f, i) {
-        return '<div class="focus-item"><span class="focus-num">' + (i + 1) +
-               '</span><span>' + f + '</span></div>';
-      }).join('');
-
       // WHOOP
       var rec = d.whoop.recovery;
       var col = recoveryColour(rec);
@@ -1153,49 +1288,13 @@
       document.getElementById('sleep-val').innerHTML  = d.whoop.sleep_score + '<span class="stat-unit"> %</span>';
       document.getElementById('strain-val').textContent = d.whoop.strain;
 
-      // Cyden
-      var pct = Math.round((d.cyden.plots_complete / d.cyden.plots_total) * 100);
-      document.getElementById('plots-fraction').textContent =
-        d.cyden.plots_complete + '/' + d.cyden.plots_total;
-      document.getElementById('plots-bar').style.width = pct + '%';
-      document.getElementById('plots-pct').textContent = pct + '%';
-      document.getElementById('plots-remaining').textContent =
-        (d.cyden.plots_total - d.cyden.plots_complete) + ' remaining';
-      document.getElementById('current-stage').innerHTML =
-        '<strong>Stage:</strong> ' + d.cyden.current_stage;
-      document.getElementById('next-milestone').innerHTML =
-        '<strong>Next:</strong> ' + d.cyden.next_milestone;
-
-      var kpiList = document.getElementById('kpi-list');
-      kpiList.innerHTML = d.cyden.kpis.map(function(k) {
-        return '<div class="kpi-row">' +
-          '<span><span class="kpi-dot dot-' + k.status + '"></span>' + k.label + '</span>' +
-          '<span class="kpi-value">' + k.value + '</span>' +
-          '</div>';
-      }).join('');
-
-      // University
-      document.getElementById('uni-module').textContent = d.university.module;
-      var dl = new Date(d.university.next_deadline);
-      var dlStr = dl.getDate() + ' ' + months[dl.getMonth()];
-      document.getElementById('uni-deadline-label').textContent =
-        d.university.deadline_label + ' — ' + dlStr;
-
-      var today = new Date();
-      today.setHours(0, 0, 0, 0);
-      var daysLeft = Math.ceil((dl - today) / 86400000);
-      var badge = document.getElementById('days-badge-container');
-      badge.innerHTML = '<div class="days-badge' + (daysLeft <= 3 ? ' urgent' : '') + '">' +
-        daysLeft + ' day' + (daysLeft !== 1 ? 's' : '') + ' left</div>';
-
-      document.getElementById('uni-avg').textContent =
-        d.university.current_avg + ' (target: ' + d.university.grade_target + ')';
-
-      // New Command-Center components
+      // Command-Center components
+      initFocus(d.focus);
       window.__HABITS = d.habits || [];
       renderHabits(window.__HABITS);
       renderPillars(d.pillars);
       renderGoals(d.goals);
+      renderDeadlines(d.university && d.university.deadlines);
       renderModules(d.university && d.university.modules);
       initNotes({ site: d.site_notes, pillar: d.pillar_notes });
     })
