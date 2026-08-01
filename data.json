@@ -2,7 +2,7 @@
   "updated": "1 August 2026",
   "focus": [
     "Review cash flow projections with Dad",
-    "Submit NHBC stage inspection request \u2014 Plots 7-9",
+    "Submit NHBC stage inspection request — Plots 7-9",
     "Revise for CM essay due Friday"
   ],
   "whoop": {
@@ -13,10 +13,10 @@
     "strain": 4.8
   },
   "habits": [
-    "Shoulder rehab \u2014 10 min",
+    "Shoulder rehab — 10 min",
     "Train (per plan)",
     "Hit 3,200 kcal / 160g protein",
-    "Study / CPD \u2014 30 min",
+    "Study / CPD — 30 min",
     "In bed by 11pm"
   ],
   "pillars": [
@@ -25,7 +25,7 @@
       "status": "ticking"
     },
     {
-      "name": "Modernise Cyden \u2014 digital systems, every department",
+      "name": "Modernise Cyden — digital systems, every department",
       "status": "ticking"
     },
     {
@@ -33,7 +33,7 @@
       "status": "ticking"
     },
     {
-      "name": "Hybrid athlete \u2014 Seville Marathon, strength, tennis",
+      "name": "Hybrid athlete — Seville Marathon, strength, tennis",
       "status": "ontrack"
     },
     {
@@ -53,7 +53,7 @@
       "status": "ontrack"
     },
     {
-      "name": "Daily discipline \u2014 operate like the future version now",
+      "name": "Daily discipline — operate like the future version now",
       "status": "ticking"
     }
   ],
@@ -71,7 +71,7 @@
       "status": "In progress"
     },
     {
-      "name": "Modernise Cyden \u2014 digital systems across departments",
+      "name": "Modernise Cyden — digital systems across departments",
       "status": "In progress"
     },
     {
@@ -87,33 +87,10 @@
       "status": "In progress"
     },
     {
-      "name": "Health \u2014 5kg lean muscle in 90 days",
+      "name": "Health — 5kg lean muscle in 90 days",
       "status": "In progress"
     }
   ],
-  "cyden": {
-    "plots_complete": 14,
-    "plots_total": 32,
-    "current_stage": "Roof structure \u2014 Plots 15-18",
-    "next_milestone": "Slab pour \u2014 Plots 19-22 (26 May)",
-    "kpis": [
-      {
-        "label": "On programme",
-        "value": "Yes",
-        "status": "green"
-      },
-      {
-        "label": "Snagging open",
-        "value": "7",
-        "status": "amber"
-      },
-      {
-        "label": "H&S actions",
-        "value": "2",
-        "status": "amber"
-      }
-    ]
-  },
   "site_notes": [
     {
       "name": "Items to do",
@@ -145,11 +122,7 @@
     }
   ],
   "university": {
-    "module": "Construction Management (Hons)",
-    "next_deadline": "2026-05-22",
-    "deadline_label": "Essay submission",
-    "grade_target": "First",
-    "current_avg": "71%",
+    "deadlines": [],
     "modules": [
       {
         "name": "Construction Technology",
@@ -200,43 +173,43 @@
   },
   "pillar_notes": [
     {
-      "icon": "\ud83c\udfd7",
+      "icon": "🏗",
       "name": "CYDEN"
     },
     {
-      "icon": "\ud83d\udc34",
+      "icon": "🐴",
       "name": "Horses"
     },
     {
-      "icon": "\u2699\ufe0f",
+      "icon": "⚙️",
       "name": "Daily operations"
     },
     {
-      "icon": "\ud83d\udcaa",
+      "icon": "💪",
       "name": "Fitness"
     },
     {
-      "icon": "\ud83c\udf93",
+      "icon": "🎓",
       "name": "UNI"
     },
     {
-      "icon": "\ud83d\udc51",
+      "icon": "👑",
       "name": "Succession"
     },
     {
-      "icon": "\ud83d\udcbb",
+      "icon": "💻",
       "name": "Digitilisation"
     },
     {
-      "icon": "\ud83d\udce6",
+      "icon": "📦",
       "name": "Moving out"
     },
     {
-      "icon": "\ud83d\uded2",
+      "icon": "🛒",
       "name": "Shopping"
     },
     {
-      "icon": "\ud83d\ude97",
+      "icon": "🚗",
       "name": "IAM driving"
     }
   ]

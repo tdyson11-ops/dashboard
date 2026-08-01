@@ -117,22 +117,13 @@ Or edit it directly on GitHub.com (pencil icon) for quick updates from your phon
 | Field | What to update |
 |---|---|
 | `updated` | Date string shown at the top |
-| `focus` | Array of 1–4 priority tasks for the day |
+| `focus` | Array of priority tasks — **seeds** the editable Today's Focus list on first load |
 | `whoop.recovery` | Recovery % from WHOOP app (0–100) |
 | `whoop.hrv` | HRV in ms |
 | `whoop.rhr` | Resting heart rate in bpm |
 | `whoop.sleep_score` | Sleep score % |
 | `whoop.strain` | Day strain score |
-| `cyden.plots_complete` | Units complete |
-| `cyden.plots_total` | Total units on scheme |
-| `cyden.current_stage` | Current active stage description |
-| `cyden.next_milestone` | Next key milestone and date |
-| `cyden.kpis` | Array of KPIs — status: `green`, `amber`, or `red` |
-| `university.module` | Current module name |
-| `university.next_deadline` | ISO date: `YYYY-MM-DD` |
-| `university.deadline_label` | Short label for the deadline |
-| `university.grade_target` | Target grade |
-| `university.current_avg` | Current module average |
+| `university.deadlines` | Array of `{ name, module, date }` — `date` is ISO `YYYY-MM-DD`. Sorted soonest-first, badge turns red inside 7 days. Empty array hides the list |
 | `university.modules` | Array of `{ name, term, progress }` — `progress` is 0–100 |
 | `habits` | Array of daily habit names — tap to tick on the dashboard (ticks stored per device in localStorage) |
 | `pillars` | Array of `{ name, status }` — status: `ticking`, `ontrack`, or `atrisk` |
@@ -140,10 +131,19 @@ Or edit it directly on GitHub.com (pencil icon) for quick updates from your phon
 | `site_notes` | Array of `{ name, tag }` — **seeds** the editable Site Notes on first load |
 | `pillar_notes` | Array of `{ icon, name }` — **seeds** the editable Pillar Notes on first load (`icon` is an emoji) |
 
-The **Command Center** components mirror the Notion dashboard. Pillars, Goals and Uni modules are
-edited via `data.json`. **Site Notes** and **Pillar Notes** are editable directly on the dashboard —
-tap a note to edit its title, tag/emoji and body, or **+ Add note** / delete. **Habits** are ticked
-on the dashboard too. Notes and habit ticks are stored in the browser's localStorage and **synced across
-devices** when signed in via the sync bar (see Cross-device sync above) — `data.json` only provides the
-initial note content the first time the page loads on a device. The **Backup** card at the bottom also
-lets you **Export**/**Import** notes and habit ticks as a JSON file for an offline safety net.
+The **Command Center** components mirror the Notion dashboard. Pillars, Goals, Uni modules and
+submission deadlines are edited via `data.json`.
+
+Edited directly on the dashboard (no `data.json` needed):
+
+- **Today's Focus** — tap an item to edit it, the box to tick it off, **+ Add focus** to add,
+  **Clear done** to sweep finished ones
+- **Site Notes** / **Pillar Notes** — tap to edit title, tag/emoji and body; **+ Add note** / delete
+- **Habits** — tap to tick. The card shows a **30-day average** (share of habit boxes ticked, measured
+  from your first logged day in the window so the weeks before you started don't count against you),
+  a current streak of all-ticked days, and a 7-day strip
+
+Focus, notes and habit ticks are stored in the browser's localStorage and **synced across devices**
+when signed in via the sync bar (see Cross-device sync above) — `data.json` only provides the initial
+content the first time the page loads on a device. The **Backup** card at the bottom also lets you
+**Export**/**Import** them as a JSON file for an offline safety net.
