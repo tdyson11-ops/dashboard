@@ -71,6 +71,14 @@ jobs:
           WP_CLIENT_APP_PASSWORD: ${{ secrets.WP_CLIENT_APP_PASSWORD }}
         run: python3 hustle_engine.py ${{ steps.pick.outputs.mode }}
 
+      # Mirrors clients, MRR and the delivery log into Notion. Runs in both
+      # modes and skips itself if NOTION_TOKEN isn't set.
+      - name: Sync to Notion
+        env:
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+          NOTION_PARENT_PAGE_ID: ${{ secrets.NOTION_PARENT_PAGE_ID }}
+        run: python3 hustle_notion.py
+
       # Outreach output contains lead names — artifact only, never committed.
       - name: Upload outreach packs
         if: steps.pick.outputs.mode == 'outreach' && hashFiles('outbox/**') != ''

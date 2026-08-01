@@ -135,6 +135,33 @@ uppercased, hyphens as underscores) and posts go straight into their site — **
 so nothing appears on a client's site without a human pressing publish. Change
 `publish_status` to `"publish"` per client once you trust it.
 
+### Notion mirror
+
+`hustle_notion.py` pushes the hustle into Notion so it sits with the rest of the Command
+Center. It runs at the end of every workflow run and skips itself if `NOTION_TOKEN` isn't set.
+
+It builds two things the first time, then keeps them updated:
+
+- **Hustle — Clients**, a database with one row per client (status, price, town, focus, last pack)
+- **Hustle — Snapshot**, a page with MRR against target, the delivery log and when the robot last ran
+
+Setup, once:
+
+1. [notion.so/my-integrations](https://www.notion.so/my-integrations) → **New integration** → copy the secret into a `NOTION_TOKEN` repo secret
+2. Open the Notion page you want this to live under → **•••** → **Connections** → add your integration. **The API cannot see a page that hasn't been shared with it** — this is the step everyone misses
+3. Put that page's URL in a `NOTION_PARENT_PAGE_ID` secret (a full URL is fine, it pulls the id out)
+
+The database and page IDs get written back into `hustle.json`, so after the first run it
+reuses them — move or rename them in Notion and the sync still finds them. A client removed
+from `hustle.json` is archived in Notion rather than deleted.
+
+Notion is a **mirror, not a source** — it's rewritten from `hustle.json` on every run, so
+edits made in Notion are overwritten. Pipeline counters aren't included: those live in your
+browser's localStorage, so the workflow can't see them.
+
+A Notion *connector* (the kind you authorise on claude.ai) only works inside a chat, which
+is why this uses an integration token instead — a scheduled job has no chat to borrow from.
+
 ### Before you start
 
 - **UK trading allowance is £1,000 per tax year.** You'll pass it in month one — register as a sole trader with HMRC when you do.
