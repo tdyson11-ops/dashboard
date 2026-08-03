@@ -6,7 +6,7 @@
   // Trainer targets — lean bulk 72 → 77 kg
   // High protein, calorie surplus. Tune here.
   // ─────────────────────────────────────────────
-  var TARGET = { kcal: 3000, p: 190 };
+  var TARGET = { kcal: 3200, p: 190 };
 
   // ─────────────────────────────────────────────
   // Morrisons aisle map (item -> section)

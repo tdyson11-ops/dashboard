@@ -283,7 +283,7 @@
 <div id="app"></div>
 
 <div class="footnote">
-  Targets: 3,200 kcal · 160g protein · 80% whole foods.<br>
+  Targets: 3,200 kcal · 190g protein · 80% whole foods.<br>
   Meals come from your meal planner — extras and single items are below them.
 </div>
 
@@ -291,7 +291,7 @@
   // ─────────────────────────────────────────────
   // Targets & default staples (kcal / protein g per serving)
   // ─────────────────────────────────────────────
-  var FUEL_TARGET = { kcal: 3200, p: 160 };
+  var FUEL_TARGET = { kcal: 3200, p: 190 };
 
   var DEFAULT_FOODS = [
     { name: 'The Shake (oats/milk/PB/banana/whey)', kcal: 1100, p: 50 },
@@ -452,7 +452,7 @@
     var kcalPct = Math.min(100, Math.round(t.kcal / FUEL_TARGET.kcal * 100));
     var pPct = Math.min(100, Math.round(t.p / FUEL_TARGET.p * 100));
     var kCls = kcalClass(t.kcal);
-    var pCls = t.p >= 150 ? 'good' : 'warn';
+    var pCls = t.p >= FUEL_TARGET.p * 0.95 ? 'good' : 'warn';
 
     var html = '';
 
