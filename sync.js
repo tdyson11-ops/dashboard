@@ -16,6 +16,9 @@ import {
 import {
   getFirestore, doc, onSnapshot, setDoc, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
+import {
+  getFunctions, httpsCallable
+} from "https://www.gstatic.com/firebasejs/12.16.0/firebase-functions.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyA6Y6VW0Hzb7YUBC5qIr8blB6EVPMu-dl4",
@@ -40,7 +43,7 @@ const SYNC_KEYS = [
 const REV_KEY = 'sync-rev';                       // last applied revision (per device, not synced)
 const CLIENT_ID = Math.random().toString(36).slice(2) + Date.now().toString(36);
 
-let auth, db, docRef, unsub = null;
+let auth, db, fns, docRef, unsub = null, unsubWhoop = null;
 let lastRev = parseInt(localStorage.getItem(REV_KEY) || '0', 10) || 0;
 let applying = false;      // true while we write remote data locally (don't echo it back up)
 let pushTimer = null;
@@ -53,6 +56,7 @@ function boot() {
     app = initializeApp(firebaseConfig);
     auth = getAuth(app);
     db = getFirestore(app);
+    fns = getFunctions(app, 'europe-west2');
   } catch (e) {
     console.warn('[sync] init failed — running local-only', e);
     return; // app still works entirely from localStorage
@@ -61,9 +65,38 @@ function boot() {
   patchLocalStorage();
   buildBar();
   onAuthStateChanged(auth, function (user) {
-    if (user) { renderBar('on', user.email); startSync(user.uid); }
-    else { if (unsub) { unsub(); unsub = null; } docRef = null; renderBar('off'); }
+    if (user) { renderBar('on', user.email); startSync(user.uid); startWhoop(); }
+    else {
+      if (unsub) { unsub(); unsub = null; }
+      if (unsubWhoop) { unsubWhoop(); unsubWhoop = null; }
+      docRef = null;
+      renderBar('off');
+    }
   });
+}
+
+// ── Live WHOOP data ──
+// A Cloud Function writes system/whoop_latest at 07:00 and on demand. The
+// dashboard picks it up here, so recovery is current without waiting on the
+// GitHub job that rebuilds data.json. Pages that don't define a handler
+// (Training, Meals, …) simply ignore it.
+function startWhoop() {
+  unsubWhoop = onSnapshot(doc(db, 'system', 'whoop_latest'), function (snap) {
+    if (!snap.exists()) return;
+    if (typeof window.applyLiveWhoop === 'function') window.applyLiveWhoop(snap.data());
+  }, function (err) {
+    console.warn('[whoop] live read failed', err);
+  });
+
+  // Let the ↻ button pull today's numbers straight from WHOOP.
+  window.__whoopRefreshNow = function () {
+    return httpsCallable(fns, 'whoopRefreshNow')().then(function (res) {
+      if (res && res.data && typeof window.applyLiveWhoop === 'function') {
+        window.applyLiveWhoop(res.data);
+      }
+      return res && res.data;
+    });
+  };
 }
 
 // ── Firestore <-> localStorage ──
