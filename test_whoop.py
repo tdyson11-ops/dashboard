@@ -94,7 +94,11 @@ assert saved == 'ROTATED_TOKEN_1', f'expected ROTATED_TOKEN_1, got {saved}'
 print(f'rotated token persisted (encrypted): {saved}')
 # data.json updated with rounded values
 d = json.load(open('data.json'))
-assert d['whoop'] == {"recovery": 68, "hrv": 61, "rhr": 50, "sleep_score": 82, "strain": 11.6}, d['whoop']
+metrics = {k: v for k, v in d['whoop'].items() if k != 'fetched_at'}
+assert metrics == {"recovery": 68, "hrv": 61, "rhr": 50, "sleep_score": 82, "strain": 11.6}, metrics
+# fetched_at drives the dashboard's "today / yesterday" staleness tag
+import re
+assert re.match(r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$', d['whoop']['fetched_at']), d['whoop']['fetched_at']
 print(f'data.json whoop block: {d["whoop"]}')
 assert d['updated'] != 'old', 'updated date not refreshed'
 assert d['focus'] == ['x'], 'other data.json fields clobbered!'
