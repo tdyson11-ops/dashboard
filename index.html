@@ -1376,20 +1376,7 @@
         stamp.textContent = 'Updated ' + d.updated +
           (manual ? ' · checked ' + pad(new Date().getHours()) + ':' + pad(new Date().getMinutes()) : '');
 
-        // WHOOP
-        var rec = d.whoop.recovery;
-        var col = recoveryColour(rec);
-        var arc = document.getElementById('recovery-arc');
-        arc.style.stroke = col;
-        arc.setAttribute('stroke-dashoffset', CIRC * (1 - rec / 100));
-        var pctEl = document.getElementById('recovery-pct');
-        pctEl.textContent = rec;
-        pctEl.style.color = col;
-        document.getElementById('hrv-val').innerHTML    = d.whoop.hrv    + '<span class="stat-unit"> ms</span>';
-        document.getElementById('rhr-val').innerHTML    = d.whoop.rhr    + '<span class="stat-unit"> bpm</span>';
-        document.getElementById('sleep-val').innerHTML  = d.whoop.sleep_score + '<span class="stat-unit"> %</span>';
-        document.getElementById('strain-val').textContent = d.whoop.strain;
-        renderWhoopAge(d.whoop.fetched_at);
+        renderWhoop(d.whoop);
 
         // Command-Center components
         initFocus(d.focus);
@@ -1413,6 +1400,38 @@
         if (manual) btn.classList.remove('spinning');
       });
   }
+
+  // ── Recovery card ──
+  // Fed from two places: data.json (rebuilt by the GitHub job) and, when
+  // signed in, live Firestore data written by the Cloud Function. Whichever
+  // is newer wins, so the two can't fight over the card.
+  var whoopShownAt = 0;
+
+  function renderWhoop(w) {
+    if (!w) return;
+    var stamp = w.fetched_at ? Date.parse(w.fetched_at) : 0;
+    // Once we've shown numbers of a known age, don't let older — or
+    // undated, i.e. a data.json written before fetched_at existed — data
+    // replace them.
+    if (whoopShownAt && (!stamp || stamp < whoopShownAt)) return;
+    whoopShownAt = stamp || whoopShownAt;
+
+    var col = recoveryColour(w.recovery);
+    var arc = document.getElementById('recovery-arc');
+    arc.style.stroke = col;
+    arc.setAttribute('stroke-dashoffset', CIRC * (1 - w.recovery / 100));
+    var pctEl = document.getElementById('recovery-pct');
+    pctEl.textContent = w.recovery;
+    pctEl.style.color = col;
+    document.getElementById('hrv-val').innerHTML   = w.hrv + '<span class="stat-unit"> ms</span>';
+    document.getElementById('rhr-val').innerHTML   = w.rhr + '<span class="stat-unit"> bpm</span>';
+    document.getElementById('sleep-val').innerHTML = w.sleep_score + '<span class="stat-unit"> %</span>';
+    document.getElementById('strain-val').textContent = w.strain;
+    renderWhoopAge(w.fetched_at);
+  }
+
+  // sync.js calls this when the Cloud Function publishes new numbers.
+  window.applyLiveWhoop = renderWhoop;
 
   // Recovery is only meaningful for the day it was measured. Say plainly how
   // old these numbers are so yesterday's score is never read as today's.
@@ -1449,7 +1468,31 @@
     } catch (e) {}
   }
 
-  function refreshNow() { loadData(true); }
+  // ↻ does two things: re-read data.json, and — if the Cloud Function is
+  // reachable and you're signed in — pull today's numbers straight from WHOOP
+  // rather than waiting for the next scheduled run.
+  function refreshNow() {
+    var btn = document.getElementById('refresh-btn');
+    var stamp = document.getElementById('last-updated');
+    var live = typeof window.__whoopRefreshNow === 'function'
+      ? window.__whoopRefreshNow().catch(function (e) {
+          console.warn('[whoop] live refresh failed', e);
+          return null;                       // fall back to whatever data.json has
+        })
+      : Promise.resolve(null);
+
+    btn.classList.add('spinning');
+    return Promise.all([loadData(true), live]).then(function (results) {
+      btn.classList.remove('spinning');
+      if (results[1]) {
+        // Apply it here rather than relying on the Firestore snapshot or on
+        // sync.js — renderWhoop ignores anything older, so double-applying
+        // the same numbers is harmless.
+        renderWhoop(results[1]);
+        stamp.textContent = 'WHOOP refreshed just now';
+      }
+    });
+  }
 
   loadData(false);
 </script>

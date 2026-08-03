@@ -87,16 +87,53 @@ shows up on every device. Loaded by the Dashboard, Fuel, Meal planner, Shopping 
 - Firebase web config lives in `sync.js` (public by design). Auth uses Email/Password; Firestore
   rules restrict every document to its owner:
 
-  ```
-  rules_version = '2';
-  service cloud.firestore {
-    match /databases/{database}/documents {
-      match /users/{uid}/{document=**} {
-        allow read, write: if request.auth != null && request.auth.uid == uid;
-      }
-    }
-  }
-  ```
+  rules live in `firestore.rules` (deployed with `firebase deploy --only firestore:rules`) —
+  each user's documents are private to them, and the WHOOP token document is closed to all clients
+
+## Live WHOOP data (Cloud Functions)
+
+GitHub's free scheduler is unreliable — the WHOOP job has started 2–3.5h late most days and
+some days not at all. Cloud Functions fix that:
+
+| Function | What it does |
+|---|---|
+| `whoopScheduled` | Runs at **07:00 Europe/London** daily (Cloud Scheduler fires on time) |
+| `whoopRefreshNow` | Callable from the dashboard's **↻** button — pulls today's numbers on demand |
+
+Both write to Firestore `system/whoop_latest`; the dashboard subscribes to it and shows whichever
+is newer, that or `data.json`. The refresh token lives in `system/whoop_token`, which the security
+rules make unreadable to every client — only the Admin SDK can touch it. Tokens rotate exactly as
+in `update_whoop.py` (single-use), and the rotated token is persisted before anything else can fail.
+
+The GitHub workflow stays as a fallback, so nothing is lost if the functions are ever removed.
+
+### Deploying
+
+Requires the **Blaze** plan (Cloud Functions need it for outbound calls to WHOOP). Set a budget
+alert — this uses a handful of calls a day and costs pennies at most.
+
+```bash
+npm install -g firebase-tools          # once
+firebase login                         # once
+cd functions && npm install && cd ..
+
+# Secrets (same values as the GitHub secrets)
+firebase functions:secrets:set WHOOP_CLIENT_ID
+firebase functions:secrets:set WHOOP_CLIENT_SECRET
+firebase functions:secrets:set WHOOP_REFRESH_TOKEN   # seeds the first run only
+
+firebase deploy --only functions,firestore:rules
+```
+
+Then check it: **Firebase console → Functions → `whoopScheduled` → Run now** (or just tap ↻ on the
+dashboard while signed in). `system/whoop_latest` should appear in Firestore.
+
+If the token chain ever breaks (`All WHOOP refresh tokens were rejected`), re-authorise with
+`get_token.py`, update the `WHOOP_REFRESH_TOKEN` secret, and delete the `system/whoop_token`
+document.
+
+Run the function tests any time with `cd functions && npm test` — they use fakes, so no Firebase
+or network access is needed.
 
 ## WHOOP auto-update
 
