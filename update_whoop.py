@@ -127,15 +127,19 @@ cyc = latest_scored_record('cycle')
 strain = round(cyc['strain'], 1) if cyc else prev.get('strain', 0.0)
 
 # ── Update data.json ──
+today = datetime.now(timezone.utc)
+
 data['whoop'] = {
     'recovery':    recovery_pct,
     'hrv':         hrv,
     'rhr':         rhr,
     'sleep_score': sleep_score,
     'strain':      strain,
+    # When these numbers were actually pulled, so the dashboard can show their
+    # age rather than presenting yesterday's recovery as today's.
+    'fetched_at':  today.strftime('%Y-%m-%dT%H:%M:%SZ'),
 }
 
-today = datetime.now(timezone.utc)
 data['updated'] = today.strftime('%-d %B %Y')
 
 with open('data.json', 'w') as f:

@@ -99,6 +99,16 @@
     }
 
     .refresh-btn:active { border-color: var(--accent); color: var(--accent); }
+
+    .age-tag {
+      text-transform: none;
+      letter-spacing: 0;
+      font-weight: 600;
+      margin-left: 0.3rem;
+    }
+
+    .age-fresh { color: var(--green); }
+    .age-stale { color: var(--amber); }
     .refresh-btn.spinning { animation: spin 0.8s linear infinite; color: var(--accent); }
 
     @keyframes spin { to { transform: rotate(360deg); } }
@@ -599,7 +609,7 @@
 
 <!-- WHOOP RECOVERY -->
 <div class="section">
-  <div class="section-label">Recovery</div>
+  <div class="section-label">Recovery <span id="whoop-age"></span></div>
   <div class="card">
     <div class="whoop-grid">
       <div class="recovery-ring">
@@ -1325,6 +1335,7 @@
         document.getElementById('rhr-val').innerHTML    = d.whoop.rhr    + '<span class="stat-unit"> bpm</span>';
         document.getElementById('sleep-val').innerHTML  = d.whoop.sleep_score + '<span class="stat-unit"> %</span>';
         document.getElementById('strain-val').textContent = d.whoop.strain;
+        renderWhoopAge(d.whoop.fetched_at);
 
         // Command-Center components
         initFocus(d.focus);
@@ -1347,6 +1358,28 @@
       .then(function() {
         if (manual) btn.classList.remove('spinning');
       });
+  }
+
+  // Recovery is only meaningful for the day it was measured. Say plainly how
+  // old these numbers are so yesterday's score is never read as today's.
+  function renderWhoopAge(fetchedAt) {
+    var el = document.getElementById('whoop-age');
+    if (!el) return;
+    if (!fetchedAt) { el.textContent = ''; return; }
+    var then = new Date(fetchedAt);
+    if (isNaN(then)) { el.textContent = ''; return; }
+
+    var startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+    var dayDiff = Math.floor((startOfToday - then) / 86400000) + (then < startOfToday ? 1 : 0);
+
+    if (then >= startOfToday) {
+      el.className = 'age-tag age-fresh';
+      el.textContent = '· today ' + pad(then.getHours()) + ':' + pad(then.getMinutes());
+    } else {
+      el.className = 'age-tag age-stale';
+      el.textContent = dayDiff <= 1 ? '· yesterday' : '· ' + dayDiff + ' days old';
+    }
   }
 
   function refreshAppShell() {
