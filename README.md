@@ -57,10 +57,21 @@ Add it to your home screen the same way as the dashboard (**Share → Add to Hom
 `nutrition.html` is a tap-to-log calorie/protein tracker (linked from the dashboard and training log):
 
 - Daily targets (3,200 kcal / 160g protein) with color-coded progress
-- Pre-loaded staple foods — tap once to log, tap +/− to adjust quantity
+- **Today's plan** — the meals planned for today in the Meal planner, each logged with one tap, or
+  **Log the whole day** for all of them at once. Already-logged meals show a ✓ and can't be double-logged
+- **Log a meal** — any recipe from the planner's library (plus your own saved meals), grouped by
+  Breakfast/Lunch/Dinner/Snack; the group matching the time of day opens by default
+- **Extras & ingredients** — the original staple foods for single items on top of meals; +/− adjusts quantity
 - Custom foods can be logged once or saved as new staples ("Edit staples" to remove)
 - 7-day view with daily totals and average
 - Same localStorage + Export/Import backup model as the training log
+
+Meals read the shared recipe library and weekly plan (`mealdata.js`, `meal-plan-v1`, `meal-custom-v1`),
+so a cooked meal is one tap instead of re-entering its ingredients. If `mealdata.js` is unavailable the
+meal sections simply don't render and the food log still works.
+
+> Note: Fuel's targets (3,200 kcal / 160 g) and the Meal planner's `TARGET` in `mealdata.js`
+> (3,000 kcal / 190 g) are set independently — align them if you want one number.
 
 ## Cross-device sync
 
@@ -111,6 +122,11 @@ If the workflow ever fails with all tokens rejected: re-run `get_token.py`, upda
 Edit `data.json` and push to GitHub — the dashboard updates within ~60 seconds.
 
 Or edit it directly on GitHub.com (pencil icon) for quick updates from your phone.
+
+Tap **↻** in the dashboard header to pull the latest `data.json` without closing the app. It re-renders
+the WHOOP numbers and every `data.json`-driven section, stamps the header with the time it checked, and
+clears the service-worker cache so a new deploy is picked up. Locally-stored things (focus, habit ticks,
+notes) are untouched, and if you're offline it says so and leaves the current data on screen.
 
 ### data.json fields
 
