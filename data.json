@@ -1,22 +1,23 @@
 {
-  "updated": "2 August 2026",
+  "updated": "3 August 2026",
   "focus": [
     "Review cash flow projections with Dad",
-    "Submit NHBC stage inspection request — Plots 7-9",
+    "Submit NHBC stage inspection request \u2014 Plots 7-9",
     "Revise for CM essay due Friday"
   ],
   "whoop": {
-    "recovery": 81,
-    "hrv": 124,
-    "rhr": 41,
-    "sleep_score": 89,
-    "strain": 4.3
+    "recovery": 59,
+    "hrv": 104,
+    "rhr": 39,
+    "sleep_score": 82,
+    "strain": 12.5,
+    "fetched_at": "2026-08-03T17:58:14Z"
   },
   "habits": [
-    "Shoulder rehab — 10 min",
+    "Shoulder rehab \u2014 10 min",
     "Train (per plan)",
     "Hit 3,200 kcal / 190g protein",
-    "Study / CPD — 30 min",
+    "Study / CPD \u2014 30 min",
     "In bed by 11pm"
   ],
   "pillars": [
@@ -25,7 +26,7 @@
       "status": "ticking"
     },
     {
-      "name": "Modernise Cyden — digital systems, every department",
+      "name": "Modernise Cyden \u2014 digital systems, every department",
       "status": "ticking"
     },
     {
@@ -33,7 +34,7 @@
       "status": "ticking"
     },
     {
-      "name": "Hybrid athlete — Seville Marathon, strength, tennis",
+      "name": "Hybrid athlete \u2014 Seville Marathon, strength, tennis",
       "status": "ontrack"
     },
     {
@@ -53,7 +54,7 @@
       "status": "ontrack"
     },
     {
-      "name": "Daily discipline — operate like the future version now",
+      "name": "Daily discipline \u2014 operate like the future version now",
       "status": "ticking"
     }
   ],
@@ -71,7 +72,7 @@
       "status": "In progress"
     },
     {
-      "name": "Modernise Cyden — digital systems across departments",
+      "name": "Modernise Cyden \u2014 digital systems across departments",
       "status": "In progress"
     },
     {
@@ -87,7 +88,7 @@
       "status": "In progress"
     },
     {
-      "name": "Health — 5kg lean muscle in 90 days",
+      "name": "Health \u2014 5kg lean muscle in 90 days",
       "status": "In progress"
     }
   ],
@@ -173,43 +174,43 @@
   },
   "pillar_notes": [
     {
-      "icon": "🏗",
+      "icon": "\ud83c\udfd7",
       "name": "CYDEN"
     },
     {
-      "icon": "🐴",
+      "icon": "\ud83d\udc34",
       "name": "Horses"
     },
     {
-      "icon": "⚙️",
+      "icon": "\u2699\ufe0f",
       "name": "Daily operations"
     },
     {
-      "icon": "💪",
+      "icon": "\ud83d\udcaa",
       "name": "Fitness"
     },
     {
-      "icon": "🎓",
+      "icon": "\ud83c\udf93",
       "name": "UNI"
     },
     {
-      "icon": "👑",
+      "icon": "\ud83d\udc51",
       "name": "Succession"
     },
     {
-      "icon": "💻",
+      "icon": "\ud83d\udcbb",
       "name": "Digitilisation"
     },
     {
-      "icon": "📦",
+      "icon": "\ud83d\udce6",
       "name": "Moving out"
     },
     {
-      "icon": "🛒",
+      "icon": "\ud83d\uded2",
       "name": "Shopping"
     },
     {
-      "icon": "🚗",
+      "icon": "\ud83d\ude97",
       "name": "IAM driving"
     }
   ]
