@@ -62,6 +62,131 @@ Add it to your home screen the same way as the dashboard (**Share → Add to Hom
 - 7-day view with daily totals and average
 - Same localStorage + Export/Import backup model as the training log
 
+## Side hustle
+
+`hustle.html` is a standalone **Hustle** app (linked from the dashboard) for running one
+specific business to £1,000/month: **AI-written local content for independent gyms and PT
+studios, £250 per client per month.** Four clients is the target.
+
+The split that makes it work: **the robot writes, you decide.** Content production —
+the part that would otherwise eat a day a month per client — is fully automated. Cold
+emails are never sent automatically and client posts are never published live
+automatically, because both are irreversible and outward-facing.
+
+### The app
+
+- **MRR to £1,000**, with how many clients are still missing and roughly how many emails that means
+- **Today's 20 minutes** — a short queue that changes with the stage you're at
+- **Pipeline** — tap ± on leads → samples → replies → calls → clients; it shows the conversion rate between each step so you can see which stage is actually broken
+- **Clients**, **the robot's last run**, the offer, a six-week plan and the tax/PECR notes
+
+Pipeline counts and plan ticks live in localStorage and sync across devices. Everything
+else comes from `hustle.json`.
+
+### The engine
+
+`hustle_engine.py` has two modes, both driven by the `Side Hustle` workflow:
+
+| Mode | Runs | What it does |
+|---|---|---|
+| `outreach` | Weekdays 7am | For each lead marked `new`: writes a real 900-word article *for that specific business* plus a personalised cold email. Lands in `outbox/` as a workflow artifact |
+| `deliver` | 1st of the month, 8am | For each active client: plans the month, then writes 4 blog posts, 12 social captions, 4 Google Business posts and a newsletter into `clients/<slug>/<YYYY-MM>/` |
+
+The free sample is the whole pitch — it's a real article they can publish whether or not
+they ever reply, which is why it has to be good rather than a teaser.
+
+Run either by hand from the Actions tab (**Side Hustle → Run workflow**) to test.
+
+### Setup
+
+| Secret | Needed for | Value |
+|---|---|---|
+| `ANTHROPIC_API_KEY` | Both | From the [Anthropic console](https://console.anthropic.com). Runs cost roughly 20p per client per month |
+| `LEADS_CSV` | Outreach | The lead list, pasted in whole (see below) |
+| `LEADS_WRITE_TOKEN` | Outreach | Optional. A PAT with `secrets: write` so the workflow can save lead statuses back. Without it the same leads regenerate each run |
+
+**The lead list never goes in the repo** — it holds names and email addresses. It lives in
+the `LEADS_CSV` secret and is written to disk only for the length of a run; `outbox/` is
+gitignored and comes back as an artifact you download. Columns:
+
+```csv
+business,contact,email,town,website,focus,status,notes
+Iron Works Gym,Dave,dave@ironworks.co.uk,Macclesfield,ironworks.co.uk,strength training and small-group PT,new,
+```
+
+Only rows with `status` of `new` are picked up, four per run.
+
+### Adding a client
+
+Add an entry to `clients` in `hustle.json` (the app has a **Copy a blank client entry**
+button). `town` and `focus` are what the engine writes from, so they need to be real:
+
+```json
+{
+  "name": "Iron Works Gym", "slug": "iron-works-gym",
+  "town": "Macclesfield", "focus": "strength training and small-group PT",
+  "price": 250, "status": "active",
+  "wordpress_url": "https://ironworks.co.uk"
+}
+```
+
+Set `wordpress_url` plus `WP_<SLUG>_USER` and `WP_<SLUG>_APP_PASSWORD` secrets (slug
+uppercased, hyphens as underscores) and posts go straight into their site — **as drafts**,
+so nothing appears on a client's site without a human pressing publish. Change
+`publish_status` to `"publish"` per client once you trust it.
+
+### Notion mirror
+
+`hustle_notion.py` pushes the hustle into Notion so it sits with the rest of the Command
+Center. It runs at the end of every workflow run and skips itself if `NOTION_TOKEN` isn't set.
+
+It builds two things the first time, then keeps them updated:
+
+- **Hustle — Clients**, a database with one row per client (status, price, town, focus, last pack)
+- **Hustle — Snapshot**, a page with MRR against target, the delivery log and when the robot last ran
+
+Setup, once:
+
+1. [notion.so/my-integrations](https://www.notion.so/my-integrations) → **New integration** → copy the secret into a `NOTION_TOKEN` repo secret
+2. Open the Notion page you want this to live under → **•••** → **Connections** → add your integration. **The API cannot see a page that hasn't been shared with it** — this is the step everyone misses
+3. Put that page's URL in a `NOTION_PARENT_PAGE_ID` secret (a full URL is fine, it pulls the id out)
+
+The database and page IDs get written back into `hustle.json`, so after the first run it
+reuses them — move or rename them in Notion and the sync still finds them. A client removed
+from `hustle.json` is archived in Notion rather than deleted.
+
+Notion is a **mirror, not a source** — it's rewritten from `hustle.json` on every run, so
+edits made in Notion are overwritten.
+
+#### Pipeline counters
+
+The funnel you tap on your phone lives in localStorage, so it isn't in `hustle.json` — but
+`sync.js` already mirrors it to Firestore, and `hustle_state.py` reads it back from there.
+Add two more secrets and the snapshot gains a **Pipeline** section with the drop-off between
+each stage and how many leads one more client currently costs you:
+
+| Secret | Value |
+|---|---|
+| `FIREBASE_EMAIL` | The email you sign in with on the sync bar |
+| `FIREBASE_PASSWORD` | That account's password |
+
+The project id and web API key are read out of `sync.js`, so there's nothing else to set.
+Leave these unset and everything else still syncs — the Pipeline section just says it's
+unavailable.
+
+This does mean your dashboard account's password sits in a repo secret. It only reaches
+your own Firestore document, which holds dashboard data and nothing else, but it's a real
+trade — skip these two secrets if you'd rather not, and read the funnel on your phone.
+
+A Notion *connector* (the kind you authorise on claude.ai) only works inside a chat, which
+is why this uses an integration token instead — a scheduled job has no chat to borrow from.
+
+### Before you start
+
+- **UK trading allowance is £1,000 per tax year.** You'll pass it in month one — register as a sole trader with HMRC when you do.
+- **Cold email under PECR:** fine to a registered company with an opt-out in every message; sole traders and partnerships count as individuals and need consent. Only email limited companies, and honour removals permanently.
+- **Get client sign-off in writing** before anything is published live.
+
 ## Cross-device sync
 
 `sync.js` mirrors the apps' data to a Firebase (Firestore) project so logging on one device

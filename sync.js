@@ -35,7 +35,8 @@ const SYNC_KEYS = [
   'meal-shop-checked-v1', // Shopping — ticked items
   'dash-notes-v1',        // Dashboard — Site & Pillar notes
   'dash-habits-v1',       // Dashboard — habit ticks
-  'dash-focus-v1'         // Dashboard — Today's Focus list
+  'dash-focus-v1',        // Dashboard — Today's Focus list
+  'hustle-state-v1'       // Hustle — pipeline counters and plan ticks
 ];
 const REV_KEY = 'sync-rev';                       // last applied revision (per device, not synced)
 const CLIENT_ID = Math.random().toString(36).slice(2) + Date.now().toString(36);
