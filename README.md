@@ -141,7 +141,7 @@ notes) are untouched, and if you're offline it says so and leaves the current da
 | `whoop.strain` | Day strain score |
 | `university.deadlines` | Array of `{ name, module, date }` — `date` is ISO `YYYY-MM-DD`. Sorted soonest-first, badge turns red inside 7 days. Empty array hides the list |
 | `university.modules` | Array of `{ name, term, progress }` — `progress` is 0–100 |
-| `habits` | Array of daily habit names — tap to tick on the dashboard (ticks stored per device in localStorage) |
+| `habits` | Array of daily habit names — tap to tick on the dashboard, for today or a backdated day (ticks stored per device in localStorage) |
 | `pillars` | Array of `{ name, status }` — status: `ticking`, `ontrack`, or `atrisk` |
 | `goals` | Array of `{ name, status }` — status text drives the pill colour (`At risk` = amber, `Done` = green, else neutral) |
 | `site_notes` | Array of `{ name, tag }` — **seeds** the editable Site Notes on first load |
@@ -155,9 +155,12 @@ Edited directly on the dashboard (no `data.json` needed):
 - **Today's Focus** — tap an item to edit it, the box to tick it off, **+ Add focus** to add,
   **Clear done** to sweep finished ones
 - **Site Notes** / **Pillar Notes** — tap to edit title, tag/emoji and body; **+ Add note** / delete
-- **Habits** — tap to tick. The card shows a **30-day average** (share of habit boxes ticked, measured
+- **Habits** — tap to tick. Use **‹** / **›** in the card header (or tap a bar in the 7-day strip) to
+  point the list at an earlier day and tick it there — handy for things you only know the next morning,
+  like bedtime. The header shows which day you're on (amber when it isn't today) and you can go back
+  up to 29 days. The card also shows a **30-day average** (share of habit boxes ticked, measured
   from your first logged day in the window so the weeks before you started don't count against you),
-  a current streak of all-ticked days, and a 7-day strip
+  a current streak of all-ticked days, and the 7-day strip
 
 Focus, notes and habit ticks are stored in the browser's localStorage and **synced across devices**
 when signed in via the sync bar (see Cross-device sync above) — `data.json` only provides the initial
