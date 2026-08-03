@@ -6,14 +6,20 @@ name: Update WHOOP Data
 # whichever lands first gets the day's recovery onto the dashboard, and the
 # later ones refresh strain and cover a skipped run.
 #
-# Times are UTC (BST = UTC+1). There is no point running before you wake —
-# WHOOP only scores recovery once your sleep is complete.
+# Target: recovery on the dashboard by 7am BST. Because runs land late, the
+# attempts are scheduled *earlier* than 7 — the 03:00/04:00 ones are the two
+# that can realistically deliver by then. There is no point going earlier
+# still: WHOOP only scores recovery once your sleep is complete, so a fetch
+# before you wake just re-reads yesterday's numbers.
+#
+# Times are UTC (BST = UTC+1).
 on:
   schedule:
-    - cron: '0 4 * * *'   # ~5am BST  (typically lands 6–8am BST)
-    - cron: '30 5 * * *'  # ~6:30am BST
-    - cron: '0 7 * * *'   # ~8am BST
-    - cron: '0 16 * * *'  # ~5pm BST — refreshes the day's strain
+    - cron: '0 3 * * *'   # 4am BST  — typically lands 5–7:30am BST
+    - cron: '0 4 * * *'   # 5am BST  — typically lands 6–8:30am BST
+    - cron: '0 5 * * *'   # 6am BST  — backstop
+    - cron: '0 6 * * *'   # 7am BST  — the literal 7, usually lands 8–10am
+    - cron: '0 16 * * *'  # 5pm BST  — refreshes the day's strain
   workflow_dispatch:      # allow manual trigger
 
 # Runs must never overlap: WHOOP refresh tokens are single-use, so two jobs
