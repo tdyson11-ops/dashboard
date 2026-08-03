@@ -13,6 +13,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <script src="persist.js"></script>
+  <script src="mealdata.js"></script>
   <script type="module" src="sync.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -190,6 +191,39 @@
 
     .qty-controls { display: flex; gap: 0.4rem; align-items: center; margin-left: 0.6rem; flex-shrink: 0; }
 
+    /* ── Meal logging ── */
+    .log-btn {
+      flex-shrink: 0;
+      margin-left: 0.6rem;
+      background: var(--accent);
+      color: #0d0d0d;
+      border: none;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.42rem 0.85rem;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .logged-tick {
+      flex-shrink: 0;
+      margin-left: 0.6rem;
+      color: var(--green);
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+
+    .chip-count {
+      position: absolute;
+      top: 0.3rem;
+      right: 0.45rem;
+      color: var(--green);
+      font-size: 0.62rem;
+      font-weight: 700;
+    }
+
     /* ── Week view ── */
     .day-row {
       display: grid;
@@ -250,14 +284,14 @@
 
 <div class="footnote">
   Targets: 3,200 kcal · 160g protein · 80% whole foods.<br>
-  Data is stored on this device — Export a backup every week or two.
+  Meals come from your meal planner — extras and single items are below them.
 </div>
 
 <script>
   // ─────────────────────────────────────────────
   // Targets & default staples (kcal / protein g per serving)
   // ─────────────────────────────────────────────
-  var TARGET = { kcal: 3200, p: 160 };
+  var FUEL_TARGET = { kcal: 3200, p: 160 };
 
   var DEFAULT_FOODS = [
     { name: 'The Shake (oats/milk/PB/banana/whey)', kcal: 1100, p: 50 },
@@ -328,6 +362,86 @@
   }
 
   // ─────────────────────────────────────────────
+  // Meals from the planner
+  //
+  // Reads the same recipe library and weekly plan the Meal planner uses
+  // (mealdata.js + meal-plan-v1 / meal-custom-v1) so a cooked meal is one
+  // tap instead of re-entering its ingredients. Everything here degrades
+  // to nothing if mealdata.js is unavailable — the food log still works.
+  // ─────────────────────────────────────────────
+  var PLAN_KEY = 'meal-plan-v1';
+  var CUSTOM_KEY = 'meal-custom-v1';
+
+  function mealsAvailable() {
+    return typeof RECIPES !== 'undefined' && typeof DAYS !== 'undefined' && typeof SLOTS !== 'undefined';
+  }
+  function loadJSON(key) {
+    try { return JSON.parse(localStorage.getItem(key)) || {}; } catch (e) { return {}; }
+  }
+  function customMeals() { return loadJSON(CUSTOM_KEY); }
+  function getMeal(id) {
+    if (!mealsAvailable() || !id) return null;
+    return mealById(id, customMeals());
+  }
+  // Planner weeks run Mon–Sun; JS getDay() is Sun-first.
+  function todayDayName() { return DAYS[(new Date().getDay() + 6) % 7]; }
+
+  // Which meal you're most likely logging right now.
+  function currentSlotKey() {
+    var h = new Date().getHours();
+    if (h < 11) return 'breakfast';
+    if (h < 15) return 'lunch';
+    if (h < 21) return 'dinner';
+    return 'snack';
+  }
+  function todaysPlan() {
+    if (!mealsAvailable()) return [];
+    var slots = loadJSON(PLAN_KEY)[todayDayName()] || {};
+    return SLOTS.map(function (s) {
+      return { slot: s, id: slots[s.key], meal: getMeal(slots[s.key]) };
+    }).filter(function (row) { return row.meal; });
+  }
+
+  // How many servings of this meal are already logged today.
+  function loggedToday(mealId) {
+    var today = todayStr(), n = 0;
+    DB.log.forEach(function (e) { if (e.date === today && e.mealId === mealId) n += e.qty; });
+    return n;
+  }
+
+  function addLogEntry(item) {
+    var today = todayStr();
+    var existing = DB.log.filter(function (e) {
+      return e.date === today && e.name === item.name && e.kcal === item.kcal && e.p === item.p;
+    })[0];
+    if (existing) existing.qty += 1;
+    else DB.log.push({
+      date: today, name: item.name, kcal: item.kcal, p: item.p, qty: 1, mealId: item.mealId
+    });
+    save();
+  }
+
+  function logMeal(id) {
+    var m = getMeal(id);
+    if (!m) return;
+    addLogEntry({ name: m.name, kcal: m.kcal, p: m.p, mealId: id });
+    render();
+  }
+
+  // Log every planned meal for today that isn't already down.
+  function logWholeDay() {
+    var added = 0;
+    todaysPlan().forEach(function (row) {
+      if (loggedToday(row.id)) return;
+      var m = row.meal;
+      addLogEntry({ name: m.name, kcal: m.kcal, p: m.p, mealId: row.id });
+      added++;
+    });
+    if (!added) alert('Everything planned for today is already logged.');
+    render();
+  }
+
+  // ─────────────────────────────────────────────
   // Render
   // ─────────────────────────────────────────────
   var app = document.getElementById('app');
@@ -335,8 +449,8 @@
   function render() {
     var today = todayStr();
     var t = dayTotals(today);
-    var kcalPct = Math.min(100, Math.round(t.kcal / TARGET.kcal * 100));
-    var pPct = Math.min(100, Math.round(t.p / TARGET.p * 100));
+    var kcalPct = Math.min(100, Math.round(t.kcal / FUEL_TARGET.kcal * 100));
+    var pPct = Math.min(100, Math.round(t.p / FUEL_TARGET.p * 100));
     var kCls = kcalClass(t.kcal);
     var pCls = t.p >= 150 ? 'good' : 'warn';
 
@@ -345,15 +459,77 @@
     // Today totals
     html += '<div class="section"><div class="section-label">Today</div><div class="card">';
     html += '<div class="totals-row"><span class="total-big ' + kCls + '">' + t.kcal.toLocaleString() + '</span>' +
-            '<span class="total-target">/ ' + TARGET.kcal.toLocaleString() + ' kcal</span></div>';
+            '<span class="total-target">/ ' + FUEL_TARGET.kcal.toLocaleString() + ' kcal</span></div>';
     html += '<div class="progress-bar"><div class="progress-fill fill-' + kCls + '" style="width:' + kcalPct + '%"></div></div>';
     html += '<div class="totals-row"><span class="total-big ' + pCls + '" style="font-size:1.3rem">' + t.p + 'g</span>' +
-            '<span class="total-target">/ ' + TARGET.p + 'g protein</span></div>';
+            '<span class="total-target">/ ' + FUEL_TARGET.p + 'g protein</span></div>';
     html += '<div class="progress-bar" style="margin-bottom:0"><div class="progress-fill fill-' + pCls + '" style="width:' + pPct + '%"></div></div>';
     html += '</div></div>';
 
-    // Staples
-    html += '<div class="section"><div class="section-label">Tap to log</div><div class="card">';
+    // Today's planned meals — one tap each
+    var plan = todaysPlan();
+    if (mealsAvailable()) {
+      html += '<div class="section"><div class="section-label">Today\'s plan — ' + todayDayName() + '</div><div class="card">';
+      if (!plan.length) {
+        html += '<div class="empty-note">Nothing planned for today. ' +
+                '<a href="meals.html" style="color:var(--accent)">Open the meal planner</a> — or log a meal below.</div>';
+      } else {
+        var allDone = true;
+        plan.forEach(function (row) {
+          var n = loggedToday(row.id);
+          if (!n) allDone = false;
+          html += '<div class="log-row">' +
+            '<div><div class="log-macros" style="margin-bottom:0.1rem">' + row.slot.label + '</div>' +
+            '<span class="log-name">' + esc(row.meal.name) + '</span>' +
+            '<div class="log-macros">' + row.meal.kcal + ' kcal · ' + row.meal.p + 'g protein</div></div>' +
+            (n ? '<span class="logged-tick">✓ ' + n + '×</span>'
+               : '<button class="log-btn" onclick="logMeal(\'' + row.id + '\')">Log</button>') +
+            '</div>';
+        });
+        if (!allDone) {
+          html += '<div class="btn-row"><button class="btn" onclick="logWholeDay()">Log the whole day</button></div>';
+        }
+      }
+      html += '</div></div>';
+
+      // Any meal from the planner library
+      html += '<div class="section"><div class="section-label">Log a meal</div><div class="card">';
+      var custom = customMeals();
+      var nowSlot = currentSlotKey();
+      var groups = SLOTS.map(function (s) {
+        return {
+          label: s.label,
+          open: s.key === nowSlot,          // the meal you're most likely logging now
+          items: Object.keys(RECIPES).filter(function (id) { return RECIPES[id].type === s.key; })
+                   .map(function (id) { return { id: id, m: RECIPES[id] }; })
+        };
+      });
+      var customIds = Object.keys(custom);
+      if (customIds.length) {
+        groups.push({
+          label: 'Your meals',
+          items: customIds.map(function (id) { return { id: id, m: custom[id] }; })
+        });
+      }
+      groups.forEach(function (g) {
+        if (!g.items.length) return;
+        html += '<details' + (g.open ? ' open' : '') + '><summary>' + esc(g.label) +
+                '</summary><div class="chip-grid" style="margin-bottom:0.5rem">';
+        g.items.forEach(function (it) {
+          var n = loggedToday(it.id);
+          html += '<div class="chip" onclick="logMeal(\'' + it.id + '\')">' +
+                  (n ? '<span class="chip-count">' + n + '×</span>' : '') +
+                  '<div class="chip-name">' + esc(it.m.name) + '</div>' +
+                  '<div class="chip-macros">' + it.m.kcal + ' kcal · ' + it.m.p + 'g</div></div>';
+        });
+        html += '</div></details>';
+      });
+      html += '</div></div>';
+    }
+
+    // Staples — single ingredients and extras on top of meals
+    html += '<div class="section"><div class="section-label">Extras &amp; ingredients</div><div class="card">';
+    html += '<details' + (mealsAvailable() ? '' : ' open') + '><summary>Tap to log a single item</summary>';
     html += '<div class="chip-grid">';
     DB.foods.forEach(function (f, i) {
       html += '<div class="chip" onclick="' + (editingStaples ? 'removeFood(' + i + ')' : 'addEntry(' + i + ')') + '">' +
@@ -364,7 +540,7 @@
     html += '</div>';
     html += '<div class="btn-row"><button class="btn btn-ghost" onclick="toggleEdit()">' +
             (editingStaples ? 'Done editing' : 'Edit staples') + '</button></div>';
-    html += '</div>';
+    html += '</details></div>';
 
     // Custom add
     html += '<div class="card"><details><summary>Add something else</summary>';
@@ -407,7 +583,7 @@
       var iso = d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
       var dt = dayTotals(iso);
       if (dt.kcal > 0) { sumK += dt.kcal; sumP += dt.p; daysWithData++; }
-      var pct = Math.min(100, Math.round(dt.kcal / TARGET.kcal * 100));
+      var pct = Math.min(100, Math.round(dt.kcal / FUEL_TARGET.kcal * 100));
       var cls = dt.kcal ? kcalClass(dt.kcal) : 'warn';
       rows += '<div class="day-row"><span class="day-label">' + (i === 0 ? 'Today' : dayLabel(iso)) + '</span>' +
               '<div class="day-bar-track"><div class="day-bar fill-' + cls + '" style="width:' + pct + '%"></div></div>' +
@@ -441,13 +617,8 @@
   // ─────────────────────────────────────────────
   function addEntry(foodIdx) {
     var f = DB.foods[foodIdx];
-    var today = todayStr();
-    var existing = DB.log.find(function (e) {
-      return e.date === today && e.name === f.name && e.kcal === f.kcal && e.p === f.p;
-    });
-    if (existing) existing.qty += 1;
-    else DB.log.push({ date: today, name: f.name, kcal: f.kcal, p: f.p, qty: 1 });
-    save();
+    if (!f) return;
+    addLogEntry({ name: f.name, kcal: f.kcal, p: f.p });
     render();
   }
 

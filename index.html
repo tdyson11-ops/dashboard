@@ -78,6 +78,31 @@
       margin-top: 0.3rem;
     }
 
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding-bottom: 0.05rem;
+    }
+
+    .refresh-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 8px;
+      width: 30px;
+      height: 30px;
+      font-size: 0.95rem;
+      line-height: 1;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .refresh-btn:active { border-color: var(--accent); color: var(--accent); }
+    .refresh-btn.spinning { animation: spin 0.8s linear infinite; color: var(--accent); }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
     /* ── Section ── */
     .section {
       padding: 1rem 1.25rem 0;
@@ -550,7 +575,10 @@
   <div class="header-date" id="date-display"></div>
   <div class="header-row">
     <div class="header-name">Tom Dyson</div>
-    <div class="time-display" id="time-display"></div>
+    <div class="header-right">
+      <div class="time-display" id="time-display"></div>
+      <button class="refresh-btn" id="refresh-btn" onclick="refreshNow()" aria-label="Refresh">↻</button>
+    </div>
   </div>
   <div class="header-updated" id="last-updated">Loading...</div>
 </div>
@@ -1266,41 +1294,77 @@
   }
 
   // ── Load data ──
-  fetch('data.json?v=' + Date.now())
-    .then(function(r) {
-      if (!r.ok) throw new Error('HTTP ' + r.status);
-      return r.json();
-    })
-    .then(function(d) {
-      document.getElementById('last-updated').textContent = 'Updated ' + d.updated;
+  // `manual` = the user tapped ↻, so give explicit feedback and take the
+  // extra steps that make a stale app pick up a new deploy.
+  function loadData(manual) {
+    var btn = document.getElementById('refresh-btn');
+    var stamp = document.getElementById('last-updated');
+    if (manual) {
+      btn.classList.add('spinning');
+      stamp.textContent = 'Checking…';
+    }
+    return fetch('data.json?v=' + Date.now(), { cache: 'no-store' })
+      .then(function(r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+      })
+      .then(function(d) {
+        stamp.textContent = 'Updated ' + d.updated +
+          (manual ? ' · checked ' + pad(new Date().getHours()) + ':' + pad(new Date().getMinutes()) : '');
 
-      // WHOOP
-      var rec = d.whoop.recovery;
-      var col = recoveryColour(rec);
-      var arc = document.getElementById('recovery-arc');
-      arc.style.stroke = col;
-      arc.setAttribute('stroke-dashoffset', CIRC * (1 - rec / 100));
-      var pctEl = document.getElementById('recovery-pct');
-      pctEl.textContent = rec;
-      pctEl.style.color = col;
-      document.getElementById('hrv-val').innerHTML    = d.whoop.hrv    + '<span class="stat-unit"> ms</span>';
-      document.getElementById('rhr-val').innerHTML    = d.whoop.rhr    + '<span class="stat-unit"> bpm</span>';
-      document.getElementById('sleep-val').innerHTML  = d.whoop.sleep_score + '<span class="stat-unit"> %</span>';
-      document.getElementById('strain-val').textContent = d.whoop.strain;
+        // WHOOP
+        var rec = d.whoop.recovery;
+        var col = recoveryColour(rec);
+        var arc = document.getElementById('recovery-arc');
+        arc.style.stroke = col;
+        arc.setAttribute('stroke-dashoffset', CIRC * (1 - rec / 100));
+        var pctEl = document.getElementById('recovery-pct');
+        pctEl.textContent = rec;
+        pctEl.style.color = col;
+        document.getElementById('hrv-val').innerHTML    = d.whoop.hrv    + '<span class="stat-unit"> ms</span>';
+        document.getElementById('rhr-val').innerHTML    = d.whoop.rhr    + '<span class="stat-unit"> bpm</span>';
+        document.getElementById('sleep-val').innerHTML  = d.whoop.sleep_score + '<span class="stat-unit"> %</span>';
+        document.getElementById('strain-val').textContent = d.whoop.strain;
 
-      // Command-Center components
-      initFocus(d.focus);
-      window.__HABITS = d.habits || [];
-      renderHabits(window.__HABITS);
-      renderPillars(d.pillars);
-      renderGoals(d.goals);
-      renderDeadlines(d.university && d.university.deadlines);
-      renderModules(d.university && d.university.modules);
-      initNotes({ site: d.site_notes, pillar: d.pillar_notes });
-    })
-    .catch(function() {
-      document.getElementById('last-updated').textContent = 'Could not load data.json';
-    });
+        // Command-Center components
+        initFocus(d.focus);
+        window.__HABITS = d.habits || [];
+        renderHabits(window.__HABITS);
+        renderPillars(d.pillars);
+        renderGoals(d.goals);
+        renderDeadlines(d.university && d.university.deadlines);
+        renderModules(d.university && d.university.modules);
+        initNotes({ site: d.site_notes, pillar: d.pillar_notes });
+
+        // Fresh data arrived, so it's safe to drop the cached page shell and
+        // ask the service worker to look for a new version — that's what makes
+        // a deployed change show up without force-closing the app.
+        if (manual) refreshAppShell();
+      })
+      .catch(function() {
+        stamp.textContent = manual ? 'Couldn’t refresh — no connection?' : 'Could not load data.json';
+      })
+      .then(function() {
+        if (manual) btn.classList.remove('spinning');
+      });
+  }
+
+  function refreshAppShell() {
+    try {
+      if (window.caches && caches.keys) {
+        caches.keys().then(function (keys) {
+          keys.forEach(function (k) { caches.delete(k); });
+        });
+      }
+      if (navigator.serviceWorker && navigator.serviceWorker.getRegistration) {
+        navigator.serviceWorker.getRegistration().then(function (reg) { if (reg) reg.update(); });
+      }
+    } catch (e) {}
+  }
+
+  function refreshNow() { loadData(true); }
+
+  loadData(false);
 </script>
 </body>
 </html>
