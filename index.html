@@ -379,6 +379,27 @@
     .habit-count { font-size: 0.8rem; font-weight: 700; }
     .habit-week { display: flex; gap: 0.3rem; margin-top: 0.75rem; }
 
+    /* Day picker — tick habits for an earlier day (e.g. last night's bedtime) */
+    .habit-nav { display: flex; align-items: center; gap: 0.5rem; }
+
+    .habit-arrow {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font: inherit;
+      font-size: 0.75rem;
+      line-height: 1;
+      padding: 0.2rem 0.4rem;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .habit-arrow:disabled { color: #333; border-color: #1a1a1a; cursor: default; }
+
+    .habit-day-label { font-size: 0.8rem; color: var(--muted); min-width: 5.5rem; text-align: center; }
+    .habit-day-label.past { color: var(--amber); font-weight: 600; }
+
     /* 30-day score */
     .habit-score {
       display: flex;
@@ -400,11 +421,14 @@
       height: 6px;
       border-radius: 3px;
       background: #222;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
     }
 
     .habit-day.full    { background: var(--green); }
     .habit-day.partial { background: var(--amber); }
     .habit-day.today   { outline: 1px solid var(--muted); outline-offset: 1px; }
+    .habit-day.sel     { outline: 1px solid var(--text); outline-offset: 1px; }
 
     /* ── Uni modules ── */
     .mod-row { padding: 0.55rem 0; border-bottom: 1px solid var(--border); }
@@ -653,7 +677,11 @@
   <div class="section-label">Habits 💪</div>
   <div class="card">
     <div class="habit-head">
-      <span style="font-size:0.8rem;color:var(--muted)">Today</span>
+      <span class="habit-nav">
+        <button class="habit-arrow" id="habit-prev" onclick="shiftHabitDay(1)" aria-label="Previous day">‹</button>
+        <span class="habit-day-label" id="habit-day-label">Today</span>
+        <button class="habit-arrow" id="habit-next" onclick="shiftHabitDay(-1)" aria-label="Next day">›</button>
+      </span>
       <span class="habit-count" id="habit-count">—</span>
     </div>
     <div id="habit-list"></div>
@@ -921,13 +949,29 @@
 
   // ── Habits (interactive, stored on this device) ──
   var HKEY = 'dash-habits-v1';
+  var HABIT_MAX_BACK = 29;   // how far back you can tick, matches the 30-day score window
+  var habitDay = 0;          // day being ticked: 0 = today, 1 = yesterday, …
   window.__HABITS = [];
   function loadHabitState() {
     try { return JSON.parse(localStorage.getItem(HKEY)) || {}; } catch (e) { return {}; }
   }
+  // Backdating: some habits (bedtime, sleep) can only be judged the next morning,
+  // so the card can be pointed at an earlier day and ticked there.
+  function shiftHabitDay(delta) { setHabitDay(habitDay + delta); }
+  function setHabitDay(offset) {
+    if (offset < 0 || offset > HABIT_MAX_BACK) return;
+    habitDay = offset;
+    renderHabits(window.__HABITS);
+  }
+  function habitDayLabel(offset) {
+    if (offset === 0) return 'Today';
+    if (offset === 1) return 'Yesterday';
+    var d = new Date(); d.setDate(d.getDate() - offset);
+    return d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+  }
   function toggleHabit(i) {
     var state = loadHabitState();
-    var tk = todayKey();
+    var tk = dateKeyAgo(habitDay);
     if (!state[tk]) state[tk] = {};
     if (state[tk][i]) delete state[tk][i]; else state[tk][i] = true;
     localStorage.setItem(HKEY, JSON.stringify(state));
@@ -936,12 +980,19 @@
   function renderHabits(habits) {
     habits = habits || [];
     var state = loadHabitState();
-    var today = state[todayKey()] || {};
+    var shown = state[dateKeyAgo(habitDay)] || {};
     var done = 0;
-    for (var i = 0; i < habits.length; i++) if (today[i]) done++;
+    for (var i = 0; i < habits.length; i++) if (shown[i]) done++;
     document.getElementById('habit-count').textContent = done + ' / ' + habits.length;
+
+    var label = document.getElementById('habit-day-label');
+    label.textContent = habitDayLabel(habitDay);
+    label.className = 'habit-day-label' + (habitDay ? ' past' : '');
+    document.getElementById('habit-prev').disabled = habitDay >= HABIT_MAX_BACK;
+    document.getElementById('habit-next').disabled = habitDay === 0;
+
     document.getElementById('habit-list').innerHTML = habits.map(function (h, idx) {
-      var d = today[idx];
+      var d = shown[idx];
       return '<div class="habit-row' + (d ? ' done' : '') + '" onclick="toggleHabit(' + idx + ')">' +
         '<span class="habit-check">' + (d ? '✓' : '') + '</span>' +
         '<span class="habit-label">' + esc(h) + '</span></div>';
@@ -952,7 +1003,10 @@
       var c = 0;
       for (var j = 0; j < habits.length; j++) if (dayState[j]) c++;
       var cls = (habits.length && c === habits.length) ? 'full' : (c > 0 ? 'partial' : '');
-      cells += '<div class="habit-day ' + cls + (day === 0 ? ' today' : '') + '"></div>';
+      if (day === 0) cls += ' today';
+      if (day === habitDay) cls += ' sel';
+      cells += '<div class="habit-day ' + cls + '" onclick="setHabitDay(' + day + ')" ' +
+        'title="' + esc(habitDayLabel(day)) + '"></div>';
     }
     document.getElementById('habit-week').innerHTML = cells;
 
