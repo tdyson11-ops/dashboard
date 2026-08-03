@@ -35,7 +35,7 @@ Add it to your phone's home screen: open the URL in Safari/Chrome, then **Share 
 - Plan Breakfast / Lunch / Dinner / Snack across the seven days of the week, tapping any slot to pick from the recipe library
 - Recipe library is built for the **72 → 77 kg lean bulk** on the training page — high-protein, high-calorie meals a personal trainer would recommend, each with macros, ingredients and a quick method
 - **Auto-plan week** fills the whole week with a varied, batch-friendly high-protein rotation in one tap
-- Each day shows calories and protein against the daily target (default **3000 kcal / 190 g protein** — edit `TARGET` at the top of the script to change)
+- Each day shows calories and protein against the daily target (**3,200 kcal / 190 g protein** — edit `TARGET` at the top of `mealdata.js` to change; Fuel reads its own `FUEL_TARGET`, keep the two in step)
 - **Log your own meal** on any slot — enter a name, portion/weight note and macros for anything cooked for you or eaten off-plan. Logged meals count toward the day's macros but are **not** added to the shopping list; tick "Save to My meals" to reuse recurring ones (e.g. a parent's regular dinner)
 - Tap **🛒 Morrisons shopping list** to jump to the Shopping app (below)
 - Like the training log, the plan lives in the browser's localStorage **on the device you use** — use Export for a JSON backup (Import restores it)
@@ -56,7 +56,7 @@ Add it to your home screen the same way as the dashboard (**Share → Add to Hom
 
 `nutrition.html` is a tap-to-log calorie/protein tracker (linked from the dashboard and training log):
 
-- Daily targets (3,200 kcal / 160g protein) with color-coded progress
+- Daily targets (3,200 kcal / 190g protein) with color-coded progress
 - **Today's plan** — the meals planned for today in the Meal planner, each logged with one tap, or
   **Log the whole day** for all of them at once. Already-logged meals show a ✓ and can't be double-logged
 - **Log a meal** — any recipe from the planner's library (plus your own saved meals), grouped by
@@ -70,8 +70,8 @@ Meals read the shared recipe library and weekly plan (`mealdata.js`, `meal-plan-
 so a cooked meal is one tap instead of re-entering its ingredients. If `mealdata.js` is unavailable the
 meal sections simply don't render and the food log still works.
 
-> Note: Fuel's targets (3,200 kcal / 160 g) and the Meal planner's `TARGET` in `mealdata.js`
-> (3,000 kcal / 190 g) are set independently — align them if you want one number.
+> Targets are **3,200 kcal / 190 g protein** across both apps. They're declared in two places —
+> `FUEL_TARGET` in `nutrition.html` and `TARGET` in `mealdata.js` — so change both together.
 
 ## Cross-device sync
 
