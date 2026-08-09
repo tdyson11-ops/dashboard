@@ -77,7 +77,7 @@ meal sections simply don't render and the food log still works.
 
 `sync.js` mirrors the apps' data to a Firebase (Firestore) project so logging on one device
 shows up on every device. Loaded by the Dashboard, Fuel, Meal planner, Shopping and Training apps
-(the Dashboard syncs its Site/Pillar notes and habit ticks).
+(the Dashboard syncs its Site/Pillar notes, habit ticks and decision log).
 
 - Sign in once per device via the sync bar at the bottom of any app; the session is remembered
 - The apps keep working entirely from localStorage — sync just keeps a cloud copy in step
@@ -198,8 +198,14 @@ Edited directly on the dashboard (no `data.json` needed):
   up to 29 days. The card also shows a **30-day average** (share of habit boxes ticked, measured
   from your first logged day in the window so the weeks before you started don't count against you),
   a current streak of all-ticked days, and the 7-day strip
+- **Decision Log** — **+ Log a decision** records what you decided, what you expect to happen, how
+  confident you are, and a date to come back to it (90 days out by default). Once the review date
+  passes, the entry jumps to the top of the list with a **Review now** flag until you record an
+  outcome. Entries you've marked right or wrong feed the **Calibration** panel, which shows — per
+  confidence band — how often you were actually right. If you're well calibrated the 70% band lands
+  near 70%; most people's high-confidence band is the one that's off
 
-Focus, notes and habit ticks are stored in the browser's localStorage and **synced across devices**
+Focus, notes, habit ticks and the decision log are stored in the browser's localStorage and **synced across devices**
 when signed in via the sync bar (see Cross-device sync above) — `data.json` only provides the initial
 content the first time the page loads on a device. The **Backup** card at the bottom also lets you
 **Export**/**Import** them as a JSON file for an offline safety net.

@@ -538,6 +538,81 @@
     .note-actions { display: flex; gap: 0.5rem; margin-top: 0.6rem; }
     .note-actions .note-add { margin-top: 0; }
 
+    /* ── Decision log ── */
+    .dec-row {
+      padding: 0.6rem 0;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .dec-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .dec-row:first-child { padding-top: 0; }
+    .dec-title { font-size: 0.82rem; font-weight: 500; overflow-wrap: anywhere; }
+    .dec-expect {
+      font-size: 0.7rem;
+      color: var(--muted);
+      margin-top: 0.2rem;
+      line-height: 1.35;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .dec-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem; margin-top: 0.4rem; }
+    .dec-when { font-size: 0.62rem; color: var(--muted); margin-right: 0.15rem; }
+
+    .dec-chip {
+      font-size: 0.6rem;
+      font-weight: 600;
+      border-radius: 6px;
+      padding: 0.14rem 0.45rem;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      background: #101010;
+      white-space: nowrap;
+    }
+
+    .dec-chip.due    { color: var(--amber); border-color: #3a2b00; background: #1c1400; }
+    .dec-chip.right  { color: var(--green); border-color: #12401f; background: #06170c; }
+    .dec-chip.wrong  { color: var(--red);   border-color: #3d0000; background: #1c0000; }
+
+    .dec-fields { display: flex; gap: 0.5rem; }
+    .dec-fields label { flex: 1; min-width: 0; }
+    .note-editor label {
+      display: block;
+      font-size: 0.62rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+    }
+    .note-editor label > select,
+    .note-editor label > input { margin-top: 0.25rem; }
+    .note-editor select {
+      width: 100%;
+      background: #0f0f0f;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 16px;
+      padding: 0.5rem 0.6rem;
+      margin-bottom: 0.5rem;
+    }
+    .note-editor select:focus { outline: none; border-color: var(--accent); }
+
+    .calib { margin-top: 0.8rem; padding-top: 0.7rem; border-top: 1px solid var(--border); }
+    .calib-head {
+      font-size: 0.62rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 0.45rem;
+    }
+    .calib-row { display: flex; justify-content: space-between; font-size: 0.72rem; padding: 0.18rem 0; }
+    .calib-row .calib-band { color: var(--muted); }
+    .calib-hint { font-size: 0.68rem; color: var(--muted); line-height: 1.4; }
+
     .note-add {
       width: 100%;
       margin-top: 0.6rem;
@@ -782,6 +857,17 @@
   </details>
 </div>
 
+<!-- DECISION LOG -->
+<div class="section">
+  <div class="section-label">Decision Log 🧭</div>
+  <details class="card">
+    <summary><span>Decisions <span class="summary-sub" id="dec-count"></span></span><span class="chev">›</span></summary>
+    <div id="dec-list"></div>
+    <button class="note-add" onclick="addDecision()">+ Log a decision</button>
+    <div class="calib" id="dec-calib"></div>
+  </details>
+</div>
+
 <!-- BACKUP -->
 <div class="section">
   <div class="section-label">Backup</div>
@@ -791,7 +877,7 @@
       <button class="backup-btn" onclick="document.getElementById('backup-file').click()">Import</button>
     </div>
     <input type="file" id="backup-file" accept=".json,application/json" style="display:none" onchange="importBackup(event)">
-    <div class="backup-note">Saves your focus list, notes and habit ticks to a file. Keep a copy every week or two — this data lives only on this device.</div>
+    <div class="backup-note">Saves your focus list, notes, habit ticks and decision log to a file. Keep a copy every week or two — this data lives only on this device.</div>
   </div>
 </div>
 
@@ -1304,12 +1390,203 @@
     renderNoteSection('pillar');
   }
 
+  // ── Decision log ──
+  // One line per call worth remembering: what you decided, what you expected to
+  // happen, how sure you were, and when to come back to it. Reviewing them is the
+  // only honest feedback loop on your own judgement — memory keeps the good calls
+  // and quietly drops the rest.
+  var DKEY = 'dash-decisions-v1';
+  var decisionState = [];
+  var editingDecision = null;
+  var CONF_STEPS = [50, 60, 70, 80, 90, 95];
+  var VERDICTS = [
+    { v: '',      label: 'Not reviewed yet' },
+    { v: 'right', label: 'Called it right' },
+    { v: 'wrong', label: 'Called it wrong' },
+    { v: 'mixed', label: 'Bit of both' }
+  ];
+
+  function loadDecisions() {
+    try { return JSON.parse(localStorage.getItem(DKEY)) || []; } catch (e) { return []; }
+  }
+  function saveDecisions() { localStorage.setItem(DKEY, JSON.stringify(decisionState)); }
+
+  function dateKeyAhead(n) {
+    var d = new Date(); d.setDate(d.getDate() + n);
+    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+  }
+  function fmtDay(key) {
+    var p = String(key || '').split('-');
+    if (p.length !== 3) return '';
+    var d = new Date(+p[0], +p[1] - 1, +p[2]);
+    return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+  // Due once the review date has arrived and you haven't recorded an outcome.
+  function decDue(d) { return !d.verdict && d.review && d.review <= todayKey(); }
+
+  // Due reviews first (oldest first — they're the ones you're avoiding), then
+  // everything else newest first.
+  function decisionsSorted() {
+    return decisionState.map(function (d, i) { return { d: d, i: i }; })
+      .sort(function (a, b) {
+        var ad = decDue(a.d), bd = decDue(b.d);
+        if (ad !== bd) return ad ? -1 : 1;
+        if (ad) return (a.d.review || '') < (b.d.review || '') ? -1 : 1;
+        return (a.d.date || '') > (b.d.date || '') ? -1 : 1;
+      });
+  }
+
+  function renderDecisions() {
+    var due = 0;
+    for (var i = 0; i < decisionState.length; i++) if (decDue(decisionState[i])) due++;
+    document.getElementById('dec-count').textContent =
+      '· ' + decisionState.length + (due ? ' · ' + due + ' to review' : '');
+
+    document.getElementById('dec-list').innerHTML = decisionsSorted().map(function (row) {
+      var d = row.d, idx = row.i;
+      if (editingDecision === idx) return decisionEditor(d, idx);
+
+      var chips = '<span class="dec-chip">' + (d.conf || 70) + '% sure</span>';
+      if (d.verdict === 'right')      chips += '<span class="dec-chip right">Right</span>';
+      else if (d.verdict === 'wrong') chips += '<span class="dec-chip wrong">Wrong</span>';
+      else if (d.verdict === 'mixed') chips += '<span class="dec-chip">Mixed</span>';
+      else if (decDue(d))             chips += '<span class="dec-chip due">Review now</span>';
+      else if (d.review)              chips += '<span class="dec-chip">Review ' + esc(fmtDay(d.review)) + '</span>';
+
+      return '<div class="dec-row" onclick="startEditDecision(' + idx + ')">' +
+        '<div class="dec-title">' + esc(d.title || '(untitled decision)') + '</div>' +
+        (d.expect ? '<div class="dec-expect">' + esc(d.expect) + '</div>' : '') +
+        '<div class="dec-meta"><span class="dec-when">' + esc(fmtDay(d.date)) + '</span>' + chips + '</div>' +
+        '</div>';
+    }).join('');
+
+    renderCalibration();
+  }
+
+  function decisionEditor(d, idx) {
+    var conf = '';
+    for (var i = 0; i < CONF_STEPS.length; i++) {
+      var c = CONF_STEPS[i];
+      conf += '<option value="' + c + '"' + (c === (d.conf || 70) ? ' selected' : '') + '>' + c + '%</option>';
+    }
+    var verd = VERDICTS.map(function (v) {
+      return '<option value="' + v.v + '"' + (v.v === (d.verdict || '') ? ' selected' : '') + '>' + v.label + '</option>';
+    }).join('');
+
+    return '<div class="note-editor">' +
+      '<input class="de-title" placeholder="The decision" value="' + attr(d.title) + '">' +
+      '<textarea class="de-expect" placeholder="What you expect to happen…">' + esc(d.expect || '') + '</textarea>' +
+      '<div class="dec-fields">' +
+        '<label>Confidence<select class="de-conf">' + conf + '</select></label>' +
+        '<label>Review on<input class="de-review" type="date" value="' + attr(d.review || '') + '"></label>' +
+      '</div>' +
+      '<label>Outcome<select class="de-verdict">' + verd + '</select></label>' +
+      '<textarea class="de-outcome" placeholder="What actually happened…">' + esc(d.outcome || '') + '</textarea>' +
+      '<div class="btn-row">' +
+        '<button class="note-btn save" onclick="saveDecision()">Save</button>' +
+        '<button class="note-btn cancel" onclick="cancelDecision()">Cancel</button>' +
+        '<button class="note-btn del" onclick="deleteDecision(' + idx + ')">Delete</button>' +
+      '</div></div>';
+  }
+
+  function startEditDecision(i) {
+    editingDecision = i;
+    renderDecisions();
+  }
+
+  function addDecision() {
+    decisionState.push({
+      date: todayKey(),
+      title: '',
+      expect: '',
+      conf: 70,
+      review: dateKeyAhead(90),
+      verdict: '',
+      outcome: ''
+    });
+    editingDecision = decisionState.length - 1;
+    renderDecisions();
+    var el = document.getElementById('dec-list').querySelector('.de-title');
+    if (el) el.focus();
+  }
+
+  function saveDecision() {
+    var i = editingDecision;
+    if (i == null) return;
+    var root = document.getElementById('dec-list');
+    var titleEl = root && root.querySelector('.de-title');
+    if (!titleEl) { editingDecision = null; return; }
+
+    var d = decisionState[i];
+    d.title   = titleEl.value.trim();
+    d.expect  = root.querySelector('.de-expect').value;
+    d.conf    = parseInt(root.querySelector('.de-conf').value, 10) || 70;
+    d.review  = root.querySelector('.de-review').value;
+    d.verdict = root.querySelector('.de-verdict').value;
+    d.outcome = root.querySelector('.de-outcome').value;
+
+    if (!d.title && !d.expect) decisionState.splice(i, 1); // nothing entered — drop it
+    editingDecision = null;
+    saveDecisions();
+    renderDecisions();
+  }
+
+  function cancelDecision() {
+    var i = editingDecision;
+    if (i != null) {
+      var d = decisionState[i];
+      if (d && !d.title && !d.expect) decisionState.splice(i, 1); // drop a blank new one
+    }
+    editingDecision = null;
+    renderDecisions();
+  }
+
+  function deleteDecision(i) {
+    decisionState.splice(i, 1);
+    editingDecision = null;
+    saveDecisions();
+    renderDecisions();
+  }
+
+  // Calibration: of the calls you were N% sure about, how many came off? If
+  // you're well calibrated, the 70% band lands near 70%. Most people's
+  // high-confidence band is the one that's wrong.
+  var CALIB_BANDS = [
+    { lo: 50, hi: 69,  label: '50–69%' },
+    { lo: 70, hi: 84,  label: '70–84%' },
+    { lo: 85, hi: 100, label: '85%+'   }
+  ];
+
+  function renderCalibration() {
+    var el = document.getElementById('dec-calib');
+    var scored = decisionState.filter(function (d) { return d.verdict === 'right' || d.verdict === 'wrong'; });
+    if (!scored.length) {
+      el.innerHTML = '<div class="calib-hint">Log a call, say how sure you are, and set a date to come back to it. ' +
+        'Once you\'ve reviewed a few, this shows how well your confidence matches reality.</div>';
+      return;
+    }
+    var rows = CALIB_BANDS.map(function (b) {
+      var inBand = scored.filter(function (d) { return (d.conf || 70) >= b.lo && (d.conf || 70) <= b.hi; });
+      if (!inBand.length) return '';
+      var right = inBand.filter(function (d) { return d.verdict === 'right'; }).length;
+      return '<div class="calib-row"><span class="calib-band">' + b.label + '</span>' +
+        '<span>' + right + ' of ' + inBand.length + ' · ' + Math.round(right / inBand.length * 100) + '%</span></div>';
+    }).join('');
+    el.innerHTML = '<div class="calib-head">Calibration · ' + scored.length + ' reviewed</div>' + rows;
+  }
+
+  function initDecisions() {
+    decisionState = loadDecisions();
+    renderDecisions();
+  }
+
   // ── Backup / restore (notes + habit ticks) ──
   function exportBackup() {
-    var payload = { _type: 'tom-dashboard-backup', exported: todayKey(), notes: null, habits: null, focus: null };
-    try { payload.notes  = JSON.parse(localStorage.getItem(NKEY)); } catch (e) {}
-    try { payload.habits = JSON.parse(localStorage.getItem(HKEY)); } catch (e) {}
-    try { payload.focus  = JSON.parse(localStorage.getItem(FKEY)); } catch (e) {}
+    var payload = { _type: 'tom-dashboard-backup', exported: todayKey(), notes: null, habits: null, focus: null, decisions: null };
+    try { payload.notes     = JSON.parse(localStorage.getItem(NKEY)); } catch (e) {}
+    try { payload.habits    = JSON.parse(localStorage.getItem(HKEY)); } catch (e) {}
+    try { payload.focus     = JSON.parse(localStorage.getItem(FKEY)); } catch (e) {}
+    try { payload.decisions = JSON.parse(localStorage.getItem(DKEY)); } catch (e) {}
     var blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
     var a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
@@ -1325,9 +1602,9 @@
     reader.onload = function () {
       try {
         var d = JSON.parse(reader.result);
-        if (!d || (d.notes === undefined && d.habits === undefined && d.focus === undefined)) throw new Error('bad');
+        if (!d || (d.notes === undefined && d.habits === undefined && d.focus === undefined && d.decisions === undefined)) throw new Error('bad');
         var when = d.exported ? ' (from ' + d.exported + ')' : '';
-        if (!confirm('Restore this backup' + when + '? It replaces your current focus, notes and habit ticks on this device.')) {
+        if (!confirm('Restore this backup' + when + '? It replaces your current focus, notes, habit ticks and decision log on this device.')) {
           ev.target.value = '';
           return;
         }
@@ -1347,6 +1624,12 @@
           focusState = d.focus;
           editingFocus = null;
           renderFocus();
+        }
+        if (Array.isArray(d.decisions)) {
+          localStorage.setItem(DKEY, JSON.stringify(d.decisions));
+          decisionState = d.decisions;
+          editingDecision = null;
+          renderDecisions();
         }
         alert('Backup restored.');
       } catch (e) {
@@ -1494,6 +1777,7 @@
     });
   }
 
+  initDecisions();   // purely local — doesn't wait on data.json
   loadData(false);
 </script>
 </body>
