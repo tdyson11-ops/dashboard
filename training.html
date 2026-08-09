@@ -125,7 +125,7 @@
     /* ── Metric grid ── */
     .metric-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
+      grid-template-columns: 1fr 1fr;
       gap: 0.6rem;
       text-align: center;
     }
@@ -383,11 +383,6 @@
     swim: { name: 'Swim',        day: 6, kind: 'cardio', note: 'Freestyle / backstroke only, 30 min. No butterfly. Stop any stroke that pinches.' }
   };
 
-  var PRIMER =
-    '<strong>2 rounds:</strong> band pull-aparts ×20 · banded external rotations ×15/side · ' +
-    'wall slides ×10 · scap push-ups ×10.<br>' +
-    '<strong>Upper days add:</strong> prone Y-T-W ×8 each.';
-
   var START_KG = 72, TARGET_KG = 77;
 
   // ─────────────────────────────────────────────
@@ -463,12 +458,6 @@
       .reduce(function (a, s) { return a + sessionVolume(s); }, 0);
   }
 
-  function latestShoulder() {
-    var scored = DB.sessions.filter(function (s) { return typeof s.shoulder === 'number'; });
-    scored.sort(function (a, b) { return a.date < b.date ? 1 : -1; });
-    return scored[0] || null;
-  }
-
   // ─────────────────────────────────────────────
   // Views
   // ─────────────────────────────────────────────
@@ -485,7 +474,6 @@
     var delta = (avg7 !== null && avgPrev !== null) ? avg7 - avgPrev : null;
     var volThis = weekVolume(7, 0);
     var volLast = weekVolume(14, 7);
-    var sh = latestShoulder();
 
     var deltaCls = 'warn', deltaTxt = '—';
     if (delta !== null) {
@@ -498,10 +486,6 @@
     var volSub = 'last wk: ' + (volLast ? (volLast / 1000).toFixed(1) + 't' : '—');
     if (volThis && volLast) volCls = volThis >= volLast ? 'good' : 'bad';
 
-    var shTxt = sh ? sh.shoulder + '/10' : '—';
-    var shCls = sh ? (sh.shoulder <= 2 ? 'good' : sh.shoulder <= 4 ? 'warn' : 'bad') : 'warn';
-    var shSub = sh ? fmtDate(sh.date) : 'log an upper day';
-
     var pct = avg7 !== null
       ? Math.max(0, Math.min(100, Math.round((avg7 - START_KG) / (TARGET_KG - START_KG) * 100)))
       : 0;
@@ -509,15 +493,13 @@
     var html = '';
 
     // Weekly metrics card
-    html += '<div class="section"><div class="section-label">The 3 Weekly Metrics</div><div class="card">';
+    html += '<div class="section"><div class="section-label">The Weekly Metrics</div><div class="card">';
     html += '<div class="metric-grid">';
     html += '<div><div class="metric-label">Weight 7d avg</div><div class="metric-value">' +
             (avg7 !== null ? avg7.toFixed(1) : '—') + '</div>' +
             '<div class="metric-sub ' + deltaCls + '">' + deltaTxt + '</div></div>';
     html += '<div><div class="metric-label">Week volume</div><div class="metric-value ' + volCls + '">' + volTxt + '</div>' +
             '<div class="metric-sub">' + volSub + '</div></div>';
-    html += '<div><div class="metric-label">Shoulder</div><div class="metric-value ' + shCls + '">' + shTxt + '</div>' +
-            '<div class="metric-sub">' + shSub + '</div></div>';
     html += '</div>';
     html += '<div class="progress-bar"><div class="progress-fill" style="width:' + pct + '%"></div></div>';
     html += '<div class="progress-meta"><span>' + START_KG + ' kg</span><span>' + pct + '% to ' + TARGET_KG + ' kg</span></div>';
@@ -617,9 +599,6 @@
 
     var html = '<div class="section"><div class="section-label">' + p.name + ' · ' + fmtDate(todayStr()) + '</div>';
 
-    html += '<div class="card"><details open><summary>Shoulder primer — do this first</summary>' +
-            '<div class="primer">' + PRIMER + '</div></details></div>';
-
     html += '<div class="card">';
     p.exercises.forEach(function (ex) {
       var last = lastSessionOf(id);
@@ -664,17 +643,6 @@
     });
     html += '</div>';
 
-    if (p.kind === 'upper') {
-      html += '<div class="card"><div class="ex-name">Shoulder check</div>' +
-              '<div class="ex-target">Pain during pressing today, 0 (none) – 10 (bad)</div>' +
-              '<div style="margin-top:0.5rem"><select id="shoulder-score">' +
-              '<option value="">—</option>' +
-              [0,1,2,3,4,5,6,7,8,9,10].map(function (n) {
-                var sel = (draft && draft.shoulder === n) ? ' selected' : '';
-                return '<option value="' + n + '"' + sel + '>' + n + '</option>';
-              }).join('') +
-              '</select></div></div>';
-    }
 
     html += '<div class="btn-row">' +
             '<button class="btn btn-ghost" onclick="renderHome()">Cancel</button>' +
@@ -698,11 +666,9 @@
   }
 
   function saveDraft(id) {
-    var sel = document.getElementById('shoulder-score');
     localStorage.setItem(DRAFT_KEY, JSON.stringify({
       id: id,
-      entries: collectEntries(),
-      shoulder: sel && sel.value !== '' ? parseInt(sel.value, 10) : undefined
+      entries: collectEntries()
     }));
   }
 
@@ -717,8 +683,6 @@
     if (!any) { alert('Log at least one set before finishing.'); return; }
 
     var rec = { id: id, date: todayStr(), entries: cleaned };
-    var sel = document.getElementById('shoulder-score');
-    if (sel && sel.value !== '') rec.shoulder = parseInt(sel.value, 10);
 
     var prev = lastSessionOf(id);
     DB.sessions.push(rec);

@@ -56,6 +56,10 @@
     {
       "name": "Daily discipline \u2014 operate like the future version now",
       "status": "ticking"
+    },
+    {
+      "name": "Skills to 2030 \u2014 be MD-ready before the seat is offered",
+      "status": "ontrack"
     }
   ],
   "goals": [
@@ -90,6 +94,22 @@
     {
       "name": "Health \u2014 5kg lean muscle in 90 days",
       "status": "In progress"
+    },
+    {
+      "name": "Phase 1 by mid-2027 \u2014 degree done, appraisal model built",
+      "status": "In progress"
+    },
+    {
+      "name": "Phase 2 by 2028 \u2014 own a site end to end",
+      "status": "Not started"
+    },
+    {
+      "name": "Phase 3 by 2029 \u2014 lead a function and a team",
+      "status": "Not started"
+    },
+    {
+      "name": "Phase 4 by 2030 \u2014 deputy, then the seat",
+      "status": "Not started"
     }
   ],
   "site_notes": [
@@ -212,6 +232,10 @@
     {
       "icon": "\ud83d\ude97",
       "name": "IAM driving"
+    },
+    {
+      "icon": "\ud83e\udded",
+      "name": "Skills to 2030"
     }
   ]
 }
