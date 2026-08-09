@@ -72,7 +72,7 @@
       "status": "At risk"
     },
     {
-      "name": "Seville Marathon sub-4:30",
+      "name": "Seville Marathon sub-4:00 (21 Feb 2027)",
       "status": "In progress"
     },
     {
@@ -92,7 +92,7 @@
       "status": "In progress"
     },
     {
-      "name": "Health \u2014 5kg lean muscle in 90 days",
+      "name": "Health \u2014 72 to 77kg by 18 Oct, then hold for Seville",
       "status": "In progress"
     },
     {
@@ -189,6 +189,16 @@
         "name": "Site Management & Safety",
         "term": "T1",
         "progress": 50
+      },
+      {
+        "name": "Procurement, Tendering & Valuations",
+        "term": "T1",
+        "progress": 0
+      },
+      {
+        "name": "Construction Measuring & Estimating",
+        "term": "T1",
+        "progress": 0
       }
     ]
   },
