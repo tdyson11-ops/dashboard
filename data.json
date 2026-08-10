@@ -6,12 +6,12 @@
     "Revise for CM essay due Friday"
   ],
   "whoop": {
-    "recovery": 74,
+    "recovery": 84,
     "hrv": 119,
-    "rhr": 46,
-    "sleep_score": 79,
-    "strain": 11.7,
-    "fetched_at": "2026-08-10T04:45:52Z"
+    "rhr": 39,
+    "sleep_score": 78,
+    "strain": 0.1,
+    "fetched_at": "2026-08-10T05:35:39Z"
   },
   "habits": [
     "Stretching",
