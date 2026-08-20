@@ -7,11 +7,11 @@
   ],
   "whoop": {
     "recovery": 63,
-    "hrv": 109,
-    "rhr": 39,
-    "sleep_score": 89,
-    "strain": 10.2,
-    "fetched_at": "2026-08-20T05:21:45Z"
+    "hrv": 112,
+    "rhr": 43,
+    "sleep_score": 85,
+    "strain": 0.2,
+    "fetched_at": "2026-08-20T06:49:16Z"
   },
   "habits": [
     "Stretching",
