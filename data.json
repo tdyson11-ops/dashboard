@@ -1,17 +1,17 @@
 {
-  "updated": "7 September 2026",
+  "updated": "8 September 2026",
   "focus": [
     "Review cash flow projections with Dad",
     "Submit NHBC stage inspection request \u2014 Plots 7-9",
     "Revise for CM essay due Friday"
   ],
   "whoop": {
-    "recovery": 23,
-    "hrv": 61,
-    "rhr": 41,
-    "sleep_score": 82,
-    "strain": 5.1,
-    "fetched_at": "2026-09-07T19:48:16Z"
+    "recovery": 21,
+    "hrv": 52,
+    "rhr": 39,
+    "sleep_score": 86,
+    "strain": 0.2,
+    "fetched_at": "2026-09-08T07:59:10Z"
   },
   "habits": [
     "Stretching",
