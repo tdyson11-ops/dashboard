@@ -171,6 +171,7 @@ notes) are untouched, and if you're offline it says so and leaves the current da
 |---|---|
 | `updated` | Date string shown at the top |
 | `focus` | Array of priority tasks — **seeds** the editable Today's Focus list on first load |
+| `focus_inbox` | Array of `{ id, text, from }` — actions sent in (e.g. by Claude from meeting notes). Each `id` is appended to Today's Focus **once**, on every device; ticking, clearing or deleting it never brings it back. Add new items with new ids (`YYYY-MM-DD-source-NN`); old entries can stay or be pruned |
 | `whoop.recovery` | Recovery % from WHOOP app (0–100) |
 | `whoop.hrv` | HRV in ms |
 | `whoop.rhr` | Resting heart rate in bpm |

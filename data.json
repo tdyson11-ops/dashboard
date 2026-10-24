@@ -237,5 +237,62 @@
       "icon": "\ud83e\udded",
       "name": "Skills to 2030"
     }
+  ],
+  "focus_inbox": [
+    {
+      "id": "2026-09-08-gav-01",
+      "text": "Book accredited electrician to re-test 178 plots (~\u00a355k)",
+      "from": "Gav review 8 Sep"
+    },
+    {
+      "id": "2026-09-08-gav-02",
+      "text": "Claim the \u00a315k retention against electrical re-test costs",
+      "from": "Gav review 8 Sep"
+    },
+    {
+      "id": "2026-09-08-gav-03",
+      "text": "Finish snagging & year-end handovers on the 6 pulled-forward plots with Simon",
+      "from": "Gav review 8 Sep"
+    },
+    {
+      "id": "2026-09-08-gav-04",
+      "text": "Agree with Darren (Groundtech) to share monthly reviews with trades",
+      "from": "Gav review 8 Sep"
+    },
+    {
+      "id": "2026-09-08-gav-05",
+      "text": "Roll the Zutech wall chart out to every site",
+      "from": "Gav review 8 Sep"
+    },
+    {
+      "id": "2026-09-08-gav-06",
+      "text": "Brief Digicube on a bespoke snagging checklist app",
+      "from": "Gav review 8 Sep"
+    },
+    {
+      "id": "2026-09-08-gav-07",
+      "text": "Tighten the new-homeowner construction briefing",
+      "from": "Gav review 8 Sep"
+    },
+    {
+      "id": "2026-09-08-gav-08",
+      "text": "Confirm Jan 2027 Finance & Commercial start with Chris Norfolk & Keith",
+      "from": "Gav review 8 Sep"
+    },
+    {
+      "id": "2026-09-08-gav-09",
+      "text": "Scope the new office near the Tesco estate as my lead project",
+      "from": "Gav review 8 Sep"
+    },
+    {
+      "id": "2026-09-08-gav-10",
+      "text": "Apply Gav's 'masking' read to one contractor or inspector this week",
+      "from": "Gav review 8 Sep"
+    },
+    {
+      "id": "2026-09-08-gav-11",
+      "text": "Check in with Gav before his op",
+      "from": "Gav review 8 Sep"
+    }
   ]
 }

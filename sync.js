@@ -39,6 +39,7 @@ const SYNC_KEYS = [
   'dash-notes-v1',        // Dashboard — Site & Pillar notes
   'dash-habits-v1',       // Dashboard — habit ticks
   'dash-focus-v1',        // Dashboard — Today's Focus list
+  'dash-focus-seen-v1',   // Dashboard — focus-inbox ids already added (stops re-adds)
   'dash-decisions-v1',    // Dashboard — decision log
   'dash-deadlines-v1',    // Dashboard — uni submission deadlines
   'dash-plot2-v1'         // Dashboard — Plot 2 spec-review action ticks

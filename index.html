@@ -1052,10 +1052,34 @@
     renderFocus();
   }
 
-  function initFocus(defaults) {
+  function initFocus(defaults, inbox) {
     FOCUS_DEFAULTS = defaults || [];
     focusState = loadFocus();
+    mergeFocusInbox(inbox);
     renderFocus();
+  }
+
+  // ── Focus inbox ──
+  // data.json `focus_inbox` carries actions sent from Claude. Each item has a
+  // stable id and is added to Today's Focus exactly once; the ids already
+  // taken in live in a synced "seen" list, so ticking off, clearing or
+  // deleting an item never brings it back on the next load or device.
+  var FSEEN_KEY = 'dash-focus-seen-v1';
+
+  function mergeFocusInbox(inbox) {
+    if (!Array.isArray(inbox) || !inbox.length) return;
+    var seen = [];
+    try { seen = JSON.parse(localStorage.getItem(FSEEN_KEY)) || []; } catch (e) {}
+    if (!Array.isArray(seen)) seen = [];
+    var added = false;
+    inbox.forEach(function (it) {
+      if (!it || !it.id || !it.text || seen.indexOf(it.id) !== -1) return;
+      seen.push(it.id);
+      var present = focusState.some(function (f) { return f && f.id === it.id; });
+      if (!present) { focusState.push({ text: it.text, done: false, id: it.id }); added = true; }
+    });
+    localStorage.setItem(FSEEN_KEY, JSON.stringify(seen));
+    if (added) saveFocus();
   }
 
   // ── Habits (interactive, stored on this device) ──
@@ -1864,7 +1888,7 @@
         renderWhoop(d.whoop);
 
         // Command-Center components
-        initFocus(d.focus);
+        initFocus(d.focus, d.focus_inbox);
         window.__HABITS = d.habits || [];
         renderHabits(window.__HABITS);
         renderPillars(d.pillars);
