@@ -2,7 +2,7 @@
   "updated": "27 October 2026",
   "focus": [
     "Review cash flow projections with Dad",
-    "Submit NHBC stage inspection request — Plots 7-9",
+    "Submit NHBC stage inspection request \u2014 Plots 7-9",
     "Revise for CM essay due Friday"
   ],
   "whoop": {
@@ -10,8 +10,8 @@
     "hrv": 96,
     "rhr": 49,
     "sleep_score": 88,
-    "strain": 4.6,
-    "fetched_at": "2026-10-27T08:51:20Z"
+    "strain": 4.7,
+    "fetched_at": "2026-10-27T09:40:01Z"
   },
   "habits": [
     "Stretching",
@@ -26,7 +26,7 @@
       "status": "ticking"
     },
     {
-      "name": "Modernise Cyden — digital systems, every department",
+      "name": "Modernise Cyden \u2014 digital systems, every department",
       "status": "ticking"
     },
     {
@@ -34,7 +34,7 @@
       "status": "ticking"
     },
     {
-      "name": "Hybrid athlete — Seville Marathon, strength, tennis",
+      "name": "Hybrid athlete \u2014 Seville Marathon, strength, tennis",
       "status": "ontrack"
     },
     {
@@ -54,11 +54,11 @@
       "status": "ontrack"
     },
     {
-      "name": "Daily discipline — operate like the future version now",
+      "name": "Daily discipline \u2014 operate like the future version now",
       "status": "ticking"
     },
     {
-      "name": "Skills to 2030 — be MD-ready before the seat is offered",
+      "name": "Skills to 2030 \u2014 be MD-ready before the seat is offered",
       "status": "ontrack"
     }
   ],
@@ -76,7 +76,7 @@
       "status": "In progress"
     },
     {
-      "name": "Modernise Cyden — digital systems across departments",
+      "name": "Modernise Cyden \u2014 digital systems across departments",
       "status": "In progress"
     },
     {
@@ -92,23 +92,23 @@
       "status": "In progress"
     },
     {
-      "name": "Health — 5kg lean muscle in 90 days",
+      "name": "Health \u2014 5kg lean muscle in 90 days",
       "status": "In progress"
     },
     {
-      "name": "Phase 1 by mid-2027 — degree done, appraisal model built",
+      "name": "Phase 1 by mid-2027 \u2014 degree done, appraisal model built",
       "status": "In progress"
     },
     {
-      "name": "Phase 2 by 2028 — own a site end to end",
+      "name": "Phase 2 by 2028 \u2014 own a site end to end",
       "status": "Not started"
     },
     {
-      "name": "Phase 3 by 2029 — lead a function and a team",
+      "name": "Phase 3 by 2029 \u2014 lead a function and a team",
       "status": "Not started"
     },
     {
-      "name": "Phase 4 by 2030 — deputy, then the seat",
+      "name": "Phase 4 by 2030 \u2014 deputy, then the seat",
       "status": "Not started"
     }
   ],
@@ -194,59 +194,59 @@
   },
   "pillar_notes": [
     {
-      "icon": "🏗",
+      "icon": "\ud83c\udfd7",
       "name": "CYDEN"
     },
     {
-      "icon": "🐴",
+      "icon": "\ud83d\udc34",
       "name": "Horses"
     },
     {
-      "icon": "⚙️",
+      "icon": "\u2699\ufe0f",
       "name": "Daily operations"
     },
     {
-      "icon": "💪",
+      "icon": "\ud83d\udcaa",
       "name": "Fitness"
     },
     {
-      "icon": "🎓",
+      "icon": "\ud83c\udf93",
       "name": "UNI"
     },
     {
-      "icon": "👑",
+      "icon": "\ud83d\udc51",
       "name": "Succession"
     },
     {
-      "icon": "💻",
+      "icon": "\ud83d\udcbb",
       "name": "Digitilisation"
     },
     {
-      "icon": "📦",
+      "icon": "\ud83d\udce6",
       "name": "Moving out"
     },
     {
-      "icon": "🛒",
+      "icon": "\ud83d\uded2",
       "name": "Shopping"
     },
     {
-      "icon": "🚗",
+      "icon": "\ud83d\ude97",
       "name": "IAM driving"
     },
     {
-      "icon": "🧭",
+      "icon": "\ud83e\udded",
       "name": "Skills to 2030"
     }
   ],
   "focus_inbox": [
     {
       "id": "2026-09-08-gav-01",
-      "text": "Book accredited electrician to re-test 178 plots (~£55k)",
+      "text": "Book accredited electrician to re-test 178 plots (~\u00a355k)",
       "from": "Gav review 8 Sep"
     },
     {
       "id": "2026-09-08-gav-02",
-      "text": "Claim the £15k retention against electrical re-test costs",
+      "text": "Claim the \u00a315k retention against electrical re-test costs",
       "from": "Gav review 8 Sep"
     },
     {
