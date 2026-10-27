@@ -2,7 +2,7 @@
   "updated": "27 October 2026",
   "focus": [
     "Review cash flow projections with Dad",
-    "Submit NHBC stage inspection request \u2014 Plots 7-9",
+    "Submit NHBC stage inspection request — Plots 7-9",
     "Revise for CM essay due Friday"
   ],
   "whoop": {
@@ -26,7 +26,7 @@
       "status": "ticking"
     },
     {
-      "name": "Modernise Cyden \u2014 digital systems, every department",
+      "name": "Modernise Cyden — digital systems, every department",
       "status": "ticking"
     },
     {
@@ -34,7 +34,7 @@
       "status": "ticking"
     },
     {
-      "name": "Hybrid athlete \u2014 Seville Marathon, strength, tennis",
+      "name": "Hybrid athlete — Seville Marathon, strength, tennis",
       "status": "ontrack"
     },
     {
@@ -54,11 +54,11 @@
       "status": "ontrack"
     },
     {
-      "name": "Daily discipline \u2014 operate like the future version now",
+      "name": "Daily discipline — operate like the future version now",
       "status": "ticking"
     },
     {
-      "name": "Skills to 2030 \u2014 be MD-ready before the seat is offered",
+      "name": "Skills to 2030 — be MD-ready before the seat is offered",
       "status": "ontrack"
     }
   ],
@@ -76,7 +76,7 @@
       "status": "In progress"
     },
     {
-      "name": "Modernise Cyden \u2014 digital systems across departments",
+      "name": "Modernise Cyden — digital systems across departments",
       "status": "In progress"
     },
     {
@@ -92,23 +92,23 @@
       "status": "In progress"
     },
     {
-      "name": "Health \u2014 5kg lean muscle in 90 days",
+      "name": "Health — 5kg lean muscle in 90 days",
       "status": "In progress"
     },
     {
-      "name": "Phase 1 by mid-2027 \u2014 degree done, appraisal model built",
+      "name": "Phase 1 by mid-2027 — degree done, appraisal model built",
       "status": "In progress"
     },
     {
-      "name": "Phase 2 by 2028 \u2014 own a site end to end",
+      "name": "Phase 2 by 2028 — own a site end to end",
       "status": "Not started"
     },
     {
-      "name": "Phase 3 by 2029 \u2014 lead a function and a team",
+      "name": "Phase 3 by 2029 — lead a function and a team",
       "status": "Not started"
     },
     {
-      "name": "Phase 4 by 2030 \u2014 deputy, then the seat",
+      "name": "Phase 4 by 2030 — deputy, then the seat",
       "status": "Not started"
     }
   ],
@@ -194,59 +194,59 @@
   },
   "pillar_notes": [
     {
-      "icon": "\ud83c\udfd7",
+      "icon": "🏗",
       "name": "CYDEN"
     },
     {
-      "icon": "\ud83d\udc34",
+      "icon": "🐴",
       "name": "Horses"
     },
     {
-      "icon": "\u2699\ufe0f",
+      "icon": "⚙️",
       "name": "Daily operations"
     },
     {
-      "icon": "\ud83d\udcaa",
+      "icon": "💪",
       "name": "Fitness"
     },
     {
-      "icon": "\ud83c\udf93",
+      "icon": "🎓",
       "name": "UNI"
     },
     {
-      "icon": "\ud83d\udc51",
+      "icon": "👑",
       "name": "Succession"
     },
     {
-      "icon": "\ud83d\udcbb",
+      "icon": "💻",
       "name": "Digitilisation"
     },
     {
-      "icon": "\ud83d\udce6",
+      "icon": "📦",
       "name": "Moving out"
     },
     {
-      "icon": "\ud83d\uded2",
+      "icon": "🛒",
       "name": "Shopping"
     },
     {
-      "icon": "\ud83d\ude97",
+      "icon": "🚗",
       "name": "IAM driving"
     },
     {
-      "icon": "\ud83e\udded",
+      "icon": "🧭",
       "name": "Skills to 2030"
     }
   ],
   "focus_inbox": [
     {
       "id": "2026-09-08-gav-01",
-      "text": "Book accredited electrician to re-test 178 plots (~\u00a355k)",
+      "text": "Book accredited electrician to re-test 178 plots (~£55k)",
       "from": "Gav review 8 Sep"
     },
     {
       "id": "2026-09-08-gav-02",
-      "text": "Claim the \u00a315k retention against electrical re-test costs",
+      "text": "Claim the £15k retention against electrical re-test costs",
       "from": "Gav review 8 Sep"
     },
     {
@@ -293,6 +293,16 @@
       "id": "2026-09-08-gav-11",
       "text": "Check in with Gav before his op",
       "from": "Gav review 8 Sep"
+    },
+    {
+      "id": "2026-10-27-01",
+      "text": "Ring Alan regarding tightening wheel nuts",
+      "from": "Added 27 Oct"
+    },
+    {
+      "id": "2026-10-27-02",
+      "text": "Ring Omega to book in showroom visit",
+      "from": "Added 27 Oct"
     }
   ]
 }
