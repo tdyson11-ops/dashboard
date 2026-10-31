@@ -430,6 +430,31 @@
     .habit-day.today   { outline: 1px solid var(--muted); outline-offset: 1px; }
     .habit-day.sel     { outline: 1px solid var(--text); outline-offset: 1px; }
 
+    /* ── Top split: Recovery | Habits, half width each ── */
+    .top-split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.6rem;
+      padding: 1rem 1.25rem 0;
+    }
+    .top-col { min-width: 0; display: flex; flex-direction: column; }
+    .top-col .card { flex: 1; padding: 0.8rem; }
+    .top-col .card { display: flex; flex-direction: column; }
+    .top-col .whoop-grid { grid-template-columns: 1fr; justify-items: center; align-content: center; gap: 1.1rem; flex: 1; }
+    .top-col .whoop-stats { width: 100%; gap: 0.55rem 0.6rem; }
+    .top-col .stat-value { font-size: 0.92rem; }
+    .top-col .habit-head { flex-direction: column; align-items: stretch; gap: 0.3rem; margin-bottom: 0.5rem; }
+    .top-col .habit-nav { justify-content: space-between; gap: 0.25rem; }
+    .top-col .habit-day-label { min-width: 0; font-size: 0.7rem; }
+    .top-col .habit-count { font-size: 0.72rem; text-align: center; }
+    .top-col .habit-row { gap: 0.45rem; font-size: 0.74rem; padding: 0.45rem 0; }
+    .top-col .habit-check { width: 19px; height: 19px; font-size: 0.7rem; }
+    .top-col .habit-label { min-width: 0; overflow-wrap: anywhere; }
+    .top-col .habit-week { gap: 0.2rem; }
+    .top-col .habit-score { flex-wrap: wrap; gap: 0.4rem; }
+    .top-col .score-big { font-size: 1.2rem; }
+    .top-col .score-right { text-align: left; }
+
     /* ── Uni modules ── */
     .mod-row { padding: 0.55rem 0; border-bottom: 1px solid var(--border); }
     .mod-row:last-child { border-bottom: none; padding-bottom: 0; }
@@ -692,22 +717,11 @@
   <div class="header-updated" id="last-updated">Loading...</div>
 </div>
 
-<!-- TODAY'S FOCUS -->
-<div class="section">
-  <div class="section-label">Today's Focus</div>
-  <div class="card">
-    <div id="focus-list">
-      <div class="focus-item"><span class="focus-num">—</span><span>Loading...</span></div>
-    </div>
-    <div class="note-actions">
-      <button class="note-add" onclick="addFocus()">+ Add focus</button>
-      <button class="note-add" onclick="clearDoneFocus()">Clear done</button>
-    </div>
-  </div>
-</div>
+<!-- TOP: RECOVERY + HABITS side by side -->
+<div class="top-split">
 
 <!-- WHOOP RECOVERY -->
-<div class="section">
+<div class="top-col">
   <div class="section-label">Recovery <span id="whoop-age"></span></div>
   <div class="card">
     <div class="whoop-grid">
@@ -748,7 +762,7 @@
 </div>
 
 <!-- HABITS -->
-<div class="section">
+<div class="top-col">
   <div class="section-label">Habits 💪</div>
   <div class="card">
     <div class="habit-head">
@@ -770,6 +784,22 @@
         <div class="score-streak" id="habit-streak">—</div>
         <div class="score-sub" id="habit-days">—</div>
       </div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<!-- TODAY'S FOCUS -->
+<div class="section">
+  <div class="section-label">Today's Focus</div>
+  <div class="card">
+    <div id="focus-list">
+      <div class="focus-item"><span class="focus-num">—</span><span>Loading...</span></div>
+    </div>
+    <div class="note-actions">
+      <button class="note-add" onclick="addFocus()">+ Add focus</button>
+      <button class="note-add" onclick="clearDoneFocus()">Clear done</button>
     </div>
   </div>
 </div>
