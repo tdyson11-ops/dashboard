@@ -77,7 +77,7 @@ meal sections simply don't render and the food log still works.
 
 `sync.js` mirrors the apps' data to a Firebase (Firestore) project so logging on one device
 shows up on every device. Loaded by the Dashboard, Fuel, Meal planner, Shopping and Training apps
-(the Dashboard syncs its focus list, business pulse, notes, habit ticks and deadlines).
+(the Dashboard syncs its focus list, waiting-on list, business pulse, notes, people, weekly reviews, MD milestones, habit ticks and deadlines).
 
 - Sign in once per device via the sync bar at the bottom of any app; the session is remembered
 - The apps keep working entirely from localStorage — sync just keeps a cloud copy in step
@@ -195,6 +195,15 @@ Edited directly on the dashboard (no `data.json` needed):
 - **Business pulse** — six tiles for the numbers to check weekly (completions, reservations, cash, build
   programme, H&S/NHBC, customer snags). Tap a tile to set its number, note, name and status (green /
   amber / red edge). The header shows when you last updated it and turns amber after a week
+- **Waiting on** — what other people owe you: who, what, and the date you asked. Oldest first; the
+  "asked" line turns amber after a week and red after two. Tick when it arrives, **Clear done** to sweep
+- **People** — key relationships, each with the next thing to raise and when you last properly spoke.
+  Longest gap first (amber after 2 weeks, red after a month); **Spoke today** resets the clock
+- **Weekly review** — three questions (what moved, what's stuck, the one priority for next week). Shows
+  **due** from Friday and opens itself until answered; last week's #1 priority is shown at the top, and
+  past reviews are kept underneath
+- **Road to MD · 2030** — milestones with a target month, in date order; the next one shows on the
+  collapsed card. Tap to edit, tick when done
 - **Notes** — five fixed notes: Site, Cyden, Fenby Hall, Uni and North Thoresby house. Tap one to open it
   and type; it saves as you go and syncs across devices
 - **University deadlines** — **+ Add deadline** for what's due, which module and the date; tap one to

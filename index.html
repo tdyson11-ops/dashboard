@@ -484,6 +484,45 @@
     .mod-bar { background: #222; border-radius: 3px; height: 4px; margin-top: 0.4rem; overflow: hidden; }
     .mod-fill { height: 100%; border-radius: 3px; background: var(--accent); }
 
+    /* ── Lists: Waiting on / People / Road to MD ── */
+    .li-row { display: flex; align-items: flex-start; gap: 0.6rem; padding: 0.55rem 0;
+      border-bottom: 1px solid var(--border); font-size: 0.84rem; line-height: 1.4; }
+    .li-row:first-child { padding-top: 0; }
+    .li-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .li-main { flex: 1; min-width: 0; overflow-wrap: anywhere; cursor: pointer;
+      -webkit-tap-highlight-color: transparent; }
+    .li-who { font-weight: 600; }
+    .li-sub { display: block; font-size: 0.7rem; color: var(--muted); margin-top: 0.12rem; }
+    .li-sub.amber { color: var(--amber); }
+    .li-sub.red { color: var(--red); }
+    .li-row.done .li-main { color: var(--muted); text-decoration: line-through; }
+    .li-row.done .focus-tick { background: var(--green); border-color: var(--green); }
+    .li-btn { background: none; border: 1px solid var(--border); border-radius: 6px; color: var(--muted);
+      font: inherit; font-size: 0.64rem; padding: 0.2rem 0.45rem; flex-shrink: 0; cursor: pointer;
+      -webkit-tap-highlight-color: transparent; }
+    .li-empty { font-size: 0.78rem; color: var(--muted); text-align: center; padding: 0.3rem 0; }
+    .md-date { font-size: 0.66rem; color: var(--accent); flex-shrink: 0; min-width: 3.6rem; margin-top: 0.15rem; }
+    .li-row.done .md-date { color: var(--green); }
+
+    /* ── Weekly review ── */
+    .review-pill { text-transform: none; letter-spacing: 0; font-weight: 600; }
+    .review-pill.due { color: var(--amber); }
+    .review-pill.done { color: var(--green); }
+    .review-last { font-size: 0.74rem; color: var(--muted); background: #101010; border: 1px solid var(--border);
+      border-radius: 8px; padding: 0.5rem 0.6rem; margin-bottom: 0.7rem; line-height: 1.4; }
+    .review-last b { color: var(--text); font-weight: 600; }
+    .review-q { display: block; font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.08em;
+      color: var(--muted); margin-bottom: 0.6rem; }
+    .review-q textarea { display: block; width: 100%; min-height: 64px; margin-top: 0.25rem;
+      background: #101010; color: var(--text); border: 1px solid var(--border); border-radius: 8px;
+      padding: 0.5rem 0.6rem; font: inherit; font-size: 16px; line-height: 1.4; resize: vertical;
+      text-transform: none; letter-spacing: 0; }
+    .review-q textarea:focus { outline: none; border-color: var(--accent); }
+    .review-past { margin-top: 0.4rem; font-size: 0.72rem; color: var(--muted); }
+    .review-past summary { cursor: pointer; list-style: none; }
+    .review-past summary::-webkit-details-marker { display: none; }
+    .review-past-item { padding: 0.45rem 0; border-top: 1px solid var(--border); white-space: pre-wrap; line-height: 1.4; }
+
     /* ── Business pulse ── */
     .pulse-age { text-transform: none; letter-spacing: 0; }
     .pulse-age.stale { color: var(--amber); }
@@ -748,6 +787,18 @@
   </div>
 </div>
 
+<!-- WAITING ON -->
+<div class="section">
+  <div class="section-label">Waiting on <span class="summary-sub" id="waiting-count"></span></div>
+  <div class="card">
+    <div id="waiting-list"></div>
+    <div class="note-actions">
+      <button class="note-add" onclick="LISTS.waiting.add()">+ Add</button>
+      <button class="note-add" onclick="LISTS.waiting.clearDone()">Clear done</button>
+    </div>
+  </div>
+</div>
+
 <!-- BUSINESS PULSE -->
 <div class="section">
   <div class="section-label">Business pulse <span class="pulse-age" id="pulse-age"></span></div>
@@ -761,6 +812,39 @@
 <div class="section">
   <div class="section-label">Notes</div>
   <div class="card" id="notes-card"></div>
+</div>
+
+<!-- PEOPLE -->
+<div class="section">
+  <div class="section-label">People <span class="summary-sub" id="people-count"></span></div>
+  <details class="card">
+    <summary><span>Key relationships <span class="summary-sub" id="people-due"></span></span><span class="chev">›</span></summary>
+    <div id="people-list"></div>
+    <div class="note-actions">
+      <button class="note-add" onclick="LISTS.people.add()">+ Add person</button>
+    </div>
+  </details>
+</div>
+
+<!-- WEEKLY REVIEW -->
+<div class="section">
+  <div class="section-label">Weekly review <span id="review-pill"></span></div>
+  <details class="card" id="review-card">
+    <summary><span id="review-title">This week</span><span class="chev">›</span></summary>
+    <div id="review-body"></div>
+  </details>
+</div>
+
+<!-- ROAD TO MD -->
+<div class="section">
+  <div class="section-label">Road to MD · 2030 <span class="summary-sub" id="md-count"></span></div>
+  <details class="card">
+    <summary><span id="md-next">Milestones</span><span class="chev">›</span></summary>
+    <div id="md-list"></div>
+    <div class="note-actions">
+      <button class="note-add" onclick="LISTS.md.add()">+ Add milestone</button>
+    </div>
+  </details>
 </div>
 
 <!-- TRAINING -->
@@ -832,7 +916,7 @@
       <button class="backup-btn" onclick="document.getElementById('backup-file').click()">Import</button>
     </div>
     <input type="file" id="backup-file" accept=".json,application/json" style="display:none" onchange="importBackup(event)">
-    <div class="backup-note">Saves your focus list, notes, habit ticks, business pulse and deadlines to a file. Keep a copy every week or two — this data lives only on this device.</div>
+    <div class="backup-note">Saves your focus list, notes, habit ticks, business pulse, people, reviews and deadlines to a file. Keep a copy every week or two — this data lives only on this device.</div>
   </div>
 </div>
 
@@ -1319,6 +1403,256 @@
     }).join('');
   }
 
+  // ── Small editable lists (Waiting on, People, Road to MD) ──
+  // Each list is an array in localStorage (synced). cfg supplies the fields
+  // for the editor, how a row looks, the order, and the seed for first load.
+  var LISTS = {};
+  function daysSince(iso) {
+    if (!iso) return null;
+    return Math.round((new Date(todayKey()) - new Date(iso)) / 86400000);
+  }
+  function agoText(d) {
+    return d == null ? '' : d <= 0 ? 'today' : d === 1 ? 'yesterday' : d + ' days ago';
+  }
+  function makeList(id, cfg) {
+    var api = { items: [], editing: null };
+    function save() { localStorage.setItem(cfg.key, JSON.stringify(api.items)); }
+    api.load = function () {
+      try { var v = JSON.parse(localStorage.getItem(cfg.key)); if (Array.isArray(v)) { api.items = v; return; } } catch (e) {}
+      api.items = (cfg.seed ? cfg.seed() : []);
+      save();
+    };
+    api.render = function () {
+      var el = document.getElementById(cfg.list);
+      var order = api.items.map(function (_, i) { return i; });
+      if (cfg.sort) order.sort(function (a, b) { return cfg.sort(api.items[a], api.items[b]) || a - b; });
+      if (api.editing != null && order.indexOf(api.editing) === -1) api.editing = null;
+      el.innerHTML = order.length ? order.map(function (i) {
+        var it = api.items[i];
+        if (api.editing !== i) return cfg.row(it, i);
+        return '<div class="note-editor">' + cfg.fields.map(function (f) {
+          return '<label>' + f.label + '<input data-f="' + f.k + '" type="' + (f.type || 'text') + '"' +
+            (f.ph ? ' placeholder="' + attr(f.ph) + '"' : '') + ' value="' + attr(it[f.k] || '') + '"></label>';
+        }).join('') +
+        '<div class="btn-row">' +
+          '<button class="note-btn save" onclick="LISTS.' + id + '.save()">Save</button>' +
+          '<button class="note-btn cancel" onclick="LISTS.' + id + '.cancel()">Cancel</button>' +
+          '<button class="note-btn del" onclick="LISTS.' + id + '.del(' + i + ')">Delete</button>' +
+        '</div></div>';
+      }).join('') : '<div class="li-empty">' + cfg.empty + '</div>';
+      if (cfg.after) cfg.after(api.items);
+    };
+    api.edit = function (i) { api.editing = i; api.render(); };
+    api.add = function () {
+      var it = cfg.blank();
+      api.items.push(it);
+      api.editing = api.items.length - 1;
+      api.render();
+      var first = document.querySelector('#' + cfg.list + ' .note-editor input');
+      if (first) first.focus();
+    };
+    api.save = function () {
+      var i = api.editing; if (i == null) return;
+      var it = api.items[i];
+      document.querySelectorAll('#' + cfg.list + ' .note-editor input').forEach(function (inp) {
+        it[inp.dataset.f] = inp.value.trim();
+      });
+      if (!it[cfg.fields[0].k] && !(cfg.fields[1] && it[cfg.fields[1].k])) api.items.splice(i, 1);
+      api.editing = null; save(); api.render();
+    };
+    api.cancel = function () {
+      var i = api.editing, it = api.items[i];
+      if (it && !it[cfg.fields[0].k] && !(cfg.fields[1] && it[cfg.fields[1].k])) api.items.splice(i, 1);
+      api.editing = null; api.render();
+    };
+    api.del = function (i) { api.items.splice(i, 1); api.editing = null; save(); api.render(); };
+    api.patch = function (i, p) { Object.assign(api.items[i], p); api.editing = null; save(); api.render(); };
+    api.toggle = function (i) { api.patch(i, { done: !api.items[i].done }); };
+    api.clearDone = function () {
+      api.items = api.items.filter(function (it) { return !it.done; });
+      api.editing = null; save(); api.render();
+    };
+    api.key = cfg.key;
+    LISTS[id] = api;
+    return api;
+  }
+
+  function countText(id, txt) { var el = document.getElementById(id); if (el) el.textContent = txt; }
+
+  // Waiting on — things other people owe you. Oldest asks first; amber after
+  // a week, red after two, so the follow-ups that matter surface themselves.
+  makeList('waiting', {
+    key: 'dash-waiting-v1', list: 'waiting-list',
+    empty: 'Nothing outstanding — tap “+ Add” when you hand something off.',
+    fields: [
+      { k: 'who',   label: 'Who',  ph: 'e.g. Simon' },
+      { k: 'what',  label: 'What', ph: 'e.g. Snagging handovers on the 6 plots' },
+      { k: 'asked', label: 'Asked on', type: 'date' }
+    ],
+    blank: function () { return { who: '', what: '', asked: todayKey(), done: false }; },
+    sort: function (a, b) {
+      if (!!a.done !== !!b.done) return a.done ? 1 : -1;
+      return String(a.asked || '9').localeCompare(String(b.asked || '9'));
+    },
+    row: function (it, i) {
+      var d = daysSince(it.asked);
+      var cls = it.done ? '' : d > 14 ? 'red' : d > 7 ? 'amber' : '';
+      return '<div class="li-row' + (it.done ? ' done' : '') + '">' +
+        '<span class="li-main" onclick="LISTS.waiting.edit(' + i + ')"><span class="li-who">' + esc(it.who || '?') + '</span> — ' + esc(it.what) +
+          (d != null ? '<span class="li-sub ' + cls + '">asked ' + agoText(d) + '</span>' : '') + '</span>' +
+        '<span class="focus-tick" onclick="LISTS.waiting.toggle(' + i + ')">' + (it.done ? '✓' : '') + '</span></div>';
+    },
+    after: function (items) {
+      var open = items.filter(function (x) { return !x.done; });
+      var late = open.filter(function (x) { return daysSince(x.asked) > 7; }).length;
+      countText('waiting-count', open.length ? '· ' + open.length + (late ? ' · ' + late + ' to chase' : '') : '');
+    }
+  });
+
+  // People — key relationships. Longest since you last spoke goes first;
+  // amber after 2 weeks, red after a month. "Spoke today" resets the clock.
+  makeList('people', {
+    key: 'dash-people-v1', list: 'people-list',
+    empty: 'Add the people who matter most to the business and to you.',
+    fields: [
+      { k: 'name', label: 'Name', ph: 'e.g. Gav' },
+      { k: 'next', label: 'Next thing to raise', ph: 'e.g. Check in before his op' },
+      { k: 'last', label: 'Last proper conversation', type: 'date' }
+    ],
+    seed: function () {
+      return [
+        { name: 'Dad', next: 'Cash flow projections', last: '' },
+        { name: 'Gav', next: 'Check in before his op', last: '2026-09-08' },
+        { name: 'Simon', next: 'Snagging & year-end handovers', last: '' },
+        { name: 'Darren (Groundtech)', next: 'Share monthly reviews with trades', last: '' },
+        { name: 'Chris Norfolk', next: 'Confirm Jan 2027 Finance & Commercial start', last: '' },
+        { name: 'Keith', next: 'Confirm Jan 2027 Finance & Commercial start', last: '' }
+      ];
+    },
+    blank: function () { return { name: '', next: '', last: '' }; },
+    sort: function (a, b) { return String(a.last || '').localeCompare(String(b.last || '')); },
+    row: function (it, i) {
+      var d = daysSince(it.last);
+      var cls = d == null ? 'amber' : d > 30 ? 'red' : d > 14 ? 'amber' : '';
+      var when = d == null ? 'not logged yet' : 'spoke ' + agoText(d);
+      return '<div class="li-row">' +
+        '<span class="li-main" onclick="LISTS.people.edit(' + i + ')"><span class="li-who">' + esc(it.name) + '</span>' +
+          (it.next ? ' — ' + esc(it.next) : '') +
+          '<span class="li-sub ' + cls + '">' + when + '</span></span>' +
+        '<button class="li-btn" onclick="LISTS.people.patch(' + i + ',{last:todayKey()})">Spoke today</button></div>';
+    },
+    after: function (items) {
+      var due = items.filter(function (x) { var d = daysSince(x.last); return d == null || d > 14; }).length;
+      countText('people-count', items.length ? '· ' + items.length : '');
+      countText('people-due', due ? '· ' + due + ' to catch up with' : '· all in touch');
+    }
+  });
+
+  // Road to MD — milestones in date order; the next undone one shows on the
+  // collapsed card so the long game stays in view.
+  function mdLabel(m) {
+    if (!m) return '';
+    var p = String(m).split('-');
+    var mon = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+p[1] - 1];
+    return mon ? mon + ' ' + p[0] : m;
+  }
+  makeList('md', {
+    key: 'dash-md-v1', list: 'md-list',
+    empty: 'Add the steps between now and the MD chair.',
+    fields: [
+      { k: 'title', label: 'Milestone', ph: 'e.g. Lead the new office project' },
+      { k: 'when',  label: 'Target month', type: 'month' }
+    ],
+    seed: function () {
+      return [
+        { title: 'Scope the new office near the Tesco estate as lead project', when: '2026-12', done: false },
+        { title: 'Start in Finance & Commercial', when: '2027-01', done: false },
+        { title: 'Finish degree at Leeds Beckett', when: '', done: false },
+        { title: 'Managing Director', when: '2030-01', done: false }
+      ];
+    },
+    blank: function () { return { title: '', when: '', done: false }; },
+    sort: function (a, b) { return String(a.when || '9999').localeCompare(String(b.when || '9999')); },
+    row: function (it, i) {
+      return '<div class="li-row' + (it.done ? ' done' : '') + '">' +
+        '<span class="md-date">' + (it.when ? mdLabel(it.when) : 'no date') + '</span>' +
+        '<span class="li-main" onclick="LISTS.md.edit(' + i + ')">' + esc(it.title) + '</span>' +
+        '<span class="focus-tick" onclick="LISTS.md.toggle(' + i + ')">' + (it.done ? '✓' : '') + '</span></div>';
+    },
+    after: function (items) {
+      var done = items.filter(function (x) { return x.done; }).length;
+      countText('md-count', items.length ? '· ' + done + ' / ' + items.length + ' done' : '');
+      var next = items.filter(function (x) { return !x.done; })
+        .sort(function (a, b) { return String(a.when || '9999').localeCompare(String(b.when || '9999')); })[0];
+      document.getElementById('md-next').textContent = next ? 'Next: ' + next.title + (next.when ? ' · ' + mdLabel(next.when) : '') : 'Milestones';
+    }
+  });
+
+  // ── Weekly review: three questions, once a week (synced) ──
+  // Due from Friday until it's answered. Last week's #1 priority is shown at
+  // the top so you can see whether it actually happened.
+  var RKEY = 'dash-review-v1';
+  var reviewState = {};
+  var REVIEW_QS = [
+    ['moved', 'What moved this week?'],
+    ['stuck', 'What’s stuck — and what would unstick it?'],
+    ['next',  'The one priority for next week']
+  ];
+  function weekKey(offsetWeeks) {
+    var d = new Date();
+    d.setDate(d.getDate() - ((d.getDay() + 6) % 7) - 7 * (offsetWeeks || 0));  // Monday
+    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+  }
+  function loadReview() {
+    try { var v = JSON.parse(localStorage.getItem(RKEY)); if (v && typeof v === 'object') return v; } catch (e) {}
+    return {};
+  }
+  function reviewDone(w) { return !!(w && String(w.next || '').trim()); }
+  function renderReviewHeader() {
+    var cur = reviewState[weekKey(0)];
+    var dow = new Date().getDay();
+    var pill = document.getElementById('review-pill');
+    if (reviewDone(cur)) { pill.textContent = '· done ✓'; pill.className = 'review-pill done'; }
+    else if (dow === 5 || dow === 6 || dow === 0) { pill.textContent = '· due'; pill.className = 'review-pill due'; }
+    else { pill.textContent = ''; pill.className = 'review-pill'; }
+    return pill.className.indexOf('due') !== -1;
+  }
+  function renderReview() {
+    var wk = weekKey(0), cur = reviewState[wk] || {}, last = reviewState[weekKey(1)];
+    var due = renderReviewHeader();
+    if (due) document.getElementById('review-card').open = true;
+    document.getElementById('review-title').textContent = 'Week of ' + new Date(wk).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+    var html = '';
+    if (last && last.next) html += '<div class="review-last">Last week’s #1: <b>' + esc(last.next) + '</b> — did it happen?</div>';
+    html += REVIEW_QS.map(function (q) {
+      return '<label class="review-q">' + q[1] +
+        '<textarea oninput="typeReview(\'' + q[0] + '\', this.value)">' + esc(cur[q[0]] || '') + '</textarea></label>';
+    }).join('');
+    var past = Object.keys(reviewState).filter(function (k) { return k !== wk && reviewDone(reviewState[k]); }).sort().reverse().slice(0, 8);
+    if (past.length) {
+      html += '<details class="review-past"><summary>Past reviews · ' + past.length + ' ›</summary>' +
+        past.map(function (k) {
+          var r = reviewState[k];
+          return '<div class="review-past-item"><b>' + new Date(k).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) + '</b>' +
+            (r.moved ? '\nMoved: ' + esc(r.moved) : '') + (r.stuck ? '\nStuck: ' + esc(r.stuck) : '') + '\nNext: ' + esc(r.next) + '</div>';
+        }).join('') + '</details>';
+    }
+    document.getElementById('review-body').innerHTML = html;
+  }
+  function typeReview(q, value) {
+    var wk = weekKey(0);
+    reviewState[wk] = reviewState[wk] || {};
+    reviewState[wk][q] = value;
+    localStorage.setItem(RKEY, JSON.stringify(reviewState));
+    renderReviewHeader();
+  }
+
+  function initMdLists() {
+    ['waiting', 'people', 'md'].forEach(function (id) { LISTS[id].load(); LISTS[id].render(); });
+    reviewState = loadReview();
+    renderReview();
+  }
+
   // ── Business pulse: the handful of numbers to check weekly (synced) ──
   // Tap a tile to update it. Status colours the tile's edge (green / amber /
   // red); the header turns amber once the numbers are more than a week old.
@@ -1496,6 +1830,10 @@
     try { payload.focus     = JSON.parse(localStorage.getItem(FKEY)); } catch (e) {}
     try { payload.deadlines = JSON.parse(localStorage.getItem(DLKEY)); } catch (e) {}
     try { payload.pulse     = JSON.parse(localStorage.getItem(PKEY)); } catch (e) {}
+    payload.extra = {};
+    ['dash-waiting-v1', 'dash-people-v1', 'dash-md-v1', RKEY].forEach(function (k) {
+      try { payload.extra[k] = JSON.parse(localStorage.getItem(k)); } catch (e) {}
+    });
     var blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
     var a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
@@ -1512,7 +1850,7 @@
       try {
         var d = JSON.parse(reader.result);
         if (!d || (d.notes === undefined && d.habits === undefined && d.focus === undefined &&
-                   d.deadlines === undefined && d.pulse === undefined)) throw new Error('bad');
+                   d.deadlines === undefined && d.pulse === undefined && d.extra === undefined)) throw new Error('bad');
         var when = d.exported ? ' (from ' + d.exported + ')' : '';
         if (!confirm('Restore this backup' + when + '? It replaces your current focus, notes, habit ticks, business pulse and deadlines on this device.')) {
           ev.target.value = '';
@@ -1545,6 +1883,12 @@
           deadlineState = d.deadlines;
           editingDeadline = null;
           renderDeadlines();
+        }
+        if (d.extra && typeof d.extra === 'object') {
+          Object.keys(d.extra).forEach(function (k) {
+            if (d.extra[k] != null && /^dash-(waiting|people|md|review)-v1$/.test(k)) localStorage.setItem(k, JSON.stringify(d.extra[k]));
+          });
+          initMdLists();
         }
         alert('Backup restored.');
       } catch (e) {
@@ -1693,6 +2037,7 @@
   }
 
   initPulse();      // purely local — doesn't wait on data.json
+  initMdLists();    // Waiting on, People, Weekly review, Road to MD
   loadData(false);
 </script>
 </body>

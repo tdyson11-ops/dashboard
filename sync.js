@@ -44,6 +44,10 @@ const SYNC_KEYS = [
   'dash-decisions-v1',    // Dashboard — old decision log (card removed; kept so the data isn't lost)
   'dash-deadlines-v1',    // Dashboard — uni submission deadlines
   'dash-pulse-v1',        // Dashboard — Business pulse numbers
+  'dash-waiting-v1',      // Dashboard — Waiting on (things others owe you)
+  'dash-people-v1',       // Dashboard — People / key relationships
+  'dash-review-v1',       // Dashboard — Weekly reviews
+  'dash-md-v1',           // Dashboard — Road to MD milestones
   'dash-plot2-v1'         // Dashboard — old Plot 2 ticks (read once when moving them into Focus)
 ];
 const REV_KEY = 'sync-rev';                       // last applied revision (per device, not synced)
