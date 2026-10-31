@@ -112,36 +112,6 @@
       "status": "Not started"
     }
   ],
-  "site_notes": [
-    {
-      "name": "Items to do",
-      "tag": "NHBC"
-    },
-    {
-      "name": "Site plans",
-      "tag": "Build Programme"
-    },
-    {
-      "name": "Trades",
-      "tag": "Subcontractors"
-    },
-    {
-      "name": "H&S",
-      "tag": "Health & Safety"
-    },
-    {
-      "name": "Materials",
-      "tag": "Materials"
-    },
-    {
-      "name": "Customers",
-      "tag": "Client"
-    },
-    {
-      "name": "Riff Raff",
-      "tag": "General"
-    }
-  ],
   "university": {
     "deadlines": [],
     "modules": [
@@ -192,52 +162,6 @@
       }
     ]
   },
-  "pillar_notes": [
-    {
-      "icon": "\ud83c\udfd7",
-      "name": "CYDEN"
-    },
-    {
-      "icon": "\ud83d\udc34",
-      "name": "Horses"
-    },
-    {
-      "icon": "\u2699\ufe0f",
-      "name": "Daily operations"
-    },
-    {
-      "icon": "\ud83d\udcaa",
-      "name": "Fitness"
-    },
-    {
-      "icon": "\ud83c\udf93",
-      "name": "UNI"
-    },
-    {
-      "icon": "\ud83d\udc51",
-      "name": "Succession"
-    },
-    {
-      "icon": "\ud83d\udcbb",
-      "name": "Digitilisation"
-    },
-    {
-      "icon": "\ud83d\udce6",
-      "name": "Moving out"
-    },
-    {
-      "icon": "\ud83d\uded2",
-      "name": "Shopping"
-    },
-    {
-      "icon": "\ud83d\ude97",
-      "name": "IAM driving"
-    },
-    {
-      "icon": "\ud83e\udded",
-      "name": "Skills to 2030"
-    }
-  ],
   "focus_inbox": [
     {
       "id": "2026-09-08-gav-01",

@@ -36,7 +36,8 @@ const SYNC_KEYS = [
   'meal-plan-v1',         // Meal planner — the week
   'meal-custom-v1',       // Meal planner — logged/custom meals
   'meal-shop-checked-v1', // Shopping — ticked items
-  'dash-notes-v1',        // Dashboard — Site & Pillar notes
+  'dash-notes-v1',        // Dashboard — old Site & Pillar notes (read once, carried into v2)
+  'dash-notes-v2',        // Dashboard — Notes (Site, Cyden, Fenby Hall, Uni, North Thoresby house)
   'dash-habits-v1',       // Dashboard — habit ticks
   'dash-focus-v1',        // Dashboard — Today's Focus list
   'dash-focus-seen-v1',   // Dashboard — focus-inbox ids already added (stops re-adds)
