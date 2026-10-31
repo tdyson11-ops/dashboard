@@ -77,7 +77,7 @@ meal sections simply don't render and the food log still works.
 
 `sync.js` mirrors the apps' data to a Firebase (Firestore) project so logging on one device
 shows up on every device. Loaded by the Dashboard, Fuel, Meal planner, Shopping and Training apps
-(the Dashboard syncs its focus list, notes, habit ticks and deadlines).
+(the Dashboard syncs its focus list, business pulse, notes, habit ticks and deadlines).
 
 - Sign in once per device via the sync bar at the bottom of any app; the session is remembered
 - The apps keep working entirely from localStorage — sync just keeps a cloud copy in step
@@ -188,8 +188,13 @@ submission deadlines are edited via `data.json`.
 
 Edited directly on the dashboard (no `data.json` needed):
 
-- **Today's Focus** — tap an item to edit it, the box to tick it off, **+ Add focus** to add,
-  **Clear done** to sweep finished ones
+- **Today's Focus** — shows only your **top 3** unfinished items; everything else waits in a collapsed
+  **Backlog**. List order is priority: tick one off and the next moves up, **↑** pulls a backlog item to
+  #1, **↓** sends one to the back. Tap an item to edit it, **+ Add focus** to add (it joins the backlog),
+  **Clear done** to sweep finished ones. New `focus_inbox` items land in the backlog
+- **Business pulse** — six tiles for the numbers to check weekly (completions, reservations, cash, build
+  programme, H&S/NHBC, customer snags). Tap a tile to set its number, note, name and status (green /
+  amber / red edge). The header shows when you last updated it and turns amber after a week
 - **Notes** — five fixed notes: Site, Cyden, Fenby Hall, Uni and North Thoresby house. Tap one to open it
   and type; it saves as you go and syncs across devices
 - **University deadlines** — **+ Add deadline** for what's due, which module and the date; tap one to
@@ -199,7 +204,7 @@ Edited directly on the dashboard (no `data.json` needed):
   and tick it there — handy for things you only know the next morning, like bedtime (amber when it
   isn't today; up to 29 days back). The card shows how many are ticked and a **3-day average** (share
   of habit boxes ticked today and the two days before, from your first logged day in that window)
-Focus, notes, habit ticks and deadlines are stored in the browser's localStorage and **synced across devices**
+Focus, business pulse, notes, habit ticks and deadlines are stored in the browser's localStorage and **synced across devices**
 when signed in via the sync bar (see Cross-device sync above) — `data.json` only provides the initial
 content the first time the page loads on a device. The **Backup** card at the bottom also lets you
 **Export**/**Import** them as a JSON file for an offline safety net.
