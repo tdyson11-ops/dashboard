@@ -99,6 +99,7 @@ some days not at all. Cloud Functions fix that:
 |---|---|
 | `whoopScheduled` | Runs at **07:00 Europe/London** daily (Cloud Scheduler fires on time) |
 | `whoopRefreshNow` | Callable from the dashboard's **↻** button — pulls today's numbers on demand |
+| `calendarToday` | Callable — returns today's and tomorrow's calendar events (see *Today's diary* below) |
 
 Both write to Firestore `system/whoop_latest`; the dashboard subscribes to it and shows whichever
 is newer, that or `data.json`. The refresh token lives in `system/whoop_token`, which the security
@@ -134,6 +135,41 @@ document.
 
 Run the function tests any time with `cd functions && npm test` — they use fakes, so no Firebase
 or network access is needed.
+
+## Today's diary (calendar)
+
+The **Today's diary** card (under Recovery / Habits) shows today's meetings — past ones greyed, the
+current one in green — and, after 5pm or once the day is done, tomorrow's. It comes from the
+`calendarToday` Cloud Function, which reads your calendar's **private iCal address** on demand.
+Nothing is stored in Firestore, and only the account in `CALENDAR_OWNER_EMAIL` can call it. Until
+it's set up the card simply stays hidden.
+
+Recurring meetings, cancelled/moved instances and the clocks changing are all handled (see
+`functions/calendar.js`; tests in `functions/test.js`).
+
+### Setting it up
+
+1. **Get the private iCal address**
+   - *Google Calendar* (on a computer): Settings → your calendar → **Integrate calendar** →
+     copy **Secret address in iCal format**
+   - *Outlook / Microsoft 365*: Settings → Calendar → **Shared calendars** → **Publish a calendar** →
+     choose *Can view all details* → copy the **ICS** link
+
+   Treat it like a password: anyone with it can read your calendar.
+
+2. **Store it and your sign-in email as secrets, then deploy** (from this folder):
+
+   ```bash
+   firebase functions:secrets:set CALENDAR_ICS_URL      # paste the iCal address
+   firebase functions:secrets:set CALENDAR_OWNER_EMAIL  # the email you sign in to the dashboard with
+   cd functions && npm install && cd ..
+   firebase deploy --only functions
+   ```
+
+3. Open the dashboard (signed in) and tap **↻** — the card appears. It refreshes itself every 15
+   minutes while the app is open.
+
+Functions now run on **Node 22** (Node 20 is end-of-life); the deploy picks that up automatically.
 
 ## WHOOP auto-update
 

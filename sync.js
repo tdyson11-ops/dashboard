@@ -107,6 +107,13 @@ function startWhoop() {
       return res && res.data;
     });
   };
+
+  // Today's calendar, via the calendarToday function (reads your private
+  // iCal address server-side; nothing is stored in Firestore).
+  window.__calendarToday = function () {
+    return httpsCallable(fns, 'calendarToday')().then(function (res) { return res && res.data; });
+  };
+  if (typeof window.loadCalendar === 'function') window.loadCalendar();
 }
 
 // ── Firestore <-> localStorage ──

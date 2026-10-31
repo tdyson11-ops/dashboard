@@ -6,6 +6,9 @@
 //                     morning recovery score is up before you look at it.
 //   whoopRefreshNow — callable from the dashboard's ↻ button, so you can pull
 //                     today's numbers on demand instead of waiting.
+//   calendarToday   — callable; reads your calendar's private iCal address and
+//                     returns today's and tomorrow's events. Nothing is stored,
+//                     and only the account in CALENDAR_OWNER_EMAIL may call it.
 //
 // The refresh token lives in Firestore at system/whoop_token, which the
 // security rules make unreadable to every client — only the Admin SDK here
@@ -22,6 +25,7 @@ const { initializeApp } = require('firebase-admin/app');
 const { getFirestore, FieldValue } = require('firebase-admin/firestore');
 
 const { refreshWhoop } = require('./whoop');
+const { calendarToday } = require('./calendar');
 
 initializeApp();
 const db = getFirestore();
@@ -87,6 +91,33 @@ exports.whoopRefreshNow = onCall(
     } catch (err) {
       logger.error('[whoop] on-demand refresh failed', err);
       throw new HttpsError('internal', err.message || 'WHOOP refresh failed.');
+    }
+  }
+);
+
+// ── Calendar ──
+// The iCal address is a secret (anyone holding it can read the calendar), so
+// it lives in Secret Manager. The owner check matters because Firebase email
+// sign-up is open by default — without it, any account could read your diary.
+const CALENDAR_ICS_URL = defineSecret('CALENDAR_ICS_URL');
+const CALENDAR_OWNER_EMAIL = defineSecret('CALENDAR_OWNER_EMAIL');
+
+exports.calendarToday = onCall(
+  { secrets: [CALENDAR_ICS_URL, CALENDAR_OWNER_EMAIL], region: 'europe-west2' },
+  async (request) => {
+    const owner = String(CALENDAR_OWNER_EMAIL.value() || '').trim().toLowerCase();
+    const email = String((request.auth && request.auth.token && request.auth.token.email) || '').toLowerCase();
+    if (!request.auth) {
+      throw new HttpsError('unauthenticated', 'Sign in to see your calendar.');
+    }
+    if (!owner || email !== owner) {
+      throw new HttpsError('permission-denied', 'This calendar belongs to another account.');
+    }
+    try {
+      return await calendarToday({ fetchImpl: fetch, icsUrl: CALENDAR_ICS_URL.value().trim() });
+    } catch (err) {
+      logger.error('[calendar] fetch failed', err);
+      throw new HttpsError('internal', err.message || 'Calendar fetch failed.');
     }
   }
 );
