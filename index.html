@@ -484,6 +484,22 @@
     .mod-bar { background: #222; border-radius: 3px; height: 4px; margin-top: 0.4rem; overflow: hidden; }
     .mod-fill { height: 100%; border-radius: 3px; background: var(--accent); }
 
+    /* ── Today's diary ── */
+    .cal-row { display: flex; gap: 0.7rem; padding: 0.45rem 0; border-bottom: 1px solid var(--border);
+      font-size: 0.84rem; line-height: 1.35; }
+    .cal-row:first-child { padding-top: 0; }
+    .cal-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .cal-time { flex-shrink: 0; width: 5.6rem; font-size: 0.72rem; color: var(--muted);
+      font-variant-numeric: tabular-nums; margin-top: 0.1rem; }
+    .cal-title { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+    .cal-loc { display: block; font-size: 0.68rem; color: var(--muted); margin-top: 0.1rem; }
+    .cal-row.past { opacity: 0.4; }
+    .cal-row.now .cal-time { color: var(--green); font-weight: 600; }
+    .cal-row.now .cal-title { font-weight: 600; }
+    .cal-day { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted);
+      margin: 0.8rem 0 0.35rem; padding-top: 0.6rem; border-top: 1px solid var(--border); }
+    .cal-empty { font-size: 0.8rem; color: var(--muted); }
+
     /* ── Lists: Waiting on / People / Road to MD ── */
     .li-row { display: flex; align-items: flex-start; gap: 0.6rem; padding: 0.55rem 0;
       border-bottom: 1px solid var(--border); font-size: 0.84rem; line-height: 1.4; }
@@ -771,6 +787,12 @@
   </div>
 </div>
 
+</div>
+
+<!-- TODAY'S DIARY (calendar) — hidden until the calendar function answers -->
+<div class="section" id="cal-section" hidden>
+  <div class="section-label">Today's diary <span class="summary-sub" id="cal-age"></span></div>
+  <div class="card" id="cal-card"></div>
 </div>
 
 <!-- TODAY'S FOCUS -->
@@ -1403,6 +1425,61 @@
     }).join('');
   }
 
+  // ── Today's diary ──
+  // Filled by the calendarToday Cloud Function once you're signed in. The last
+  // answer is cached on this device so the card paints instantly next time;
+  // until the function has answered once, the card stays hidden.
+  var CAL_CACHE = 'dash-cal-cache-v1';
+  var calData = null;
+  function nowHM() { var d = new Date(); return pad(d.getHours()) + ':' + pad(d.getMinutes()); }
+  function calRows(events, isToday) {
+    var t = nowHM();
+    return events.map(function (e) {
+      var cls = '';
+      if (isToday && !e.allDay) cls = e.end <= t ? ' past' : (e.start <= t ? ' now' : '');
+      var when = e.allDay ? 'All day' : e.start + '–' + e.end;
+      return '<div class="cal-row' + cls + '"><span class="cal-time">' + when + '</span>' +
+        '<span class="cal-title">' + esc(e.title) +
+        (e.location ? '<span class="cal-loc">' + esc(e.location) + '</span>' : '') + '</span></div>';
+    }).join('');
+  }
+  function renderCalendar() {
+    if (!calData || !Array.isArray(calData.today)) return;
+    var stale = calData.date !== todayKey();           // cached from an earlier day
+    var today = stale ? [] : calData.today;
+    var t = nowHM();
+    var left = today.filter(function (e) { return e.allDay || e.end > t; }).length;
+    var html = today.length ? calRows(today, true) : '<div class="cal-empty">' + (stale ? 'Updating…' : 'Nothing in the diary today.') + '</div>';
+    // Evenings, or once today is over, look ahead to tomorrow.
+    if (!stale && calData.tomorrow && calData.tomorrow.length && (left === 0 || new Date().getHours() >= 17)) {
+      html += '<div class="cal-day">Tomorrow</div>' + calRows(calData.tomorrow, false);
+    }
+    document.getElementById('cal-card').innerHTML = html;
+    var mins = Math.round((Date.now() - new Date(calData.fetchedAt)) / 60000);
+    document.getElementById('cal-age').textContent = '· ' + (mins < 2 ? 'just now' : mins < 60 ? mins + ' min ago' : 'earlier');
+    document.getElementById('cal-section').hidden = false;
+  }
+  function loadCalendar() {
+    if (typeof window.__calendarToday !== 'function') return Promise.resolve(null);
+    return window.__calendarToday().then(function (d) {
+      if (!d || !Array.isArray(d.today)) return null;
+      calData = d;
+      try { localStorage.setItem(CAL_CACHE, JSON.stringify(d)); } catch (e) {}
+      renderCalendar();
+      return d;
+    }).catch(function (e) {
+      console.warn('[calendar] not available', e && e.message);   // not deployed / not set up yet
+      return null;
+    });
+  }
+  window.loadCalendar = loadCalendar;
+  function initCalendar() {
+    try { calData = JSON.parse(localStorage.getItem(CAL_CACHE)); } catch (e) {}
+    renderCalendar();
+    setInterval(function () { renderCalendar(); }, 60000);          // move the "now" marker
+    setInterval(function () { loadCalendar(); }, 15 * 60000);       // pick up new meetings
+  }
+
   // ── Small editable lists (Waiting on, People, Road to MD) ──
   // Each list is an array in localStorage (synced). cfg supplies the fields
   // for the editor, how a row looks, the order, and the seed for first load.
@@ -2024,6 +2101,7 @@
       : Promise.resolve(null);
 
     btn.classList.add('spinning');
+    loadCalendar();
     return Promise.all([loadData(true), live]).then(function (results) {
       btn.classList.remove('spinning');
       if (results[1]) {
@@ -2038,6 +2116,7 @@
 
   initPulse();      // purely local — doesn't wait on data.json
   initMdLists();    // Waiting on, People, Weekly review, Road to MD
+  initCalendar();   // Today's diary (filled once signed in)
   loadData(false);
 </script>
 </body>
