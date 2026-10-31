@@ -77,7 +77,7 @@ meal sections simply don't render and the food log still works.
 
 `sync.js` mirrors the apps' data to a Firebase (Firestore) project so logging on one device
 shows up on every device. Loaded by the Dashboard, Fuel, Meal planner, Shopping and Training apps
-(the Dashboard syncs its Site/Pillar notes, habit ticks and decision log).
+(the Dashboard syncs its notes, habit ticks and decision log).
 
 - Sign in once per device via the sync bar at the bottom of any app; the session is remembered
 - The apps keep working entirely from localStorage — sync just keeps a cloud copy in step
@@ -182,8 +182,6 @@ notes) are untouched, and if you're offline it says so and leaves the current da
 | `habits` | Array of daily habit names — tap to tick on the dashboard, for today or a backdated day (ticks stored per device in localStorage) |
 | `pillars` | Array of `{ name, status }` — status: `ticking`, `ontrack`, or `atrisk` |
 | `goals` | Array of `{ name, status }` — status text drives the pill colour (`At risk` = amber, `Done` = green, else neutral) |
-| `site_notes` | Array of `{ name, tag }` — **seeds** the editable Site Notes on first load |
-| `pillar_notes` | Array of `{ icon, name }` — **seeds** the editable Pillar Notes on first load (`icon` is an emoji) |
 
 The **Command Center** components mirror the Notion dashboard. Pillars, Goals, Uni modules and
 submission deadlines are edited via `data.json`.
@@ -192,16 +190,15 @@ Edited directly on the dashboard (no `data.json` needed):
 
 - **Today's Focus** — tap an item to edit it, the box to tick it off, **+ Add focus** to add,
   **Clear done** to sweep finished ones
-- **Site Notes** / **Pillar Notes** — tap to edit title, tag/emoji and body; **+ Add note** / delete
+- **Notes** — five fixed notes: Site, Cyden, Fenby Hall, Uni and North Thoresby house. Tap one to open it
+  and type; it saves as you go and syncs across devices
 - **University deadlines** — **+ Add deadline** for what's due, which module and the date; tap one to
   edit or delete it. Soonest first, the badge turns red inside 7 days, and anything already passed
   drops to the bottom so a stale deadline can't sit above the one you need to hit
-- **Habits** — tap to tick. Use **‹** / **›** in the card header (or tap a bar in the 7-day strip) to
-  point the list at an earlier day and tick it there — handy for things you only know the next morning,
-  like bedtime. The header shows which day you're on (amber when it isn't today) and you can go back
-  up to 29 days. The card also shows a **30-day average** (share of habit boxes ticked, measured
-  from your first logged day in the window so the weeks before you started don't count against you),
-  a current streak of all-ticked days, and the 7-day strip
+- **Habits** — tap to tick. Use **‹** / **›** in the card header to point the list at an earlier day
+  and tick it there — handy for things you only know the next morning, like bedtime (amber when it
+  isn't today; up to 29 days back). The card shows how many are ticked and a **3-day average** (share
+  of habit boxes ticked today and the two days before, from your first logged day in that window)
 - **Decision Log** — **+ Log a decision** records what you decided, what you expect to happen, how
   confident you are, and a date to come back to it (90 days out by default). Once the review date
   passes, the entry jumps to the top of the list with a **Review now** flag until you record an
