@@ -178,6 +178,25 @@
 
     .focus-item.done .focus-tick { background: var(--green); border-color: var(--green); }
 
+    .focus-move {
+      background: none; border: 1px solid var(--border); border-radius: 6px;
+      color: var(--muted); font: inherit; font-size: 0.72rem; line-height: 1;
+      width: 22px; height: 20px; flex-shrink: 0; margin-top: 0.05rem; cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .focus-backlog { margin-top: 0.7rem; padding-top: 0.6rem; border-top: 1px solid var(--border); }
+    .focus-backlog > summary {
+      display: flex; align-items: center; gap: 0.35rem; list-style: none; cursor: pointer;
+      font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted);
+      -webkit-tap-highlight-color: transparent;
+    }
+    .focus-backlog > summary::-webkit-details-marker { display: none; }
+    .focus-backlog > summary .chev { margin-left: auto; transition: transform 0.15s; }
+    .focus-backlog[open] > summary { margin-bottom: 0.5rem; }
+    .focus-backlog[open] > summary .chev { transform: rotate(90deg); }
+    .focus-backlog .focus-item { font-size: 0.8rem; }
+    .focus-backlog .focus-item:first-of-type { padding-top: 0.3rem; }
+
     .focus-empty {
       font-size: 0.8rem;
       color: var(--muted);
@@ -465,6 +484,24 @@
     .mod-bar { background: #222; border-radius: 3px; height: 4px; margin-top: 0.4rem; overflow: hidden; }
     .mod-fill { height: 100%; border-radius: 3px; background: var(--accent); }
 
+    /* ── Business pulse ── */
+    .pulse-age { text-transform: none; letter-spacing: 0; }
+    .pulse-age.stale { color: var(--amber); }
+    .pulse-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+    .pulse-tile {
+      background: #101010; border: 1px solid var(--border); border-left: 3px solid var(--border);
+      border-radius: 10px; padding: 0.55rem 0.65rem; min-width: 0; cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .pulse-tile.green { border-left-color: var(--green); }
+    .pulse-tile.amber { border-left-color: var(--amber); }
+    .pulse-tile.red   { border-left-color: var(--red); }
+    .pulse-tile.sel   { border-color: var(--accent); }
+    .pulse-label { font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+    .pulse-value { font-size: 1.05rem; font-weight: 700; margin-top: 0.15rem; overflow-wrap: anywhere; }
+    .pulse-sub { font-size: 0.66rem; color: var(--muted); margin-top: 0.1rem; overflow-wrap: anywhere; }
+    #pulse-editor .note-editor { padding-bottom: 0; }
+
     /* ── Notes (five fixed pads) ── */
     .pad { border-bottom: 1px solid var(--border); }
     .pad:last-child { border-bottom: none; }
@@ -711,6 +748,15 @@
   </div>
 </div>
 
+<!-- BUSINESS PULSE -->
+<div class="section">
+  <div class="section-label">Business pulse <span class="pulse-age" id="pulse-age"></span></div>
+  <div class="card">
+    <div class="pulse-grid" id="pulse-grid"></div>
+    <div id="pulse-editor"></div>
+  </div>
+</div>
+
 <!-- NOTES -->
 <div class="section">
   <div class="section-label">Notes</div>
@@ -786,7 +832,7 @@
       <button class="backup-btn" onclick="document.getElementById('backup-file').click()">Import</button>
     </div>
     <input type="file" id="backup-file" accept=".json,application/json" style="display:none" onchange="importBackup(event)">
-    <div class="backup-note">Saves your focus list, notes, habit ticks and deadlines to a file. Keep a copy every week or two — this data lives only on this device.</div>
+    <div class="backup-note">Saves your focus list, notes, habit ticks, business pulse and deadlines to a file. Keep a copy every week or two — this data lives only on this device.</div>
   </div>
 </div>
 
@@ -855,29 +901,81 @@
 
   function focusInput() { return document.querySelector('#focus-list .fe-text'); }
 
+  // Only the first FOCUS_TODAY unfinished items are "today"; the rest wait in
+  // a collapsed backlog. Order in the list is the priority — ↑ / ↓ move items.
+  var FOCUS_TODAY = 3;
+  var backlogOpen = false;
+
+  function focusRow(f, i, num, inBacklog) {
+    if (editingFocus === i) {
+      return '<div class="note-editor">' +
+        '<input class="fe-text" placeholder="What are you focusing on?" value="' + attr(f.text) + '"' +
+        ' onkeydown="if(event.key===\'Enter\')saveFocusItem()">' +
+        '<div class="btn-row">' +
+          '<button class="note-btn save" onclick="saveFocusItem()">Save</button>' +
+          '<button class="note-btn cancel" onclick="cancelFocus()">Cancel</button>' +
+          '<button class="note-btn del" onclick="deleteFocus(' + i + ')">Delete</button>' +
+        '</div></div>';
+    }
+    var move = f.done ? '' : inBacklog
+      ? '<button class="focus-move" onclick="promoteFocus(' + i + ')" aria-label="Move to today">↑</button>'
+      : '<button class="focus-move" onclick="demoteFocus(' + i + ')" aria-label="Move to backlog">↓</button>';
+    return '<div class="focus-item editable' + (f.done ? ' done' : '') + '">' +
+      (num ? '<span class="focus-num">' + num + '</span>' : '') +
+      '<span class="focus-text" onclick="startEditFocus(' + i + ')">' + esc(f.text) + '</span>' +
+      move +
+      '<span class="focus-tick" onclick="toggleFocus(' + i + ')">' + (f.done ? '✓' : '') + '</span>' +
+      '</div>';
+  }
+
   function renderFocus() {
     var list = document.getElementById('focus-list');
     if (!focusState.length) {
       list.innerHTML = '<div class="focus-empty">Nothing set — tap “+ Add focus”.</div>';
       return;
     }
-    list.innerHTML = focusState.map(function (f, i) {
-      if (editingFocus === i) {
-        return '<div class="note-editor">' +
-          '<input class="fe-text" placeholder="What are you focusing on?" value="' + attr(f.text) + '"' +
-          ' onkeydown="if(event.key===\'Enter\')saveFocusItem()">' +
-          '<div class="btn-row">' +
-            '<button class="note-btn save" onclick="saveFocusItem()">Save</button>' +
-            '<button class="note-btn cancel" onclick="cancelFocus()">Cancel</button>' +
-            '<button class="note-btn del" onclick="deleteFocus(' + i + ')">Delete</button>' +
-          '</div></div>';
-      }
-      return '<div class="focus-item editable' + (f.done ? ' done' : '') + '">' +
-        '<span class="focus-num">' + (i + 1) + '</span>' +
-        '<span class="focus-text" onclick="startEditFocus(' + i + ')">' + esc(f.text) + '</span>' +
-        '<span class="focus-tick" onclick="toggleFocus(' + i + ')">' + (f.done ? '✓' : '') + '</span>' +
-        '</div>';
+    var today = [], backlog = [], undone = 0;
+    focusState.forEach(function (f, i) {
+      if (f.done) today.push(i);
+      else if (undone < FOCUS_TODAY) { today.push(i); undone++; }
+      else backlog.push(i);
+    });
+    if (editingFocus != null && backlog.indexOf(editingFocus) !== -1) backlogOpen = true;
+
+    var n = 0;
+    var html = today.map(function (i) {
+      var f = focusState[i];
+      return focusRow(f, i, f.done ? '✓' : ++n, false);
     }).join('');
+    if (!undone) html = '<div class="focus-empty">All done — pull one up from the backlog.</div>' + html;
+    if (backlog.length) {
+      html += '<details class="focus-backlog"' + (backlogOpen ? ' open' : '') +
+        ' ontoggle="backlogOpen=this.open">' +
+        '<summary>Backlog <span class="summary-sub">· ' + backlog.length + '</span><span class="chev">›</span></summary>' +
+        backlog.map(function (i) { return focusRow(focusState[i], i, '', true); }).join('') +
+        '</details>';
+    }
+    list.innerHTML = html;
+  }
+
+  // Move to the top of the list, so it becomes today's #1.
+  function promoteFocus(i) {
+    var f = focusState.splice(i, 1)[0];
+    if (!f) return;
+    focusState.unshift(f);
+    editingFocus = null;
+    saveFocus();
+    renderFocus();
+  }
+
+  // Send to the end of the list (the back of the backlog).
+  function demoteFocus(i) {
+    var f = focusState.splice(i, 1)[0];
+    if (!f) return;
+    focusState.push(f);
+    editingFocus = null;
+    saveFocus();
+    renderFocus();
   }
 
   function startEditFocus(i) {
@@ -1221,6 +1319,92 @@
     }).join('');
   }
 
+  // ── Business pulse: the handful of numbers to check weekly (synced) ──
+  // Tap a tile to update it. Status colours the tile's edge (green / amber /
+  // red); the header turns amber once the numbers are more than a week old.
+  var PKEY = 'dash-pulse-v1';
+  var PULSE_DEFAULTS = [
+    { label: 'Completions YTD',   value: '', sub: 'vs target', status: '' },
+    { label: 'Reservations',      value: '', sub: 'this month', status: '' },
+    { label: 'Cash position',     value: '', sub: '', status: '' },
+    { label: 'Build programme',   value: '', sub: 'sites on time', status: '' },
+    { label: 'H&S / NHBC open',   value: '', sub: 'incidents · items', status: '' },
+    { label: 'Customer snags',    value: '', sub: 'outstanding', status: '' }
+  ];
+  var PULSE_STATUS = [['', 'No colour'], ['green', 'On track'], ['amber', 'Watch'], ['red', 'Problem']];
+  var pulseState = { items: [], updated: '' };
+  var editingPulse = null;
+
+  function loadPulse() {
+    try {
+      var p = JSON.parse(localStorage.getItem(PKEY));
+      if (p && Array.isArray(p.items)) return p;
+    } catch (e) {}
+    return { items: PULSE_DEFAULTS.map(function (d) { return Object.assign({}, d); }), updated: '' };
+  }
+  function savePulse() { localStorage.setItem(PKEY, JSON.stringify(pulseState)); }
+
+  function renderPulse() {
+    document.getElementById('pulse-grid').innerHTML = pulseState.items.map(function (it, i) {
+      return '<div class="pulse-tile ' + (it.status || '') + (editingPulse === i ? ' sel' : '') +
+        '" onclick="editPulse(' + i + ')">' +
+        '<div class="pulse-label">' + esc(it.label) + '</div>' +
+        '<div class="pulse-value">' + (it.value ? esc(it.value) : '—') + '</div>' +
+        (it.sub ? '<div class="pulse-sub">' + esc(it.sub) + '</div>' : '') +
+        '</div>';
+    }).join('');
+
+    var age = document.getElementById('pulse-age');
+    if (!pulseState.updated) { age.textContent = '· tap a tile to fill in'; age.className = 'pulse-age'; }
+    else {
+      var days = Math.round((new Date(todayKey()) - new Date(pulseState.updated)) / 86400000);
+      age.textContent = '· ' + (days <= 0 ? 'updated today' : days === 1 ? 'updated yesterday' : 'updated ' + days + ' days ago');
+      age.className = 'pulse-age' + (days > 7 ? ' stale' : '');
+    }
+
+    var ed = document.getElementById('pulse-editor');
+    if (editingPulse == null) { ed.innerHTML = ''; return; }
+    var it = pulseState.items[editingPulse];
+    ed.innerHTML = '<div class="note-editor">' +
+      '<label>Name<input class="pe-label" value="' + attr(it.label) + '"></label>' +
+      '<label>Number<input class="pe-value" placeholder="e.g. 42 / 60" value="' + attr(it.value) + '"></label>' +
+      '<label>Note<input class="pe-sub" placeholder="e.g. vs target, this month" value="' + attr(it.sub) + '"></label>' +
+      '<label>Status<select class="pe-status">' + PULSE_STATUS.map(function (o) {
+        return '<option value="' + o[0] + '"' + (o[0] === (it.status || '') ? ' selected' : '') + '>' + o[1] + '</option>';
+      }).join('') + '</select></label>' +
+      '<div class="btn-row">' +
+        '<button class="note-btn save" onclick="savePulseItem()">Save</button>' +
+        '<button class="note-btn cancel" onclick="editPulse(null)">Cancel</button>' +
+      '</div></div>';
+  }
+
+  function editPulse(i) {
+    editingPulse = (i === editingPulse) ? null : i;
+    renderPulse();
+    var el = document.querySelector('#pulse-editor .pe-value');
+    if (el) el.focus();
+  }
+
+  function savePulseItem() {
+    var i = editingPulse;
+    if (i == null) return;
+    var root = document.getElementById('pulse-editor');
+    var it = pulseState.items[i];
+    it.label  = root.querySelector('.pe-label').value.trim() || it.label;
+    it.value  = root.querySelector('.pe-value').value.trim();
+    it.sub    = root.querySelector('.pe-sub').value.trim();
+    it.status = root.querySelector('.pe-status').value;
+    pulseState.updated = todayKey();
+    editingPulse = null;
+    savePulse();
+    renderPulse();
+  }
+
+  function initPulse() {
+    pulseState = loadPulse();
+    renderPulse();
+  }
+
   // ── Notes: five fixed notes, saved as you type (synced) ──
   var NKEY = 'dash-notes-v2';
   var OLD_NKEY = 'dash-notes-v1';   // old Site/Pillar notes — read once to carry text over
@@ -1306,11 +1490,12 @@
   // ── Backup / restore (notes + habit ticks) ──
   function exportBackup() {
     var payload = { _type: 'tom-dashboard-backup', exported: todayKey(),
-                    notes: null, habits: null, focus: null, deadlines: null };
+                    notes: null, habits: null, focus: null, deadlines: null, pulse: null };
     try { payload.notes     = JSON.parse(localStorage.getItem(NKEY)); } catch (e) {}
     try { payload.habits    = JSON.parse(localStorage.getItem(HKEY)); } catch (e) {}
     try { payload.focus     = JSON.parse(localStorage.getItem(FKEY)); } catch (e) {}
     try { payload.deadlines = JSON.parse(localStorage.getItem(DLKEY)); } catch (e) {}
+    try { payload.pulse     = JSON.parse(localStorage.getItem(PKEY)); } catch (e) {}
     var blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
     var a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
@@ -1327,9 +1512,9 @@
       try {
         var d = JSON.parse(reader.result);
         if (!d || (d.notes === undefined && d.habits === undefined && d.focus === undefined &&
-                   d.deadlines === undefined)) throw new Error('bad');
+                   d.deadlines === undefined && d.pulse === undefined)) throw new Error('bad');
         var when = d.exported ? ' (from ' + d.exported + ')' : '';
-        if (!confirm('Restore this backup' + when + '? It replaces your current focus, notes, habit ticks and deadlines on this device.')) {
+        if (!confirm('Restore this backup' + when + '? It replaces your current focus, notes, habit ticks, business pulse and deadlines on this device.')) {
           ev.target.value = '';
           return;
         }
@@ -1348,6 +1533,12 @@
           focusState = d.focus;
           editingFocus = null;
           renderFocus();
+        }
+        if (d.pulse && Array.isArray(d.pulse.items)) {
+          pulseState = d.pulse;
+          editingPulse = null;
+          savePulse();
+          renderPulse();
         }
         if (Array.isArray(d.deadlines)) {
           localStorage.setItem(DLKEY, JSON.stringify(d.deadlines));
@@ -1501,6 +1692,7 @@
     });
   }
 
+  initPulse();      // purely local — doesn't wait on data.json
   loadData(false);
 </script>
 </body>
