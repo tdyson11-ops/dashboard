@@ -377,7 +377,6 @@
     }
 
     .habit-count { font-size: 0.8rem; font-weight: 700; }
-    .habit-week { display: flex; gap: 0.3rem; margin-top: 0.75rem; }
 
     /* Day picker — tick habits for an earlier day (e.g. last night's bedtime) */
     .habit-nav { display: flex; align-items: center; gap: 0.5rem; }
@@ -400,7 +399,7 @@
     .habit-day-label { font-size: 0.8rem; color: var(--muted); min-width: 5.5rem; text-align: center; }
     .habit-day-label.past { color: var(--amber); font-weight: 600; }
 
-    /* 30-day score */
+    /* 3-day score */
     .habit-score {
       display: flex;
       justify-content: space-between;
@@ -416,19 +415,6 @@
     .score-streak { font-size: 0.85rem; font-weight: 700; }
     .score-sub { font-size: 0.62rem; color: var(--muted); margin-top: 0.2rem; }
 
-    .habit-day {
-      flex: 1;
-      height: 6px;
-      border-radius: 3px;
-      background: #222;
-      cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    .habit-day.full    { background: var(--green); }
-    .habit-day.partial { background: var(--amber); }
-    .habit-day.today   { outline: 1px solid var(--muted); outline-offset: 1px; }
-    .habit-day.sel     { outline: 1px solid var(--text); outline-offset: 1px; }
 
     /* ── Top split: Recovery | Habits, half width each ── */
     .top-split {
@@ -438,22 +424,24 @@
       padding: 1rem 1.25rem 0;
     }
     .top-col { min-width: 0; display: flex; flex-direction: column; }
-    .top-col .card { flex: 1; padding: 0.8rem; }
+    .top-col .card { flex: 1; padding: 0.7rem; margin-bottom: 0.5rem; }
     .top-col .card { display: flex; flex-direction: column; }
-    .top-col .whoop-grid { grid-template-columns: 1fr; justify-items: center; align-content: center; gap: 1.1rem; flex: 1; }
+    .top-col .whoop-grid { grid-template-columns: 1fr; justify-items: center; align-content: center; gap: 0.7rem; flex: 1; }
+    .top-col .recovery-ring, .top-col .recovery-ring svg { width: 72px; height: 72px; }
+    .top-col .recovery-pct { font-size: 1.25rem; }
     .top-col .whoop-stats { width: 100%; gap: 0.55rem 0.6rem; }
     .top-col .stat-value { font-size: 0.92rem; }
-    .top-col .habit-head { flex-direction: column; align-items: stretch; gap: 0.3rem; margin-bottom: 0.5rem; }
+    .top-col .habit-head { margin-bottom: 0.35rem; }
+    .top-col .habit-head .habit-nav { flex: 1; }
     .top-col .habit-nav { justify-content: space-between; gap: 0.25rem; }
     .top-col .habit-day-label { min-width: 0; font-size: 0.7rem; }
-    .top-col .habit-count { font-size: 0.72rem; text-align: center; }
-    .top-col .habit-row { gap: 0.45rem; font-size: 0.74rem; padding: 0.45rem 0; }
+    .top-col .habit-count { font-size: 0.95rem; }
+    .top-col .habit-row { gap: 0.45rem; font-size: 0.74rem; padding: 0.32rem 0; }
     .top-col .habit-check { width: 19px; height: 19px; font-size: 0.7rem; }
     .top-col .habit-label { min-width: 0; overflow-wrap: anywhere; }
-    .top-col .habit-week { gap: 0.2rem; }
-    .top-col .habit-score { flex-wrap: wrap; gap: 0.4rem; }
+    .top-col .habit-score { gap: 0.4rem; margin-top: 0.5rem; padding-top: 0.5rem; }
     .top-col .score-big { font-size: 1.2rem; }
-    .top-col .score-right { text-align: left; }
+    .top-col .score-right { text-align: right; }
 
     /* ── Uni modules ── */
     .mod-row { padding: 0.55rem 0; border-bottom: 1px solid var(--border); }
@@ -744,18 +732,16 @@
         <span class="habit-day-label" id="habit-day-label">Today</span>
         <button class="habit-arrow" id="habit-next" onclick="shiftHabitDay(-1)" aria-label="Next day">›</button>
       </span>
-      <span class="habit-count" id="habit-count">—</span>
     </div>
     <div id="habit-list"></div>
-    <div class="habit-week" id="habit-week"></div>
     <div class="habit-score">
       <div>
         <div class="score-big" id="habit-avg">—</div>
-        <div class="score-label">30-day average</div>
+        <div class="score-label">3-day avg</div>
       </div>
       <div class="score-right">
-        <div class="score-streak" id="habit-streak">—</div>
-        <div class="score-sub" id="habit-days">—</div>
+        <div class="habit-count" id="habit-count">—</div>
+        <div class="score-label">ticked</div>
       </div>
     </div>
   </div>
@@ -1048,7 +1034,7 @@
 
   // ── Habits (interactive, stored on this device) ──
   var HKEY = 'dash-habits-v1';
-  var HABIT_MAX_BACK = 29;   // how far back you can tick, matches the 30-day score window
+  var HABIT_MAX_BACK = 29;   // how far back the ‹ arrow lets you tick
   var habitDay = 0;          // day being ticked: 0 = today, 1 = yesterday, …
   window.__HABITS = [];
   function loadHabitState() {
@@ -1096,19 +1082,6 @@
         '<span class="habit-check">' + (d ? '✓' : '') + '</span>' +
         '<span class="habit-label">' + esc(h) + '</span></div>';
     }).join('');
-    var cells = '';
-    for (var day = 6; day >= 0; day--) {
-      var dayState = state[dateKeyAgo(day)] || {};
-      var c = 0;
-      for (var j = 0; j < habits.length; j++) if (dayState[j]) c++;
-      var cls = (habits.length && c === habits.length) ? 'full' : (c > 0 ? 'partial' : '');
-      if (day === 0) cls += ' today';
-      if (day === habitDay) cls += ' sel';
-      cells += '<div class="habit-day ' + cls + '" onclick="setHabitDay(' + day + ')" ' +
-        'title="' + esc(habitDayLabel(day)) + '"></div>';
-    }
-    document.getElementById('habit-week').innerHTML = cells;
-
     renderHabitScore(habits, state);
   }
 
@@ -1120,47 +1093,29 @@
     return c;
   }
 
-  // 30-day average: percentage of habit boxes ticked, measured from the first
-  // day you logged anything (within the window) to today — so a missed day
-  // counts against you, but the weeks before you started tracking don't.
+  // 3-day average: share of habit boxes ticked over today and the two days
+  // before, counting only from the first day you logged anything in that window.
+  var HABIT_AVG_DAYS = 3;
   function renderHabitScore(habits, state) {
     var n = habits.length;
     var avgEl = document.getElementById('habit-avg');
-    var streakEl = document.getElementById('habit-streak');
-    var daysEl = document.getElementById('habit-days');
     if (!avgEl) return;
 
     var firstIdx = -1;
-    for (var d = 29; d >= 0; d--) {
+    for (var d = HABIT_AVG_DAYS - 1; d >= 0; d--) {
       if (state[dateKeyAgo(d)]) { firstIdx = d; break; }
     }
-
     if (!n || firstIdx < 0) {
       avgEl.textContent = '—';
       avgEl.className = 'score-big';
-      streakEl.textContent = '—';
-      daysEl.textContent = 'start ticking to build a score';
       return;
     }
 
     var done = 0;
     for (var k = firstIdx; k >= 0; k--) done += dayTicks(state, k, n);
-    var daysTracked = firstIdx + 1;
-    var pct = Math.round(done / (daysTracked * n) * 100);
-
+    var pct = Math.round(done / ((firstIdx + 1) * n) * 100);
     avgEl.textContent = pct + '%';
     avgEl.className = 'score-big ' + (pct >= 80 ? 'good' : pct >= 50 ? 'warn' : 'bad');
-
-    // Streak of days with every habit ticked. Today only breaks it once it's
-    // over, so a part-finished day doesn't zero the count.
-    var streak = 0;
-    var start = dayTicks(state, 0, n) === n ? 0 : 1;
-    for (var s = start; s < 365; s++) {
-      if (dayTicks(state, s, n) === n) streak++; else break;
-    }
-    streakEl.textContent = streak + (streak === 1 ? ' day' : ' days');
-    streakEl.className = 'score-streak ' + (streak > 0 ? 'good' : '');
-    daysEl.textContent = 'streak · ' + daysTracked + 'd tracked';
   }
 
   // ── Pillars & Goals ──

@@ -195,12 +195,10 @@ Edited directly on the dashboard (no `data.json` needed):
 - **University deadlines** — **+ Add deadline** for what's due, which module and the date; tap one to
   edit or delete it. Soonest first, the badge turns red inside 7 days, and anything already passed
   drops to the bottom so a stale deadline can't sit above the one you need to hit
-- **Habits** — tap to tick. Use **‹** / **›** in the card header (or tap a bar in the 7-day strip) to
-  point the list at an earlier day and tick it there — handy for things you only know the next morning,
-  like bedtime. The header shows which day you're on (amber when it isn't today) and you can go back
-  up to 29 days. The card also shows a **30-day average** (share of habit boxes ticked, measured
-  from your first logged day in the window so the weeks before you started don't count against you),
-  a current streak of all-ticked days, and the 7-day strip
+- **Habits** — tap to tick. Use **‹** / **›** in the card header to point the list at an earlier day
+  and tick it there — handy for things you only know the next morning, like bedtime (amber when it
+  isn't today; up to 29 days back). The card shows how many are ticked and a **3-day average** (share
+  of habit boxes ticked today and the two days before, from your first logged day in that window)
 - **Decision Log** — **+ Log a decision** records what you decided, what you expect to happen, how
   confident you are, and a date to come back to it (90 days out by default). Once the review date
   passes, the entry jumps to the top of the list with a **Review now** flag until you record an
