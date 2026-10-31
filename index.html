@@ -185,16 +185,6 @@
       padding: 0.4rem 0;
     }
 
-    /* ── Plot 2 actions ── */
-    .p2-group { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); margin: 0.9rem 0 0.2rem; }
-    .p2-group:first-child { margin-top: 0; }
-    .p2-note { font-size: 0.72rem; color: var(--amber); margin-bottom: 0.2rem; }
-    .p2-item { cursor: pointer; -webkit-tap-highlight-color: transparent; }
-    .p2-item .focus-tick { margin-left: 0; }
-    .p2-sub { display: block; font-size: 0.75rem; color: var(--muted); margin-top: 0.15rem; }
-    .p2-who { display: table; font-size: 0.62rem; color: var(--accent); border: 1px solid var(--border); border-radius: 4px; padding: 0 0.3rem; margin-top: 0.25rem; }
-    .p2-item.done .p2-sub, .p2-item.done .p2-who { opacity: 0.5; }
-
     /* ── WHOOP ── */
     .whoop-grid {
       display: grid;
@@ -716,18 +706,6 @@
   </div>
 </div>
 
-<!-- PLOT 2 ACTIONS -->
-<div class="section">
-  <div class="section-label">Plot 2 · TSD actions</div>
-  <details class="card" open>
-    <summary><span>Spec review 14/10 <span class="summary-sub" id="p2-count"></span></span><span class="chev">›</span></summary>
-    <div id="p2-list"></div>
-    <div class="note-actions">
-      <button class="note-add" onclick="resetPlot2()">Clear ticks</button>
-    </div>
-  </details>
-</div>
-
 <!-- WHOOP RECOVERY -->
 <div class="section">
   <div class="section-label">Recovery <span id="whoop-age"></span></div>
@@ -1071,12 +1049,15 @@
     var seen = [];
     try { seen = JSON.parse(localStorage.getItem(FSEEN_KEY)) || []; } catch (e) {}
     if (!Array.isArray(seen)) seen = [];
+    // Items moved over from the old Plot 2 card keep their tick (`p2` = old id).
+    var p2Ticks = {};
+    try { p2Ticks = JSON.parse(localStorage.getItem('dash-plot2-v1')) || {}; } catch (e) {}
     var added = false;
     inbox.forEach(function (it) {
       if (!it || !it.id || !it.text || seen.indexOf(it.id) !== -1) return;
       seen.push(it.id);
       var present = focusState.some(function (f) { return f && f.id === it.id; });
-      if (!present) { focusState.push({ text: it.text, done: false, id: it.id }); added = true; }
+      if (!present) { focusState.push({ text: it.text, done: !!p2Ticks[it.p2], id: it.id }); added = true; }
     });
     localStorage.setItem(FSEEN_KEY, JSON.stringify(seen));
     if (added) saveFocus();
@@ -1728,75 +1709,6 @@
     renderDecisions();
   }
 
-  // ── Plot 2 actions (fixed list from the 14/10 spec review; ticks synced) ──
-  var P2KEY = 'dash-plot2-v1';
-  var PLOT2 = [
-    { g: 'Do first', note: 'These feed Harry\u2019s 23/10 deadlines.', items: [
-      { id: 'okitchen', t: 'Outdoor kitchen spec', s: 'Final spec for sink, ice machine and opening canopy, so Harry can confirm base, anchoring, services and ducts. Nothing fixed to or through the neighbour\u2019s garage wall.' },
-      { id: 'study', t: 'Study layout', s: 'Cabinetry hiding the consumer unit with access kept; desk facing the window.', w: 'with SJC' } ] },
-    { g: 'Kitchen \u00b7 Omega visit', items: [
-      { id: 'omega', t: 'Book Omega visit', w: 'with SJC, SEI' },
-      { id: 'kdesign', t: 'Sign off revised kitchen design', s: 'Induction hob with downdraft/recirculating extraction, Quooker, ceiling-height units, LeMans corner, bar/coffee station with lit shelving.' },
-      { id: 'kheights', t: 'Check heights and fascia', s: 'Finished cabinet heights, reach to upper cupboards, bridging fascia above the window.' } ] },
-    { g: 'Selections', items: [
-      { id: 'garage', t: 'Confirm anthracite sectional garage door' },
-      { id: 'extcol', t: 'Choose external door colours', s: 'Front, utility and sliding doors.' },
-      { id: 'intdoors', t: 'Confirm internal door schedule', s: 'Solid study door, glazed doors to ground-floor living rooms, first-floor finishes.' } ] },
-    { g: 'Suppliers', items: [
-      { id: 'hammonds', t: 'Book Hammonds survey', s: 'Dressing room wardrobes and study furniture.', w: 'with SJC' },
-      { id: 'landscape', t: 'Landscaping proposals', s: 'Pleached trees, planters, future lighting and irrigation.', w: 'with SJC, SEI' },
-      { id: 'spa', t: 'Get Spa Landscapes quote' } ] },
-    { g: 'Keep an eye on', items: [
-      { id: 'table', t: 'Choose dining table at Lee\u2019s', s: 'Steven can\u2019t finalise Craig\u2019s booth seating until this is done.' },
-      { id: 'cctv', t: 'Rear CCTV camera position', s: 'Needs a spot that doesn\u2019t fix to the neighbour\u2019s garage.' } ] }
-  ];
-  var p2State = {};
-
-  function loadPlot2() {
-    try { return JSON.parse(localStorage.getItem(P2KEY)) || {}; } catch (e) { return {}; }
-  }
-  function savePlot2() { localStorage.setItem(P2KEY, JSON.stringify(p2State)); }
-
-  function renderPlot2() {
-    var total = 0, done = 0;
-    var html = PLOT2.map(function (grp) {
-      return '<div class="p2-group">' + esc(grp.g) + '</div>' +
-        (grp.note ? '<div class="p2-note">' + esc(grp.note) + '</div>' : '') +
-        grp.items.map(function (it) {
-          total++;
-          var on = !!p2State[it.id];
-          if (on) done++;
-          return '<div class="focus-item p2-item' + (on ? ' done' : '') + '" onclick="togglePlot2(\'' + it.id + '\')">' +
-            '<span class="focus-tick">' + (on ? '\u2713' : '') + '</span>' +
-            '<span class="focus-text">' + esc(it.t) +
-              (it.s ? '<span class="p2-sub">' + esc(it.s) + '</span>' : '') +
-              (it.w ? '<span class="p2-who">' + esc(it.w) + '</span>' : '') +
-            '</span></div>';
-        }).join('');
-    }).join('');
-    document.getElementById('p2-list').innerHTML = html;
-    document.getElementById('p2-count').textContent = '\u00b7 ' + done + ' / ' + total + ' done';
-  }
-
-  function togglePlot2(id) {
-    p2State[id] = !p2State[id];
-    if (!p2State[id]) delete p2State[id];
-    savePlot2();
-    renderPlot2();
-  }
-
-  function resetPlot2() {
-    if (!confirm('Clear all Plot 2 ticks?')) return;
-    p2State = {};
-    savePlot2();
-    renderPlot2();
-  }
-
-  function initPlot2() {
-    p2State = loadPlot2();
-    renderPlot2();
-  }
-
   // ── Backup / restore (notes + habit ticks) ──
   function exportBackup() {
     var payload = { _type: 'tom-dashboard-backup', exported: todayKey(),
@@ -2004,7 +1916,6 @@
   }
 
   initDecisions();   // purely local — doesn't wait on data.json
-  initPlot2();       // fixed list, ticks stored locally + synced
   loadData(false);
 </script>
 </body>

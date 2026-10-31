@@ -303,6 +303,78 @@
       "id": "2026-10-27-02",
       "text": "Ring Omega to book in showroom visit",
       "from": "Added 27 Oct"
+    },
+    {
+      "id": "2026-10-31-tsd-01",
+      "text": "Plot 2: Outdoor kitchen spec (sink, ice machine, canopy) for Harry",
+      "from": "Plot 2 TSD actions",
+      "p2": "okitchen"
+    },
+    {
+      "id": "2026-10-31-tsd-02",
+      "text": "Plot 2: Study layout (with SJC)",
+      "from": "Plot 2 TSD actions",
+      "p2": "study"
+    },
+    {
+      "id": "2026-10-31-tsd-03",
+      "text": "Plot 2: Sign off revised kitchen design",
+      "from": "Plot 2 TSD actions",
+      "p2": "kdesign"
+    },
+    {
+      "id": "2026-10-31-tsd-04",
+      "text": "Plot 2: Check kitchen heights and fascia",
+      "from": "Plot 2 TSD actions",
+      "p2": "kheights"
+    },
+    {
+      "id": "2026-10-31-tsd-05",
+      "text": "Plot 2: Confirm anthracite sectional garage door",
+      "from": "Plot 2 TSD actions",
+      "p2": "garage"
+    },
+    {
+      "id": "2026-10-31-tsd-06",
+      "text": "Plot 2: Choose external door colours",
+      "from": "Plot 2 TSD actions",
+      "p2": "extcol"
+    },
+    {
+      "id": "2026-10-31-tsd-07",
+      "text": "Plot 2: Confirm internal door schedule",
+      "from": "Plot 2 TSD actions",
+      "p2": "intdoors"
+    },
+    {
+      "id": "2026-10-31-tsd-08",
+      "text": "Plot 2: Book Hammonds survey (with SJC)",
+      "from": "Plot 2 TSD actions",
+      "p2": "hammonds"
+    },
+    {
+      "id": "2026-10-31-tsd-09",
+      "text": "Plot 2: Landscaping proposals (with SJC, SEI)",
+      "from": "Plot 2 TSD actions",
+      "p2": "landscape"
+    },
+    {
+      "id": "2026-10-31-tsd-10",
+      "text": "Plot 2: Get Spa Landscapes quote",
+      "from": "Plot 2 TSD actions",
+      "p2": "spa"
+    },
+    {
+      "id": "2026-10-31-tsd-11",
+      "text": "Plot 2: Choose dining table at Lee's",
+      "from": "Plot 2 TSD actions",
+      "p2": "table"
+    },
+    {
+      "id": "2026-10-31-tsd-12",
+      "text": "Plot 2: Rear CCTV camera position",
+      "from": "Plot 2 TSD actions",
+      "p2": "cctv"
     }
   ]
 }

@@ -42,7 +42,7 @@ const SYNC_KEYS = [
   'dash-focus-seen-v1',   // Dashboard — focus-inbox ids already added (stops re-adds)
   'dash-decisions-v1',    // Dashboard — decision log
   'dash-deadlines-v1',    // Dashboard — uni submission deadlines
-  'dash-plot2-v1'         // Dashboard — Plot 2 spec-review action ticks
+  'dash-plot2-v1'         // Dashboard — old Plot 2 ticks (read once when moving them into Focus)
 ];
 const REV_KEY = 'sync-rev';                       // last applied revision (per device, not synced)
 const CLIENT_ID = Math.random().toString(36).slice(2) + Date.now().toString(36);
