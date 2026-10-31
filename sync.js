@@ -41,7 +41,7 @@ const SYNC_KEYS = [
   'dash-habits-v1',       // Dashboard — habit ticks
   'dash-focus-v1',        // Dashboard — Today's Focus list
   'dash-focus-seen-v1',   // Dashboard — focus-inbox ids already added (stops re-adds)
-  'dash-decisions-v1',    // Dashboard — decision log
+  'dash-decisions-v1',    // Dashboard — old decision log (card removed; kept so the data isn't lost)
   'dash-deadlines-v1',    // Dashboard — uni submission deadlines
   'dash-plot2-v1'         // Dashboard — old Plot 2 ticks (read once when moving them into Focus)
 ];
