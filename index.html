@@ -488,10 +488,6 @@
     .cal-head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.65rem; }
     .cal-date { font-size: 0.95rem; font-weight: 700; }
     .cal-date small { font-size: 0.7rem; font-weight: 500; color: var(--muted); margin-left: 0.3rem; }
-    .cal-tabs { display: flex; background: #101010; border: 1px solid var(--border); border-radius: 8px; padding: 2px; }
-    .cal-tab { background: none; border: 0; color: var(--muted); font: inherit; font-size: 0.7rem; font-weight: 600;
-      padding: 0.25rem 0.6rem; border-radius: 6px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
-    .cal-tab.on { background: var(--card); color: var(--text); box-shadow: 0 0 0 1px var(--border); }
     .cal-allday { display: flex; flex-wrap: wrap; gap: 0.3rem; margin: 0 0 0.55rem 2.6rem; }
     .cal-chip { font-size: 0.7rem; font-weight: 600; padding: 0.2rem 0.5rem; border-radius: 6px;
       background: var(--ev-bg); color: var(--ev-fg); border-left: 3px solid var(--ev-fg);
@@ -514,6 +510,26 @@
     .cal-now { position: absolute; left: 2.4rem; right: 0; height: 0; border-top: 2px solid var(--red); z-index: 3; pointer-events: none; }
     .cal-now::before { content: ''; position: absolute; left: -5px; top: -6px; width: 10px; height: 10px; border-radius: 50%; background: var(--red); }
     .cal-empty { font-size: 0.8rem; color: var(--muted); padding: 0.4rem 0 0.2rem; }
+    .cal-allday .cal-chip small { font-weight: 500; opacity: 0.75; margin-right: 0.25rem; }
+    .cal-midnight { position: absolute; left: 2.4rem; right: 0; height: 0; border-top: 1px dashed var(--muted); z-index: 1; }
+    .cal-midnight span { position: absolute; right: 0; top: -0.75rem; font-size: 0.58rem; text-transform: uppercase;
+      letter-spacing: 0.1em; color: var(--muted); background: var(--card); padding-left: 0.3rem; }
+    .cal-hour.next span { color: #555; }
+
+    /* Prep suggestions under the diary */
+    .prep { margin-top: 0.85rem; padding-top: 0.7rem; border-top: 1px solid var(--border); }
+    .prep-head { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); margin-bottom: 0.45rem; }
+    .prep-ev { padding: 0.45rem 0; border-bottom: 1px solid var(--border); }
+    .prep-ev:last-child { border-bottom: none; padding-bottom: 0; }
+    .prep-title { font-size: 0.82rem; font-weight: 600; display: flex; gap: 0.45rem; align-items: baseline; }
+    .prep-title i { font-style: normal; font-size: 0.66rem; font-weight: 500; color: var(--accent); flex-shrink: 0; font-variant-numeric: tabular-nums; }
+    .prep-why { font-size: 0.64rem; color: var(--muted); margin-top: 0.1rem; }
+    .prep-act { display: flex; align-items: flex-start; gap: 0.45rem; font-size: 0.76rem; line-height: 1.35; margin-top: 0.35rem; }
+    .prep-act span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+    .prep-act span::before { content: '→ '; color: var(--muted); }
+    .prep-add { background: none; border: 1px solid var(--border); border-radius: 6px; color: var(--muted); font: inherit;
+      font-size: 0.6rem; padding: 0.15rem 0.4rem; flex-shrink: 0; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+    .prep-add.done { color: var(--green); border-color: #12401f; }
 
     /* ── Lists: Waiting on / People / Road to MD ── */
     .li-row { display: flex; align-items: flex-start; gap: 0.6rem; padding: 0.55rem 0;
@@ -1463,8 +1479,7 @@
   // calendar is connected and has answered once, the card stays hidden.
   var CAL_CACHE = 'dash-cal-cache-v1';
   var calData = null;
-  var calView = null;            // 'today' | 'tomorrow' — null means pick automatically
-  var calScrolledFor = '';       // remember which day we auto-scrolled, so the minute tick doesn't jump
+  var calScrolledFor = '';       // window start we last drew, so the minute tick keeps your scroll position
   var CAL_PX = 56;               // pixels per hour
   var CAL_COLOURS = [            // [fill, accent] — muted fills that sit on the dark card
     ['#13233d', '#60a5fa'], ['#13301f', '#4ade80'], ['#33220c', '#f59e0b'],
@@ -1497,94 +1512,178 @@
     return evs;
   }
 
-  function calDayView(events, isToday) {
-    var allDay = events.filter(function (e) { return e.allDay; });
-    var timed = events.filter(function (e) { return !e.allDay; }).map(function (e) {
-      var s = toMin(e.start), en = Math.max(toMin(e.end), s + 15);
-      return { ev: e, s: s, e: en };
+  // Next 24 hours as one timeline: from the current hour to the same hour
+  // tomorrow, with a dashed line at midnight. Tomorrow's times are offset
+  // by 24h so both days sit on one axis.
+  function calWindow(today, tomorrow) {
+    var start = Math.floor(nowMin() / 60) * 60, end = start + 24 * 60;
+    var timed = [], allDay = [];
+    [[today, 0, 'Today'], [tomorrow, 1440, 'Tomorrow']].forEach(function (d) {
+      (d[0] || []).forEach(function (e) {
+        if (e.allDay) { allDay.push({ ev: e, day: d[2] }); return; }
+        var s = toMin(e.start) + d[1], en = Math.max(toMin(e.end) + d[1], s + 15);
+        if (en > start && s < end) timed.push({ ev: e, s: Math.max(s, start), e: Math.min(en, end), rs: s, day: d[2] });
+      });
     });
+    return { start: start, end: end, timed: timed, allDay: allDay };
+  }
+
+  function calTimeline(w) {
     var html = '';
-    if (allDay.length) {
-      html += '<div class="cal-allday">' + allDay.map(function (e) {
-        return '<span class="cal-chip" style="' + calColour(e.title) + '">' + esc(e.title) + '</span>';
+    if (w.allDay.length) {
+      html += '<div class="cal-allday">' + w.allDay.map(function (a) {
+        return '<span class="cal-chip" style="' + calColour(a.ev.title) + '"><small>' + a.day + '</small>' + esc(a.ev.title) + '</span>';
       }).join('') + '</div>';
     }
-    if (!timed.length) {
-      return html + '<div class="cal-empty">' + (allDay.length ? 'No meetings.' : 'Nothing in the diary.') + '</div>';
-    }
-    // Show 07:00–19:00, stretched to fit anything earlier or later.
-    var first = Math.min.apply(null, timed.map(function (t) { return t.s; }));
-    var last = Math.max.apply(null, timed.map(function (t) { return t.e; }));
-    var h0 = Math.min(7, Math.floor(first / 60)), h1 = Math.max(19, Math.ceil(last / 60));
-    if (isToday) { var n = nowMin(); h0 = Math.min(h0, Math.floor(n / 60)); h1 = Math.max(h1, Math.ceil((n + 1) / 60)); }
-    h1 = Math.min(h1, 24);
-    var y = function (m) { return (m - h0 * 60) / 60 * CAL_PX; };
-
+    if (!w.timed.length) return html + '<div class="cal-empty">Nothing in the diary for the next 24 hours.</div>';
+    var y = function (m) { return (m - w.start) / 60 * CAL_PX; };
     var grid = '';
-    for (var h = h0; h <= h1; h++) {
-      grid += '<div class="cal-hour" style="top:' + y(h * 60) + 'px"><span>' + (h === 24 ? '' : pad(h) + ':00') + '</span></div>';
+    for (var m = w.start; m <= w.end; m += 60) {
+      var h = (m / 60) % 24;
+      grid += '<div class="cal-hour' + (m >= 1440 ? ' next' : '') + '" style="top:' + y(m) + 'px"><span>' + pad(h) + ':00</span></div>';
+    }
+    if (1440 > w.start && 1440 < w.end) {
+      var tm = new Date(); tm.setDate(tm.getDate() + 1);
+      grid += '<div class="cal-midnight" style="top:' + y(1440) + 'px"><span>' +
+        tm.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }) + '</span></div>';
     }
     var t = nowMin();
-    layoutEvents(timed).forEach(function (x) {
-      var e = x.ev, top = y(x.s), height = Math.max(y(x.e) - top - 2, 18);
-      var short = height < 34;
-      var w = 'calc((100% - 2.6rem) / ' + x.cols + ' - 3px)';
+    layoutEvents(w.timed).forEach(function (x) {
+      var e = x.ev, top = y(x.s), height = Math.max(y(x.e) - top - 2, 18), short = height < 34;
+      var wdt = 'calc((100% - 2.6rem) / ' + x.cols + ' - 3px)';
       var left = 'calc(2.6rem + (100% - 2.6rem) * ' + x.col + ' / ' + x.cols + ')';
-      grid += '<div class="cal-ev' + (short ? ' short' : '') + (isToday && x.e <= t ? ' past' : '') + '" style="' +
-        calColour(e.title) + ';top:' + top + 'px;height:' + height + 'px;left:' + left + ';width:' + w + '">' +
+      grid += '<div class="cal-ev' + (short ? ' short' : '') + (x.e <= t ? ' past' : '') + '" style="' +
+        calColour(e.title) + ';top:' + top + 'px;height:' + height + 'px;left:' + left + ';width:' + wdt + '">' +
         '<b>' + esc(e.title) + '</b><i>' + e.start + '–' + e.end + '</i>' +
         (!short && e.location && height > 48 ? '<span class="loc">' + esc(e.location) + '</span>' : '') + '</div>';
     });
-    if (isToday && t >= h0 * 60 && t <= h1 * 60) grid += '<div class="cal-now" id="cal-now" style="top:' + y(t) + 'px"></div>';
-    html += '<div class="cal-scroll" id="cal-scroll"><div class="cal-grid" style="height:' + (y(h1 * 60) + 8) + 'px;margin-top:0.5rem">' + grid + '</div></div>';
+    grid += '<div class="cal-now" id="cal-now" style="top:' + y(t) + 'px"></div>';
+    html += '<div class="cal-scroll" id="cal-scroll"><div class="cal-grid" style="height:' + (y(w.end) + 8) + 'px;margin-top:0.5rem">' + grid + '</div></div>';
     return html;
   }
 
-  function setCalView(v) { calView = v; calScrolledFor = ''; renderCalendar(); }
+  // ── Prep suggestions ──
+  // Looks at the next 24 hours and picks out what matters, using what the
+  // dashboard already knows (People, Waiting on, Focus) plus common meeting
+  // types in your world. Rule-based and private — nothing leaves the phone.
+  var PREP_RULES = [
+    { re: /\b(nhbc|inspection|building control|warrant|completion cert)/i, why: 'Inspection',
+      acts: ['Walk the plots beforehand and clear obvious snags', 'Have drawings, previous reports and certificates to hand'] },
+    { re: /\b(h&s|h ?& ?s|health|safety|audit|riddor|cdm)\b/i, why: 'Health & safety',
+      acts: ['Check RAMS, inductions and permits are up to date', 'Close out any open H&S actions first'] },
+    { re: /\b(board|monthly|quarterly|review|performance|kpi|results|forecast)\b/i, why: 'Review meeting',
+      acts: ['Update the Business pulse numbers before you go in', 'Write down the 3 decisions you need from it'] },
+    { re: /\b(bank|finance|cash|budget|valuation|funding|lender|accounts?|commercial)\b/i, why: 'Money',
+      acts: ['Pull the latest cash-flow projection', 'Know your cash position and the one number they’ll ask about'] },
+    { re: /\b(client|customer|homeowner|buyer|handover|complaint|reservation|sales)\b/i, why: 'Customer',
+      acts: ['Check the snag list and any open complaints for their plot', 'Agree what “done” looks like before you meet'] },
+    { re: /\b(supplier|showroom|quote|tender|subcontract|trades?|contractor|procurement)\b/i, why: 'Supplier / trades',
+      acts: ['List the spec and questions you need answered', 'Bring budget and dimensions so you can decide on the day'] },
+    { re: /\b(site|plot|walk|visit|pour|scaffold|groundworks?|programme)\b/i, why: 'Site',
+      acts: ['Check progress against the build programme', 'Review open snags and H&S items for the site'] },
+    { re: /\b(interview|appraisal|1:1|1-1|one[- ]to[- ]one|catch ?up|probation)\b/i, why: 'People',
+      acts: ['Note what you need from them and what they need from you'] },
+    { re: /\b(uni|lecture|seminar|exam|essay|assignment|tutorial|module|leeds beckett|dissertation)\b/i, why: 'Uni',
+      acts: ['Check the deadline card and what’s due next', 'Skim the module notes for 10 minutes beforehand'] },
+    { re: /\b(train|flight|airport|conference|away|travel)\b/i, why: 'Travel',
+      acts: ['Check travel times and leave a buffer'] }
+  ];
+  var PREP_STOP = { meeting: 1, call: 1, with: 1, team: 1, about: 1, weekly: 1, daily: 1, catch: 1, update: 1, monday: 1,
+    tuesday: 1, wednesday: 1, thursday: 1, friday: 1, review: 1, reviews: 1, monthly: 1, quarterly: 1, plots: 1, plot: 1, site: 1, from: 1, this: 1, that: 1 };
+
+  function nameMatches(title, name) {
+    var t = ' ' + title.toLowerCase().replace(/[^a-z0-9&]+/g, ' ') + ' ';
+    var bits = String(name).toLowerCase().replace(/\(.*?\)/g, ' ').split(/[^a-z0-9]+/).filter(function (b) { return b.length > 2; });
+    return bits.length && bits.some(function (b) { return t.indexOf(' ' + b + ' ') !== -1; });
+  }
+
+  function prepFor(x) {
+    var e = x.ev, title = e.title + ' ' + (e.location || ''), why = [], acts = [];
+    var add = function (a) { if (acts.indexOf(a) === -1) acts.push(a); };
+    // People you track: the next thing to raise, and anything they owe you.
+    (LISTS.people ? LISTS.people.items : []).forEach(function (p) {
+      if (!nameMatches(title, p.name)) return;
+      why.push(p.name.replace(/\s*\(.*?\)/, ''));
+      if (p.next) add('Raise with ' + p.name.replace(/\s*\(.*?\)/, '') + ': ' + p.next);
+    });
+    (LISTS.waiting ? LISTS.waiting.items : []).forEach(function (w) {
+      if (w.done || !w.who || !nameMatches(title, w.who)) return;
+      var d = daysSince(w.asked);
+      add('Chase ' + w.who + ': ' + w.what + (d != null ? ' (asked ' + agoText(d) + ')' : ''));
+    });
+    // Focus items that mention the same thing (e.g. "Omega", "NHBC").
+    var words = e.title.toLowerCase().split(/[^a-z0-9&]+/).filter(function (wd) { return wd.length > 3 && !PREP_STOP[wd]; });
+    (typeof focusState !== 'undefined' ? focusState : []).forEach(function (f) {
+      if (f.done || !f.text) return;
+      var ft = ' ' + f.text.toLowerCase().replace(/[^a-z0-9&]+/g, ' ') + ' ';
+      if (words.some(function (wd) { return ft.indexOf(' ' + wd + ' ') !== -1; })) add(FOCUS_PREFIX + f.text);
+    });
+    // Meeting types.
+    PREP_RULES.forEach(function (r) {
+      if (!r.re.test(title)) return;
+      why.push(r.why);
+      r.acts.forEach(add);
+    });
+    // Somewhere to get to.
+    if (e.location && !/teams|zoom|meet\.google|http|online|call/i.test(e.location) && acts.length) add('Plan the journey to ' + e.location);
+    if (!acts.length) return null;
+    return { x: x, why: why.filter(function (v, i, a) { return a.indexOf(v) === i; }), acts: acts.slice(0, 4) };
+  }
+
+  var FOCUS_PREFIX = 'Already on your Focus list: ';
+  var prepAdded = {};
+  function addPrepToFocus(btn, text) {
+    if (prepAdded[text]) return;
+    focusState.unshift({ text: text, done: false });
+    saveFocus();
+    renderFocus();
+    prepAdded[text] = true;
+    btn.textContent = 'Added ✓';
+    btn.classList.add('done');
+  }
+
+  function calPrep(w) {
+    var t = nowMin();
+    var items = w.timed.filter(function (x) { return x.e > t; })
+      .sort(function (a, b) { return a.rs - b.rs; })
+      .map(prepFor).filter(Boolean).slice(0, 5);
+    if (!items.length) return '';
+    return '<div class="prep"><div class="prep-head">Prep for what’s coming up</div>' + items.map(function (p) {
+      var e = p.x.ev;
+      return '<div class="prep-ev"><div class="prep-title"><i>' + (p.x.day === 'Tomorrow' ? 'Tmrw ' : '') + e.start + '</i>' + esc(e.title) + '</div>' +
+        (p.why.length ? '<div class="prep-why">' + esc(p.why.join(' · ')) + '</div>' : '') +
+        p.acts.map(function (a) {
+          if (a.indexOf(FOCUS_PREFIX) === 0) return '<div class="prep-act"><span>' + esc(a) + '</span></div>';
+          return '<div class="prep-act"><span>' + esc(a) + '</span>' +
+            '<button class="prep-add' + (prepAdded[a] ? ' done' : '') + '" onclick="addPrepToFocus(this,' + attr(JSON.stringify(a)) + ')">' +
+            (prepAdded[a] ? 'Added ✓' : '+ Focus') + '</button></div>';
+        }).join('') + '</div>';
+    }).join('') + '</div>';
+  }
 
   function renderCalendar() {
     if (!calData || !Array.isArray(calData.today)) return;
     var stale = calData.date !== todayKey();           // cached from an earlier day
-    var today = stale ? [] : calData.today;
-    var tomorrow = stale ? [] : (calData.tomorrow || []);
-    // Evenings, or once today's meetings are over, default to tomorrow.
-    var t = nowMin();
-    var left = today.filter(function (e) { return e.allDay || toMin(e.end) > t; }).length;
-    var view = calView || ((new Date().getHours() >= 18 || (today.length && !left)) && tomorrow.length ? 'tomorrow' : 'today');
-    var isToday = view === 'today';
-    var d = new Date(); if (!isToday) d.setDate(d.getDate() + 1);
-    var label = d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
-    var events = isToday ? today : tomorrow;
+    var w = calWindow(stale ? [] : calData.today, stale ? [] : (calData.tomorrow || []));
+    var count = w.timed.length + w.allDay.length;
 
     var scroller = document.getElementById('cal-scroll');
-    var keep = scroller && calScrolledFor === view ? scroller.scrollTop : null;
+    var hourKey = String(w.start);
+    var keep = scroller && calScrolledFor === hourKey ? scroller.scrollTop : null;
 
     document.getElementById('cal-card').innerHTML =
-      '<div class="cal-head"><div class="cal-date">' + label +
-        (events.length ? '<small>' + events.length + ' event' + (events.length === 1 ? '' : 's') + '</small>' : '') + '</div>' +
-        '<div class="cal-tabs">' +
-          '<button class="cal-tab' + (isToday ? ' on' : '') + '" onclick="setCalView(\'today\')">Today</button>' +
-          '<button class="cal-tab' + (!isToday ? ' on' : '') + '" onclick="setCalView(\'tomorrow\')">Tomorrow</button>' +
-        '</div></div>' +
-      (stale ? '<div class="cal-empty">Updating…</div>' : calDayView(events, isToday));
+      '<div class="cal-head"><div class="cal-date">Next 24 hours' +
+        (count ? '<small>' + count + ' event' + (count === 1 ? '' : 's') + '</small>' : '') + '</div></div>' +
+      (stale ? '<div class="cal-empty">Updating…</div>' : calTimeline(w) + calPrep(w));
 
     document.getElementById('cal-section').hidden = false;   // must be visible before scrolling
-    // Scroll so "now" (or the first meeting) sits near the top — once per day/tab.
     var sc = document.getElementById('cal-scroll');
-    if (sc) {
-      if (keep != null) sc.scrollTop = keep;
-      else {
-        var target = isToday ? document.getElementById('cal-now') : null;
-        var firstEv = sc.querySelector('.cal-ev');
-        var anchor = target || firstEv;
-        if (anchor) sc.scrollTop = Math.max(0, Math.floor((anchor.offsetTop - CAL_PX / 2) / CAL_PX) * CAL_PX);  // snap to the hour above
-        calScrolledFor = view;
-      }
-    }
+    if (sc && keep != null) sc.scrollTop = keep;
+    calScrolledFor = hourKey;
     var mins = Math.round((Date.now() - new Date(calData.fetchedAt)) / 60000);
     document.getElementById('cal-age').textContent = '· ' + (mins < 2 ? 'just now' : mins < 60 ? mins + ' min ago' : 'earlier');
-    document.getElementById('cal-section').hidden = false;
   }
+
   // Where the calendar comes from: your Cloudflare Worker's address and the
   // key it expects. Stored in localStorage and synced to your private
   // Firestore document — never in the (public) repo.
@@ -2182,6 +2281,7 @@
         initDeadlines(d.university && d.university.deadlines);
         renderModules(d.university && d.university.modules);
         initNotes();
+        renderCalendar();   // prep suggestions can now see Focus
 
         // Fresh data arrived, so it's safe to drop the cached page shell and
         // ask the service worker to look for a new version — that's what makes
