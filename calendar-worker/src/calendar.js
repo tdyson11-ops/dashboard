@@ -7,11 +7,9 @@
 // meetings, cancelled instances (EXDATE), moved instances (RECURRENCE-ID)
 // and the clocks changing are all handled by node-ical.
 //
-// Pure logic, no Firebase: index.js wires it up, test.js exercises it.
+// Pure logic: src/index.js (the Worker) wires it up, test.js exercises it.
 // ─────────────────────────────────────────────────────────────
-'use strict';
-
-const ical = require('node-ical');
+import ical from 'node-ical';
 
 const TZ = 'Europe/London';
 const DAY_MS = 86400000;
@@ -128,7 +126,7 @@ function eventsByDay(icsText, fromDay, days) {
 
 // Fetch the .ics and return today + tomorrow (London).
 async function calendarToday({ fetchImpl, icsUrl, now = new Date() }) {
-  if (!icsUrl) throw new Error('No calendar address set (CALENDAR_ICS_URL).');
+  if (!icsUrl) throw new Error('No calendar address set (CALENDAR_ICS_URL secret).');
   const url = icsUrl.replace(/^webcal:\/\//i, 'https://');
   const res = await fetchImpl(url, { headers: { Accept: 'text/calendar' } });
   if (!res.ok) throw new Error('Calendar fetch failed: HTTP ' + res.status);
@@ -146,4 +144,4 @@ async function calendarToday({ fetchImpl, icsUrl, now = new Date() }) {
   };
 }
 
-module.exports = { calendarToday, eventsByDay, londonDay };
+export { calendarToday, eventsByDay, londonDay };

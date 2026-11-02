@@ -99,7 +99,6 @@ some days not at all. Cloud Functions fix that:
 |---|---|
 | `whoopScheduled` | Runs at **07:00 Europe/London** daily (Cloud Scheduler fires on time) |
 | `whoopRefreshNow` | Callable from the dashboard's **↻** button — pulls today's numbers on demand |
-| `calendarToday` | Callable — returns today's and tomorrow's calendar events (see *Today's diary* below) |
 
 Both write to Firestore `system/whoop_latest`; the dashboard subscribes to it and shows whichever
 is newer, that or `data.json`. The refresh token lives in `system/whoop_token`, which the security
@@ -139,37 +138,46 @@ or network access is needed.
 ## Today's diary (calendar)
 
 The **Today's diary** card (under Recovery / Habits) shows today's meetings — past ones greyed, the
-current one in green — and, after 5pm or once the day is done, tomorrow's. It comes from the
-`calendarToday` Cloud Function, which reads your calendar's **private iCal address** on demand.
-Nothing is stored in Firestore, and only the account in `CALENDAR_OWNER_EMAIL` can call it. Until
-it's set up the card simply stays hidden.
+current one in green — and, after 5pm or once the day is done, tomorrow's. Until a calendar is
+connected the card stays hidden.
 
-Recurring meetings, cancelled/moved instances and the clocks changing are all handled (see
-`functions/calendar.js`; tests in `functions/test.js`).
+It comes from a small **Cloudflare Worker** (`calendar-worker/`, free plan, no card needed) that
+reads your calendar's **private iCal address** and returns today's and tomorrow's events. Recurring
+meetings, cancelled/moved instances and the clocks changing are handled by `node-ical`
+(`calendar-worker/src/calendar.js`; tests: `cd calendar-worker && npm install && npm test`).
 
-### Setting it up
+Privacy: the iCal address and the key live only in Cloudflare as encrypted secrets. The Worker
+answers only requests carrying the key, and browsers only from the dashboard's own site. The
+dashboard keeps the Worker address + key in your **signed-in account's private sync**, never in
+this (public) repo. Nothing is stored by the Worker.
 
-1. **Get the private iCal address**
-   - *Google Calendar* (on a computer): Settings → your calendar → **Integrate calendar** →
-     copy **Secret address in iCal format**
-   - *Outlook / Microsoft 365*: Settings → Calendar → **Shared calendars** → **Publish a calendar** →
-     choose *Can view all details* → copy the **ICS** link
+### Setting it up (once, on a computer)
 
-   Treat it like a password: anyone with it can read your calendar.
+1. **Copy the private iCal address**
+   - *Google Calendar*: Settings → your calendar → **Integrate calendar** → **Secret address in iCal
+     format** (contains `/private-…/basic.ics` — not the public one)
+   - *Outlook*: Settings → Calendar → **Shared calendars** → **Publish a calendar** → *Can view all
+     details* → copy the **ICS** link
 
-2. **Store it and your sign-in email as secrets, then deploy** (from this folder):
-
-   ```bash
-   firebase functions:secrets:set CALENDAR_ICS_URL      # paste the iCal address
-   firebase functions:secrets:set CALENDAR_OWNER_EMAIL  # the email you sign in to the dashboard with
-   cd functions && npm install && cd ..
-   firebase deploy --only functions
+2. **Make a key** (PowerShell prints a random one — copy it):
+   ```
+   [guid]::NewGuid().ToString('N') + [guid]::NewGuid().ToString('N')
    ```
 
-3. Open the dashboard (signed in) and tap **↻** — the card appears. It refreshes itself every 15
-   minutes while the app is open.
+3. **Deploy the Worker** from the repo folder (needs Node.js; a free Cloudflare account is created
+   or signed in to in the browser on the first command):
+   ```
+   cd calendar-worker
+   npm install
+   npx wrangler login
+   npx wrangler secret put CALENDAR_ICS_URL     # paste the iCal address
+   npx wrangler secret put CALENDAR_KEY         # paste the key from step 2
+   npx wrangler deploy
+   ```
+   The last command prints the Worker's address, e.g. `https://tom-calendar.<you>.workers.dev`.
 
-Functions now run on **Node 22** (Node 20 is end-of-life); the deploy picks that up automatically.
+4. **Connect it on the dashboard** (signed in): scroll to **Calendar → Connect calendar**, paste the
+   address and the key, **Save & test**. It syncs to your other devices.
 
 ## WHOOP auto-update
 

@@ -1,0 +1,17 @@
+{
+  "name": "tom-calendar-worker",
+  "description": "Cloudflare Worker: today's calendar for the dashboard",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node test.js",
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "dependencies": {
+    "node-ical": "^0.27.3"
+  },
+  "devDependencies": {
+    "wrangler": "^4.156.2"
+  }
+}

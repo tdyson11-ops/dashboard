@@ -48,6 +48,7 @@ const SYNC_KEYS = [
   'dash-people-v1',       // Dashboard — People / key relationships
   'dash-review-v1',       // Dashboard — Weekly reviews
   'dash-md-v1',           // Dashboard — Road to MD milestones
+  'dash-cal-config-v1',   // Dashboard — calendar Worker address + key (private to your account)
   'dash-plot2-v1'         // Dashboard — old Plot 2 ticks (read once when moving them into Focus)
 ];
 const REV_KEY = 'sync-rev';                       // last applied revision (per device, not synced)
@@ -107,13 +108,6 @@ function startWhoop() {
       return res && res.data;
     });
   };
-
-  // Today's calendar, via the calendarToday function (reads your private
-  // iCal address server-side; nothing is stored in Firestore).
-  window.__calendarToday = function () {
-    return httpsCallable(fns, 'calendarToday')().then(function (res) { return res && res.data; });
-  };
-  if (typeof window.loadCalendar === 'function') window.loadCalendar();
 }
 
 // ── Firestore <-> localStorage ──

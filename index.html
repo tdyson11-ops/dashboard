@@ -789,7 +789,7 @@
 
 </div>
 
-<!-- TODAY'S DIARY (calendar) — hidden until the calendar function answers -->
+<!-- TODAY'S DIARY (calendar) — hidden until the calendar is connected -->
 <div class="section" id="cal-section" hidden>
   <div class="section-label">Today's diary <span class="summary-sub" id="cal-age"></span></div>
   <div class="card" id="cal-card"></div>
@@ -927,6 +927,23 @@
     <button class="note-add" onclick="addDeadline()">+ Add deadline</button>
   </div>
   <div class="card" id="modules-card"></div>
+</div>
+
+<!-- CALENDAR CONNECTION -->
+<div class="section">
+  <div class="section-label">Calendar</div>
+  <details class="card" id="calcfg-card">
+    <summary><span>Connect calendar <span class="summary-sub" id="calcfg-status"></span></span><span class="chev">›</span></summary>
+    <div class="note-editor">
+      <label>Worker address<input id="calcfg-url" type="url" placeholder="https://tom-calendar.….workers.dev" autocomplete="off"></label>
+      <label>Key<input id="calcfg-key" type="password" placeholder="The CALENDAR_KEY you set" autocomplete="off"></label>
+      <div class="btn-row">
+        <button class="note-btn save" onclick="saveCalendarConfig()">Save &amp; test</button>
+        <button class="note-btn del" onclick="clearCalendarConfig()">Disconnect</button>
+      </div>
+      <div class="backup-note" id="calcfg-msg">Saved privately to your signed-in account and synced to your other devices — never put in the public repo.</div>
+    </div>
+  </details>
 </div>
 
 <!-- BACKUP -->
@@ -1426,9 +1443,9 @@
   }
 
   // ── Today's diary ──
-  // Filled by the calendarToday Cloud Function once you're signed in. The last
-  // answer is cached on this device so the card paints instantly next time;
-  // until the function has answered once, the card stays hidden.
+  // Filled by your Cloudflare Worker (calendar-worker/). The last answer is
+  // cached on this device so the card paints instantly next time; until the
+  // calendar is connected and has answered once, the card stays hidden.
   var CAL_CACHE = 'dash-cal-cache-v1';
   var calData = null;
   function nowHM() { var d = new Date(); return pad(d.getHours()) + ':' + pad(d.getMinutes()); }
@@ -1459,25 +1476,75 @@
     document.getElementById('cal-age').textContent = '· ' + (mins < 2 ? 'just now' : mins < 60 ? mins + ' min ago' : 'earlier');
     document.getElementById('cal-section').hidden = false;
   }
+  // Where the calendar comes from: your Cloudflare Worker's address and the
+  // key it expects. Stored in localStorage and synced to your private
+  // Firestore document — never in the (public) repo.
+  var CAL_CFG = 'dash-cal-config-v1';
+  function calConfig() {
+    try { var c = JSON.parse(localStorage.getItem(CAL_CFG)); if (c && c.url && c.key) return c; } catch (e) {}
+    return null;
+  }
+  function calStatus(text, ok) {
+    var el = document.getElementById('calcfg-status');
+    if (el) { el.textContent = text ? '· ' + text : ''; el.style.color = ok === false ? 'var(--red)' : ok ? 'var(--green)' : ''; }
+  }
   function loadCalendar() {
-    if (typeof window.__calendarToday !== 'function') return Promise.resolve(null);
-    return window.__calendarToday().then(function (d) {
-      if (!d || !Array.isArray(d.today)) return null;
-      calData = d;
-      try { localStorage.setItem(CAL_CACHE, JSON.stringify(d)); } catch (e) {}
-      renderCalendar();
-      return d;
-    }).catch(function (e) {
-      console.warn('[calendar] not available', e && e.message);   // not deployed / not set up yet
-      return null;
+    var c = calConfig();
+    if (!c) { calStatus('not connected'); return Promise.resolve(null); }
+    return fetch(c.url.replace(/\/+$/, '') + '/', { headers: { Authorization: 'Bearer ' + c.key }, cache: 'no-store' })
+      .then(function (r) {
+        return r.json().catch(function () { return {}; }).then(function (d) {
+          if (!r.ok) throw new Error(r.status === 401 ? 'key not accepted' : (d.error || 'HTTP ' + r.status));
+          return d;
+        });
+      })
+      .then(function (d) {
+        if (!d || !Array.isArray(d.today)) throw new Error('unexpected reply');
+        calData = d;
+        try { localStorage.setItem(CAL_CACHE, JSON.stringify(d)); } catch (e) {}
+        renderCalendar();
+        calStatus('connected', true);
+        return d;
+      })
+      .catch(function (e) {
+        console.warn('[calendar]', e && e.message);
+        calStatus(e && e.message ? e.message : 'not reachable', false);
+        throw e;
+      });
+  }
+  function saveCalendarConfig() {
+    var url = document.getElementById('calcfg-url').value.trim();
+    var key = document.getElementById('calcfg-key').value.trim();
+    var msg = document.getElementById('calcfg-msg');
+    if (!/^https:\/\//.test(url) || !key) { msg.textContent = 'Enter the Worker address (starting https://) and the key.'; return; }
+    localStorage.setItem(CAL_CFG, JSON.stringify({ url: url, key: key }));
+    msg.textContent = 'Testing…';
+    loadCalendar().then(function (d) {
+      msg.textContent = 'Connected — ' + d.today.length + ' event' + (d.today.length === 1 ? '' : 's') + ' today.';
+      document.getElementById('calcfg-card').open = false;
+    }, function (e) {
+      msg.textContent = 'Saved, but it didn’t work: ' + (e && e.message || 'not reachable') + '. Check the address and key.';
     });
+  }
+  function clearCalendarConfig() {
+    if (!confirm('Disconnect the calendar on all your devices?')) return;
+    localStorage.removeItem(CAL_CFG);
+    localStorage.removeItem(CAL_CACHE);
+    calData = null;
+    document.getElementById('cal-section').hidden = true;
+    document.getElementById('calcfg-url').value = '';
+    document.getElementById('calcfg-key').value = '';
+    calStatus('not connected');
   }
   window.loadCalendar = loadCalendar;
   function initCalendar() {
-    try { calData = JSON.parse(localStorage.getItem(CAL_CACHE)); } catch (e) {}
+    var c = calConfig();
+    if (c) { document.getElementById('calcfg-url').value = c.url; document.getElementById('calcfg-key').value = c.key; }
+    try { if (c) calData = JSON.parse(localStorage.getItem(CAL_CACHE)); } catch (e) {}
     renderCalendar();
+    loadCalendar().catch(function () {});
     setInterval(function () { renderCalendar(); }, 60000);          // move the "now" marker
-    setInterval(function () { loadCalendar(); }, 15 * 60000);       // pick up new meetings
+    setInterval(function () { loadCalendar().catch(function () {}); }, 15 * 60000);  // pick up new meetings
   }
 
   // ── Small editable lists (Waiting on, People, Road to MD) ──
@@ -2101,7 +2168,7 @@
       : Promise.resolve(null);
 
     btn.classList.add('spinning');
-    loadCalendar();
+    loadCalendar().catch(function () {});
     return Promise.all([loadData(true), live]).then(function (results) {
       btn.classList.remove('spinning');
       if (results[1]) {
