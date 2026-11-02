@@ -484,21 +484,36 @@
     .mod-bar { background: #222; border-radius: 3px; height: 4px; margin-top: 0.4rem; overflow: hidden; }
     .mod-fill { height: 100%; border-radius: 3px; background: var(--accent); }
 
-    /* ── Today's diary ── */
-    .cal-row { display: flex; gap: 0.7rem; padding: 0.45rem 0; border-bottom: 1px solid var(--border);
-      font-size: 0.84rem; line-height: 1.35; }
-    .cal-row:first-child { padding-top: 0; }
-    .cal-row:last-child { border-bottom: none; padding-bottom: 0; }
-    .cal-time { flex-shrink: 0; width: 5.6rem; font-size: 0.72rem; color: var(--muted);
-      font-variant-numeric: tabular-nums; margin-top: 0.1rem; }
-    .cal-title { flex: 1; min-width: 0; overflow-wrap: anywhere; }
-    .cal-loc { display: block; font-size: 0.68rem; color: var(--muted); margin-top: 0.1rem; }
-    .cal-row.past { opacity: 0.4; }
-    .cal-row.now .cal-time { color: var(--green); font-weight: 600; }
-    .cal-row.now .cal-title { font-weight: 600; }
-    .cal-day { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted);
-      margin: 0.8rem 0 0.35rem; padding-top: 0.6rem; border-top: 1px solid var(--border); }
-    .cal-empty { font-size: 0.8rem; color: var(--muted); }
+    /* ── Today's diary: day view like a calendar app ── */
+    .cal-head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.65rem; }
+    .cal-date { font-size: 0.95rem; font-weight: 700; }
+    .cal-date small { font-size: 0.7rem; font-weight: 500; color: var(--muted); margin-left: 0.3rem; }
+    .cal-tabs { display: flex; background: #101010; border: 1px solid var(--border); border-radius: 8px; padding: 2px; }
+    .cal-tab { background: none; border: 0; color: var(--muted); font: inherit; font-size: 0.7rem; font-weight: 600;
+      padding: 0.25rem 0.6rem; border-radius: 6px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+    .cal-tab.on { background: var(--card); color: var(--text); box-shadow: 0 0 0 1px var(--border); }
+    .cal-allday { display: flex; flex-wrap: wrap; gap: 0.3rem; margin: 0 0 0.55rem 2.6rem; }
+    .cal-chip { font-size: 0.7rem; font-weight: 600; padding: 0.2rem 0.5rem; border-radius: 6px;
+      background: var(--ev-bg); color: var(--ev-fg); border-left: 3px solid var(--ev-fg);
+      max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .cal-scroll { position: relative; max-height: 320px; overflow-y: auto; overscroll-behavior: contain;
+      -webkit-overflow-scrolling: touch; margin: 0 -0.25rem; padding: 0 0.25rem; }
+    .cal-grid { position: relative; }
+    .cal-hour { position: absolute; left: 0; right: 0; height: 0; border-top: 1px solid var(--border); }
+    .cal-hour span { position: absolute; left: 0; top: -0.45rem; width: 2.2rem; font-size: 0.6rem; color: var(--muted);
+      background: var(--card); font-variant-numeric: tabular-nums; }
+    .cal-ev { position: absolute; border-radius: 6px; padding: 0.18rem 0.35rem; overflow: hidden;
+      background: var(--ev-bg); border-left: 3px solid var(--ev-fg); color: var(--text);
+      font-size: 0.7rem; line-height: 1.25; box-sizing: border-box; }
+    .cal-ev b { display: block; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .cal-ev i { font-style: normal; color: var(--ev-fg); font-size: 0.62rem; font-variant-numeric: tabular-nums; }
+    .cal-ev .loc { color: var(--muted); font-size: 0.62rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+    .cal-ev.short b, .cal-ev.short i { display: inline; }
+    .cal-ev.short i { margin-left: 0.3rem; }
+    .cal-ev.past { opacity: 0.45; }
+    .cal-now { position: absolute; left: 2.4rem; right: 0; height: 0; border-top: 2px solid var(--red); z-index: 3; pointer-events: none; }
+    .cal-now::before { content: ''; position: absolute; left: -5px; top: -6px; width: 10px; height: 10px; border-radius: 50%; background: var(--red); }
+    .cal-empty { font-size: 0.8rem; color: var(--muted); padding: 0.4rem 0 0.2rem; }
 
     /* ── Lists: Waiting on / People / Road to MD ── */
     .li-row { display: flex; align-items: flex-start; gap: 0.6rem; padding: 0.55rem 0;
@@ -791,7 +806,7 @@
 
 <!-- TODAY'S DIARY (calendar) — hidden until the calendar is connected -->
 <div class="section" id="cal-section" hidden>
-  <div class="section-label">Today's diary <span class="summary-sub" id="cal-age"></span></div>
+  <div class="section-label">Diary <span class="summary-sub" id="cal-age"></span></div>
   <div class="card" id="cal-card"></div>
 </div>
 
@@ -1448,30 +1463,124 @@
   // calendar is connected and has answered once, the card stays hidden.
   var CAL_CACHE = 'dash-cal-cache-v1';
   var calData = null;
-  function nowHM() { var d = new Date(); return pad(d.getHours()) + ':' + pad(d.getMinutes()); }
-  function calRows(events, isToday) {
-    var t = nowHM();
-    return events.map(function (e) {
-      var cls = '';
-      if (isToday && !e.allDay) cls = e.end <= t ? ' past' : (e.start <= t ? ' now' : '');
-      var when = e.allDay ? 'All day' : e.start + '–' + e.end;
-      return '<div class="cal-row' + cls + '"><span class="cal-time">' + when + '</span>' +
-        '<span class="cal-title">' + esc(e.title) +
-        (e.location ? '<span class="cal-loc">' + esc(e.location) + '</span>' : '') + '</span></div>';
-    }).join('');
+  var calView = null;            // 'today' | 'tomorrow' — null means pick automatically
+  var calScrolledFor = '';       // remember which day we auto-scrolled, so the minute tick doesn't jump
+  var CAL_PX = 56;               // pixels per hour
+  var CAL_COLOURS = [            // [fill, accent] — muted fills that sit on the dark card
+    ['#13233d', '#60a5fa'], ['#13301f', '#4ade80'], ['#33220c', '#f59e0b'],
+    ['#2d1638', '#c084fc'], ['#3a1414', '#f87171'], ['#0f2d2f', '#2dd4bf']
+  ];
+  function calColour(title) {
+    var h = 0; for (var i = 0; i < title.length; i++) h = (h * 31 + title.charCodeAt(i)) >>> 0;
+    var c = CAL_COLOURS[h % CAL_COLOURS.length];
+    return '--ev-bg:' + c[0] + ';--ev-fg:' + c[1];
   }
+  function toMin(hm) { var p = String(hm).split(':'); return (+p[0]) * 60 + (+p[1] || 0); }
+  function nowMin() { var d = new Date(); return d.getHours() * 60 + d.getMinutes(); }
+
+  // Side-by-side columns for overlapping meetings, like a calendar app.
+  function layoutEvents(evs) {
+    evs.sort(function (a, b) { return a.s - b.s || b.e - a.e; });
+    var groups = [], cur = null, end = -1;
+    evs.forEach(function (ev) {
+      if (!cur || ev.s >= end) { cur = []; groups.push(cur); end = ev.e; }
+      cur.push(ev); end = Math.max(end, ev.e);
+    });
+    groups.forEach(function (g) {
+      var cols = [];
+      g.forEach(function (ev) {
+        for (var c = 0; c < cols.length; c++) if (cols[c] <= ev.s) break;
+        cols[c] = ev.e; ev.col = c;
+      });
+      g.forEach(function (ev) { ev.cols = cols.length; });
+    });
+    return evs;
+  }
+
+  function calDayView(events, isToday) {
+    var allDay = events.filter(function (e) { return e.allDay; });
+    var timed = events.filter(function (e) { return !e.allDay; }).map(function (e) {
+      var s = toMin(e.start), en = Math.max(toMin(e.end), s + 15);
+      return { ev: e, s: s, e: en };
+    });
+    var html = '';
+    if (allDay.length) {
+      html += '<div class="cal-allday">' + allDay.map(function (e) {
+        return '<span class="cal-chip" style="' + calColour(e.title) + '">' + esc(e.title) + '</span>';
+      }).join('') + '</div>';
+    }
+    if (!timed.length) {
+      return html + '<div class="cal-empty">' + (allDay.length ? 'No meetings.' : 'Nothing in the diary.') + '</div>';
+    }
+    // Show 07:00–19:00, stretched to fit anything earlier or later.
+    var first = Math.min.apply(null, timed.map(function (t) { return t.s; }));
+    var last = Math.max.apply(null, timed.map(function (t) { return t.e; }));
+    var h0 = Math.min(7, Math.floor(first / 60)), h1 = Math.max(19, Math.ceil(last / 60));
+    if (isToday) { var n = nowMin(); h0 = Math.min(h0, Math.floor(n / 60)); h1 = Math.max(h1, Math.ceil((n + 1) / 60)); }
+    h1 = Math.min(h1, 24);
+    var y = function (m) { return (m - h0 * 60) / 60 * CAL_PX; };
+
+    var grid = '';
+    for (var h = h0; h <= h1; h++) {
+      grid += '<div class="cal-hour" style="top:' + y(h * 60) + 'px"><span>' + (h === 24 ? '' : pad(h) + ':00') + '</span></div>';
+    }
+    var t = nowMin();
+    layoutEvents(timed).forEach(function (x) {
+      var e = x.ev, top = y(x.s), height = Math.max(y(x.e) - top - 2, 18);
+      var short = height < 34;
+      var w = 'calc((100% - 2.6rem) / ' + x.cols + ' - 3px)';
+      var left = 'calc(2.6rem + (100% - 2.6rem) * ' + x.col + ' / ' + x.cols + ')';
+      grid += '<div class="cal-ev' + (short ? ' short' : '') + (isToday && x.e <= t ? ' past' : '') + '" style="' +
+        calColour(e.title) + ';top:' + top + 'px;height:' + height + 'px;left:' + left + ';width:' + w + '">' +
+        '<b>' + esc(e.title) + '</b><i>' + e.start + '–' + e.end + '</i>' +
+        (!short && e.location && height > 48 ? '<span class="loc">' + esc(e.location) + '</span>' : '') + '</div>';
+    });
+    if (isToday && t >= h0 * 60 && t <= h1 * 60) grid += '<div class="cal-now" id="cal-now" style="top:' + y(t) + 'px"></div>';
+    html += '<div class="cal-scroll" id="cal-scroll"><div class="cal-grid" style="height:' + (y(h1 * 60) + 8) + 'px;margin-top:0.5rem">' + grid + '</div></div>';
+    return html;
+  }
+
+  function setCalView(v) { calView = v; calScrolledFor = ''; renderCalendar(); }
+
   function renderCalendar() {
     if (!calData || !Array.isArray(calData.today)) return;
     var stale = calData.date !== todayKey();           // cached from an earlier day
     var today = stale ? [] : calData.today;
-    var t = nowHM();
-    var left = today.filter(function (e) { return e.allDay || e.end > t; }).length;
-    var html = today.length ? calRows(today, true) : '<div class="cal-empty">' + (stale ? 'Updating…' : 'Nothing in the diary today.') + '</div>';
-    // Evenings, or once today is over, look ahead to tomorrow.
-    if (!stale && calData.tomorrow && calData.tomorrow.length && (left === 0 || new Date().getHours() >= 17)) {
-      html += '<div class="cal-day">Tomorrow</div>' + calRows(calData.tomorrow, false);
+    var tomorrow = stale ? [] : (calData.tomorrow || []);
+    // Evenings, or once today's meetings are over, default to tomorrow.
+    var t = nowMin();
+    var left = today.filter(function (e) { return e.allDay || toMin(e.end) > t; }).length;
+    var view = calView || ((new Date().getHours() >= 18 || (today.length && !left)) && tomorrow.length ? 'tomorrow' : 'today');
+    var isToday = view === 'today';
+    var d = new Date(); if (!isToday) d.setDate(d.getDate() + 1);
+    var label = d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+    var events = isToday ? today : tomorrow;
+
+    var scroller = document.getElementById('cal-scroll');
+    var keep = scroller && calScrolledFor === view ? scroller.scrollTop : null;
+
+    document.getElementById('cal-card').innerHTML =
+      '<div class="cal-head"><div class="cal-date">' + label +
+        (events.length ? '<small>' + events.length + ' event' + (events.length === 1 ? '' : 's') + '</small>' : '') + '</div>' +
+        '<div class="cal-tabs">' +
+          '<button class="cal-tab' + (isToday ? ' on' : '') + '" onclick="setCalView(\'today\')">Today</button>' +
+          '<button class="cal-tab' + (!isToday ? ' on' : '') + '" onclick="setCalView(\'tomorrow\')">Tomorrow</button>' +
+        '</div></div>' +
+      (stale ? '<div class="cal-empty">Updating…</div>' : calDayView(events, isToday));
+
+    document.getElementById('cal-section').hidden = false;   // must be visible before scrolling
+    // Scroll so "now" (or the first meeting) sits near the top — once per day/tab.
+    var sc = document.getElementById('cal-scroll');
+    if (sc) {
+      if (keep != null) sc.scrollTop = keep;
+      else {
+        var target = isToday ? document.getElementById('cal-now') : null;
+        var firstEv = sc.querySelector('.cal-ev');
+        var anchor = target || firstEv;
+        if (anchor) sc.scrollTop = Math.max(0, Math.floor((anchor.offsetTop - CAL_PX / 2) / CAL_PX) * CAL_PX);  // snap to the hour above
+        calScrolledFor = view;
+      }
     }
-    document.getElementById('cal-card').innerHTML = html;
     var mins = Math.round((Date.now() - new Date(calData.fetchedAt)) / 60000);
     document.getElementById('cal-age').textContent = '· ' + (mins < 2 ? 'just now' : mins < 60 ? mins + ' min ago' : 'earlier');
     document.getElementById('cal-section').hidden = false;
