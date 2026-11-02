@@ -1,0 +1,7 @@
+# Cloudflare Worker for the dashboard's "Today's diary" card.
+# Deploy from this folder:  npx wrangler deploy   (see README → Today's diary)
+name = "tom-calendar"
+main = "src/index.js"
+compatibility_date = "2025-10-01"
+compatibility_flags = ["nodejs_compat"]
+workers_dev = true

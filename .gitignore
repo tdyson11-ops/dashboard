@@ -4,3 +4,7 @@ node_modules/
 firebase-debug.log
 firebase-debug.*.log
 .firebase/
+
+# Cloudflare Worker local files
+.dev.vars
+.wrangler/
