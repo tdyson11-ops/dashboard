@@ -137,9 +137,10 @@ or network access is needed.
 
 ## Today's diary (calendar)
 
-The **Today's diary** card (under Recovery / Habits) shows today's meetings — past ones greyed, the
-current one in green — and, after 5pm or once the day is done, tomorrow's. Until a calendar is
-connected the card stays hidden.
+The **Diary** card (under Recovery / Habits) is a calendar-style day view: hours down the side,
+meetings as coloured blocks sized by length (overlaps side by side), all-day events on top, a red
+line for now, and **Today / Tomorrow** tabs (it opens on Tomorrow in the evening). Past meetings fade.
+Until a calendar is connected the card stays hidden.
 
 It comes from a small **Cloudflare Worker** (`calendar-worker/`, free plan, no card needed) that
 reads your calendar's **private iCal address** and returns today's and tomorrow's events. Recurring
