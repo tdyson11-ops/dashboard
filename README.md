@@ -137,10 +137,10 @@ or network access is needed.
 
 ## Today's diary (calendar)
 
-The **Diary** card (under Recovery / Habits) shows the **next 24 hours** as one calendar-style timeline:
-hours down the side from the current hour to the same time tomorrow, meetings as coloured blocks sized
-by length (overlaps side by side), all-day events on top, a red line for now and a dashed line at
-midnight. Past meetings fade.
+The **Diary** card (under Recovery / Habits) lists everything in the **next 24 hours** (from the current
+hour to the same time tomorrow), grouped under **Today** and **Tomorrow**. Each meeting shows its time,
+date, title and location; all-day events say "All day", the one happening now is outlined and tagged
+**Now**, and finished ones fade.
 
 Underneath, **Prep for what's coming up** picks out the meetings that matter and suggests actions, using:
 - **People** — the next thing to raise with anyone named in the meeting
