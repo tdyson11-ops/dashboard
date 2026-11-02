@@ -137,9 +137,21 @@ or network access is needed.
 
 ## Today's diary (calendar)
 
-The **Diary** card (under Recovery / Habits) is a calendar-style day view: hours down the side,
-meetings as coloured blocks sized by length (overlaps side by side), all-day events on top, a red
-line for now, and **Today / Tomorrow** tabs (it opens on Tomorrow in the evening). Past meetings fade.
+The **Diary** card (under Recovery / Habits) shows the **next 24 hours** as one calendar-style timeline:
+hours down the side from the current hour to the same time tomorrow, meetings as coloured blocks sized
+by length (overlaps side by side), all-day events on top, a red line for now and a dashed line at
+midnight. Past meetings fade.
+
+Underneath, **Prep for what's coming up** picks out the meetings that matter and suggests actions, using:
+- **People** — the next thing to raise with anyone named in the meeting
+- **Waiting on** — anything that person still owes you
+- **Focus** — items that mention the same thing (shown as "Already on your Focus list")
+- **Meeting type** — inspections, H&S, reviews, money, customers, suppliers/trades, site, people,
+  Uni and travel each have a couple of standard prep steps (`PREP_RULES` in `index.html`), plus the
+  journey if there's a physical location
+
+Tap **+ Focus** on a suggestion to put it at the top of Today's Focus. It's rule-based and runs on
+the phone — no AI service, nothing sent anywhere.
 Until a calendar is connected the card stays hidden.
 
 It comes from a small **Cloudflare Worker** (`calendar-worker/`, free plan, no card needed) that
