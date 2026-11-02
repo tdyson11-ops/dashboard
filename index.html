@@ -493,6 +493,8 @@
       background: var(--ev-bg); color: var(--ev-fg); border-left: 3px solid var(--ev-fg);
       max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .cal-empty { font-size: 0.8rem; color: var(--muted); padding: 0.4rem 0 0.2rem; }
+    :root { --cal-fill: #1677b8; --cal-edge: #7dd3fc; --cal-text: #ffffff; --cal-sub: rgba(255, 255, 255, 0.82); }
+    .cal-chip, .cal-item { --ev-bg: var(--cal-fill); --ev-fg: var(--cal-edge); color: var(--cal-text); }
     .cal-allday .cal-chip small { font-weight: 500; opacity: 0.75; margin-right: 0.25rem; }
 
     /* Next-24h list */
@@ -501,14 +503,15 @@
     .cal-dayhead:first-child { margin-top: 0; }
     .cal-item { display: flex; gap: 0.65rem; padding: 0.5rem 0.55rem; margin-bottom: 0.35rem; border-radius: 8px;
       background: var(--ev-bg); border-left: 3px solid var(--ev-fg); }
-    .cal-when { flex-shrink: 0; width: 4.6rem; font-size: 0.72rem; font-weight: 600; color: var(--ev-fg);
+    .cal-when { flex-shrink: 0; width: 4.6rem; font-size: 0.72rem; font-weight: 600; color: var(--cal-text);
       font-variant-numeric: tabular-nums; line-height: 1.35; }
-    .cal-when small { display: block; font-weight: 500; color: var(--muted); font-size: 0.64rem; }
+    .cal-when small { display: block; font-weight: 500; color: var(--cal-sub); font-size: 0.64rem; }
     .cal-what { flex: 1; min-width: 0; font-size: 0.84rem; font-weight: 600; line-height: 1.35; overflow-wrap: anywhere; }
-    .cal-what small { display: block; font-size: 0.68rem; font-weight: 500; color: var(--muted); margin-top: 0.1rem; }
+    .cal-what small { display: block; font-size: 0.68rem; font-weight: 500; color: var(--cal-sub); margin-top: 0.1rem; }
     .cal-item.past { opacity: 0.45; }
-    .cal-item.now { box-shadow: 0 0 0 1px var(--ev-fg); }
-    .cal-nowtag { font-size: 0.58rem; font-weight: 700; color: var(--red); text-transform: uppercase; letter-spacing: 0.08em; margin-left: 0.35rem; }
+    .cal-item.now { box-shadow: 0 0 0 2px var(--cal-edge); }
+    .cal-nowtag { font-size: 0.56rem; font-weight: 700; color: var(--cal-fill); background: #fff; border-radius: 4px;
+      padding: 0.05rem 0.3rem; text-transform: uppercase; letter-spacing: 0.08em; margin-left: 0.4rem; vertical-align: 0.1rem; }
 
     /* Prep suggestions under the diary */
     .prep { margin-top: 0.85rem; padding-top: 0.7rem; border-top: 1px solid var(--border); }
@@ -1473,15 +1476,9 @@
   // calendar is connected and has answered once, the card stays hidden.
   var CAL_CACHE = 'dash-cal-cache-v1';
   var calData = null;
-  var CAL_COLOURS = [            // [fill, accent] — muted fills that sit on the dark card
-    ['#13233d', '#60a5fa'], ['#13301f', '#4ade80'], ['#33220c', '#f59e0b'],
-    ['#2d1638', '#c084fc'], ['#3a1414', '#f87171'], ['#0f2d2f', '#2dd4bf']
-  ];
-  function calColour(title) {
-    var h = 0; for (var i = 0; i < title.length; i++) h = (h * 31 + title.charCodeAt(i)) >>> 0;
-    var c = CAL_COLOURS[h % CAL_COLOURS.length];
-    return '--ev-bg:' + c[0] + ';--ev-fg:' + c[1];
-  }
+  // Every event is the same blue — a shade darker than sky blue, so white text
+  // stays readable (4.8:1). Fill / edge colours live in the CSS (--cal-*).
+  function calColour() { return ''; }
   function toMin(hm) { var p = String(hm).split(':'); return (+p[0]) * 60 + (+p[1] || 0); }
   function nowMin() { var d = new Date(); return d.getHours() * 60 + d.getMinutes(); }
 
