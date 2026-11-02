@@ -108,8 +108,11 @@ END:VCALENDAR`;
       const other = await worker.fetch(req('Bearer ' + env.CALENDAR_KEY, 'https://evil.example'), env);
       assert.strictEqual(other.headers.get('Access-Control-Allow-Origin'), null, 'other sites get no CORS');
       assert.strictEqual((await worker.fetch(req('Bearer ' + 'k'.repeat(32)), { ...env, CALENDAR_KEY: '' })).status, 401, 'unset key locks it');
+      const piped = { ...env, CALENDAR_KEY: '\uFEFF' + env.CALENDAR_KEY + '\r\n', CALENDAR_ICS_URL: '\uFEFF' + env.CALENDAR_ICS_URL + '\r\n' };
+      assert.strictEqual((await worker.fetch(req('Bearer ' + env.CALENDAR_KEY), piped)).status, 200, 'secret piped from PowerShell (BOM + CRLF) still matches');
+      assert.strictEqual((await worker.fetch(req('Bearer ' + env.CALENDAR_KEY + ' '), env)).status, 200, 'stray space from the phone still matches');
     } finally { globalThis.fetch = realFetch; }
-    console.log('3. worker: key required, CORS only for the dashboard             ✓');
+    console.log('3. worker: key required (whitespace-tolerant), CORS only for site ✓');
   }
 
   console.log('\nALL CALENDAR TESTS PASSED');

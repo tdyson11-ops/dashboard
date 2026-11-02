@@ -53,12 +53,15 @@ export default {
     if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors(origin) });
     if (request.method !== 'GET') return json({ error: 'Method not allowed' }, 405, origin);
 
-    const key = String(env.CALENDAR_KEY || '');
-    const sent = (request.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '');
+    // Trim both sides: a secret piped in from PowerShell can arrive with a
+    // byte-order mark or a trailing CR/LF, which would never match.
+    const clean = (v) => String(v || '').replace(/^\uFEFF/, '').trim();
+    const key = clean(env.CALENDAR_KEY);
+    const sent = clean((request.headers.get('Authorization') || '').replace(/^\s*Bearer\s+/i, ''));
     if (key.length < 16 || !sameKey(sent, key)) return json({ error: 'Not authorised' }, 401, origin);
 
     try {
-      const data = await calendarToday({ fetchImpl: fetch, icsUrl: String(env.CALENDAR_ICS_URL || '').trim() });
+      const data = await calendarToday({ fetchImpl: fetch, icsUrl: clean(env.CALENDAR_ICS_URL) });
       return json(data, 200, origin);
     } catch (err) {
       console.error('[calendar]', err);
