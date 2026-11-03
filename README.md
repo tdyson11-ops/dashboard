@@ -73,6 +73,20 @@ meal sections simply don't render and the food log still works.
 > Targets are **3,200 kcal / 190 g protein** across both apps. They're declared in two places —
 > `FUEL_TARGET` in `nutrition.html` and `TARGET` in `mealdata.js` — so change both together.
 
+## Business card
+
+`card.html` is a digital business card (linked from the dashboard; installable as its own **Card** app):
+name, role, site, phone and email, a big **QR code** to show people, and **Save contact**, **Call**,
+**Email** and **Send my card** buttons. **Print** gives a front and back at real card size (85 × 55 mm).
+
+The QR code holds the contact itself (a vCard), so scanning it with any phone camera offers
+"Add to contacts" with no app or signal needed.
+
+- Details live in `tools/make_card.py`. Change them there, run `pip install segno` then
+  `python tools/make_card.py` to rebuild `contact.vcf` and `card-qr.svg`, and update the matching
+  text in `card.html`
+- Logo: save it as `cyden-logo.png` in the repo root and it replaces the text wordmark automatically
+
 ## Cross-device sync
 
 `sync.js` mirrors the apps' data to a Firebase (Firestore) project so logging on one device

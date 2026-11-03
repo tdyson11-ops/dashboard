@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Thomas Dyson · Cyden Homes</title>
+  <meta name="description" content="Thomas Dyson, Assistant Site Manager, Cyden Homes - The Hyde">
+  <meta name="theme-color" content="#0d0d0d">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Card">
+  <link rel="manifest" href="manifest-card.json">
+  <link rel="apple-touch-icon" href="cicon-180.png">
+  <link rel="icon" href="cicon-192.png">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* Contact details shown here are also in contact.vcf and the QR code -
+       all three come from tools/make_card.py; keep them in step. */
+    :root {
+      --bg: #0d0d0d; --text: #f2f2f2; --muted: #8a8a8a; --border: #262626;
+      --ink: #111; --ink-soft: #5b5b5b; --brand: #1677b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg); color: var(--text);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh; max-width: 430px; margin: 0 auto;
+      padding: calc(1rem + env(safe-area-inset-top)) 1rem calc(2rem + env(safe-area-inset-bottom));
+    }
+    .top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+    .top a { color: var(--muted); text-decoration: none; font-size: 0.8rem; }
+
+    /* The card itself - business-card proportions (85 x 55 mm) */
+    .card {
+      background: #fff; color: var(--ink); border-radius: 14px; aspect-ratio: 85 / 55;
+      padding: 7% 7.5%; display: flex; flex-direction: column; justify-content: space-between;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+    }
+    .brand { display: flex; align-items: center; min-height: 2.2rem; }
+    .brand img { max-height: 2.4rem; max-width: 60%; object-fit: contain; }
+    .wordmark { font-weight: 700; letter-spacing: 0.22em; font-size: 0.9rem; text-transform: uppercase; color: var(--ink); }
+    .wordmark span { color: var(--brand); }
+    .who .name { font-size: 1.35rem; font-weight: 700; letter-spacing: -0.01em; line-height: 1.15; }
+    .who .role { font-size: 0.82rem; color: var(--ink-soft); margin-top: 0.15rem; }
+    .who .role b { color: var(--brand); font-weight: 600; }
+    .lines { font-size: 0.78rem; line-height: 1.55; color: var(--ink); border-top: 1px solid #e6e6e6; padding-top: 0.5rem; }
+    .lines a { color: inherit; text-decoration: none; }
+    .lines .k { display: inline-block; width: 1.1rem; color: var(--brand); font-weight: 700; }
+
+    /* QR to show people */
+    .qr-wrap { margin-top: 1.1rem; background: #fff; border-radius: 14px; padding: 1.1rem; text-align: center; }
+    .qr-wrap img { width: 100%; max-width: 300px; height: auto; display: block; margin: 0 auto; image-rendering: pixelated; }
+    .qr-cap { color: var(--ink-soft); font-size: 0.78rem; margin-top: 0.5rem; }
+
+    .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 1rem; }
+    .btn {
+      display: flex; align-items: center; justify-content: center; gap: 0.4rem; min-height: 46px;
+      background: #171717; color: var(--text); border: 1px solid var(--border); border-radius: 10px;
+      font: inherit; font-size: 0.85rem; font-weight: 600; text-decoration: none; cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn.primary { background: var(--brand); border-color: var(--brand); color: #fff; grid-column: 1 / -1; }
+    .hint { color: var(--muted); font-size: 0.72rem; line-height: 1.45; margin-top: 1rem; text-align: center; }
+
+    /* Print: one card front + back, actual size */
+    .print-back { display: none; }
+    @media print {
+      @page { size: A4; margin: 15mm; }
+      body { background: #fff; max-width: none; padding: 0; }
+      .top, .qr-wrap, .actions, .hint { display: none !important; }
+      .card, .print-back { width: 85mm; height: 55mm; aspect-ratio: auto; border-radius: 3mm;
+        box-shadow: none; border: 0.2mm solid #ccc; break-inside: avoid; }
+      .card { font-size: 8pt; padding: 5mm 6mm; }
+      .who .name { font-size: 13pt; }
+      .print-back { display: flex; margin-top: 6mm; background: #fff; align-items: center; justify-content: center; gap: 5mm; padding: 4mm; color: var(--ink); }
+      .print-back img { width: 40mm; height: 40mm; }
+      .print-back p { font-size: 7pt; color: var(--ink-soft); max-width: 25mm; line-height: 1.4; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="top">
+  <a href="index.html">‹ Dashboard</a>
+  <a href="#" onclick="window.print();return false;">Print</a>
+</div>
+
+<div class="card" aria-label="Business card">
+  <div class="brand">
+    <!-- Drop the logo in as cyden-logo.png (transparent PNG or SVG renamed) and it appears here;
+         until then the wordmark below shows instead. -->
+    <img src="cyden-logo.png" alt="Cyden Homes" onerror="this.remove();document.getElementById('wordmark').hidden=false">
+    <div class="wordmark" id="wordmark" hidden>Cyden <span>Homes</span></div>
+  </div>
+  <div class="who">
+    <div class="name">Thomas Dyson</div>
+    <div class="role">Assistant Site Manager · <b>The Hyde</b></div>
+  </div>
+  <div class="lines">
+    <div><span class="k">T</span><a href="tel:+447471355743">07471 355743</a></div>
+    <div><span class="k">E</span><a href="mailto:thomas@fenbyhall.co.uk">thomas@fenbyhall.co.uk</a></div>
+  </div>
+</div>
+
+<div class="qr-wrap">
+  <img src="card-qr.svg" alt="QR code: scan to save Thomas Dyson's contact" width="300" height="300">
+  <div class="qr-cap">Point your phone camera here to save my contact</div>
+</div>
+
+<div class="actions">
+  <a class="btn primary" href="contact.vcf" download="Thomas Dyson.vcf">Save contact</a>
+  <a class="btn" href="tel:+447471355743">Call</a>
+  <a class="btn" href="mailto:thomas@fenbyhall.co.uk">Email</a>
+  <button class="btn" id="share-btn" onclick="shareCard()" style="grid-column: 1 / -1">Send my card</button>
+</div>
+
+<div class="print-back" aria-hidden="true">
+  <img src="card-qr.svg" alt="">
+  <p>Scan with your phone camera to save my contact.</p>
+</div>
+
+<p class="hint">The QR code holds the contact itself, so it works even with no signal. “Send my card” shares a link to this page by message, email or AirDrop.</p>
+
+<script>
+  function shareCard() {
+    var url = location.href.split('#')[0];
+    var data = { title: 'Thomas Dyson · Cyden Homes', text: 'Thomas Dyson, Assistant Site Manager, Cyden Homes (The Hyde)', url: url };
+    if (navigator.share) { navigator.share(data).catch(function () {}); return; }
+    var btn = document.getElementById('share-btn');
+    (navigator.clipboard ? navigator.clipboard.writeText(url) : Promise.reject())
+      .then(function () { btn.textContent = 'Link copied ✓'; }, function () { prompt('Copy this link:', url); });
+  }
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function () {});
+</script>
+</body>
+</html>
