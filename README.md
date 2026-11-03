@@ -150,9 +150,34 @@ Underneath, **Prep for what's coming up** picks out the meetings that matter and
   Uni and travel each have a couple of standard prep steps (`PREP_RULES` in `index.html`), plus the
   journey if there's a physical location
 
-Tap **+ Focus** on a suggestion to put it at the top of Today's Focus. It's rule-based and runs on
-the phone — no AI service, nothing sent anywhere.
+Tap **+ Focus** on a suggestion to put it at the top of Today's Focus.
 Until a calendar is connected the card stays hidden.
+
+### Claude-written prep (optional)
+
+Give the Worker an Anthropic API key and **Claude writes the prep instead** (marked **✦ Claude**). It
+sees today's and tomorrow's meetings plus your People, Waiting on, Focus, Business pulse, upcoming
+deadlines and Notes, and suggests 2–4 concrete things to do before each meeting that needs it —
+who to chase, what to raise, which numbers to check, a clash with the meeting before. Meetings that
+need nothing (lunch, personal blocks) are left out.
+
+- Asked once each time the diary changes (new day, meeting added/moved) and cached on the device —
+  not on every refresh. Tap **↻** next to the heading to ask again (e.g. after updating Focus or a note)
+- If the key isn't set, or Claude doesn't answer, the rule-based suggestions above are shown instead
+- Model: `claude-opus-5-5` (`calendar-worker/src/prep.js` — prompt, model and effort live there), with
+  server-side refusal fallback on. A typical day is one or two calls — pennies
+- Privacy: when it's on, that context goes from your Worker to the Anthropic API. The key lives only in
+  Cloudflare as an encrypted secret, and the phone never sees it. Without the key nothing is sent
+
+To turn it on, create a key at **console.anthropic.com → API keys** (set a spend limit while you're
+there), then from the repo folder:
+```
+cd calendar-worker
+npm install
+npx wrangler secret put ANTHROPIC_API_KEY    # paste the key
+npx wrangler deploy
+```
+To turn it off again: `npx wrangler secret delete ANTHROPIC_API_KEY`.
 
 It comes from a small **Cloudflare Worker** (`calendar-worker/`, free plan, no card needed) that
 reads your calendar's **private iCal address** and returns today's and tomorrow's events. Recurring

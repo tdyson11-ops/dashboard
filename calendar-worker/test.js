@@ -115,5 +115,44 @@ END:VCALENDAR`;
     console.log('3. worker: key required (whitespace-tolerant), CORS only for site ✓');
   }
 
+  // 4. POST /prep asks Claude (faked here) and returns only well-formed suggestions
+  {
+    let sent = null;
+    const reply = { meetings: [
+      { id: 'e0', why: 'NHBC inspection', actions: ['Chase Gav for the snag list', 'Walk plot 7 first', 'a', 'b', 'c'] },
+      { id: 'zz', why: 'made up', actions: ['should be dropped'] },
+      { id: 'e1', why: 'nothing to do', actions: [] }
+    ] };
+    const fake = (out, stop = 'end_turn') => ({ beta: { messages: { create: async (p) => {
+      sent = p; return { stop_reason: stop, model: p.model, content: [{ type: 'text', text: JSON.stringify(out) }] };
+    } } } });
+    const env = { CALENDAR_KEY: 'k'.repeat(32), ANTHROPIC_API_KEY: 'sk-test', ANTHROPIC_CLIENT: fake(reply) };
+    const body = { now: 'Wed 4 Nov 08:00', events: [
+      { id: 'e0', day: 'Today', start: '09:00', end: '10:00', title: 'NHBC inspection', location: 'Plot 7' },
+      { id: 'e1', day: 'Today', start: '12:00', end: '13:00', title: 'Lunch' }
+    ], context: { waiting: [{ who: 'Gav', what: 'snag list', asked: '9 days ago' }] } };
+    const req = (b, auth = 'Bearer ' + env.CALENDAR_KEY, method = 'POST') => new Request('https://w.example/prep',
+      { method, headers: { Authorization: auth, Origin: 'https://tdyson11-ops.github.io', 'Content-Type': 'application/json' },
+        body: method === 'POST' ? (typeof b === 'string' ? b : JSON.stringify(b)) : undefined });
+
+    const ok = await worker.fetch(req(body), env);
+    assert.strictEqual(ok.status, 200);
+    const out = await ok.json();
+    assert.deepStrictEqual(out.meetings.map((m) => m.id), ['e0'], 'unknown ids and empty meetings dropped');
+    assert.strictEqual(out.meetings[0].actions.length, 4, 'at most 4 actions');
+    assert.strictEqual(sent.output_config.format.type, 'json_schema');
+    assert.ok(sent.messages[0].content.includes('snag list'), 'dashboard context reaches Claude');
+    assert.strictEqual((await worker.fetch(req(body, 'Bearer wrong'), env)).status, 401, 'key required');
+    assert.strictEqual((await worker.fetch(req(body, undefined, 'GET'), env)).status, 405, 'POST only');
+    assert.strictEqual((await worker.fetch(req('{nope'), env)).status, 400, 'bad JSON');
+    assert.strictEqual((await worker.fetch(req(body), { ...env, ANTHROPIC_API_KEY: '' })).status, 503, 'off without an API key');
+    assert.strictEqual((await worker.fetch(req(body), { ...env, ANTHROPIC_CLIENT: fake(reply, 'refusal') })).status, 502, 'refusal');
+    const none = await worker.fetch(req({ events: [] }), env);
+    assert.deepStrictEqual((await none.json()).meetings, [], 'no meetings → no call');
+    const pre = await worker.fetch(new Request('https://w.example/prep', { method: 'OPTIONS', headers: { Origin: 'https://tdyson11-ops.github.io' } }), env);
+    assert.ok(/POST/.test(pre.headers.get('Access-Control-Allow-Methods')) && /Content-Type/.test(pre.headers.get('Access-Control-Allow-Headers')));
+    console.log('4. worker: /prep asks Claude, validates, needs key + API key     ✓');
+  }
+
   console.log('\nALL CALENDAR TESTS PASSED');
 })().catch((e) => { console.error('\nFAILED:', e.message); process.exit(1); });
