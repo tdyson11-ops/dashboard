@@ -18,7 +18,7 @@
        all three come from tools/make_card.py; keep them in step. */
     :root {
       --bg: #0d0d0d; --text: #f2f2f2; --muted: #8a8a8a; --border: #262626;
-      --ink: #111; --ink-soft: #5b5b5b; --brand: #1677b8;
+      --ink: #111; --ink-soft: #5b5b5b; --brand: #153b64; --gold: #b8963f;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -36,8 +36,9 @@
       padding: 7% 7.5%; display: flex; flex-direction: column; justify-content: space-between;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
     }
-    .brand { display: flex; align-items: center; min-height: 2.2rem; }
-    .brand img { max-height: 2.4rem; max-width: 60%; object-fit: contain; }
+    .brand { display: flex; align-items: center; justify-content: space-between; min-height: 2.2rem; }
+    .brand img { height: 4.2rem; width: auto; margin: -0.6rem 0 -0.4rem -0.5rem; }
+    .brand .site { font-size: 0.62rem; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--gold); text-align: right; }
     .wordmark { font-weight: 700; letter-spacing: 0.22em; font-size: 0.9rem; text-transform: uppercase; color: var(--ink); }
     .wordmark span { color: var(--brand); }
     .who .name { font-size: 1.35rem; font-weight: 700; letter-spacing: -0.01em; line-height: 1.15; }
@@ -59,7 +60,7 @@
       font: inherit; font-size: 0.85rem; font-weight: 600; text-decoration: none; cursor: pointer;
       -webkit-tap-highlight-color: transparent;
     }
-    .btn.primary { background: var(--brand); border-color: var(--brand); color: #fff; grid-column: 1 / -1; }
+    .btn.primary { background: var(--brand); border-color: #2a5a8f; color: #fff; grid-column: 1 / -1; }
     .hint { color: var(--muted); font-size: 0.72rem; line-height: 1.45; margin-top: 1rem; text-align: center; }
 
     /* Print: one card front + back, actual size */
@@ -71,6 +72,7 @@
       .card, .print-back { width: 85mm; height: 55mm; aspect-ratio: auto; border-radius: 3mm;
         box-shadow: none; border: 0.2mm solid #ccc; break-inside: avoid; }
       .card { font-size: 8pt; padding: 5mm 6mm; }
+      .brand img { height: 15mm; margin: -2mm 0 -1mm -2mm; }
       .who .name { font-size: 13pt; }
       .print-back { display: flex; margin-top: 6mm; background: #fff; align-items: center; justify-content: center; gap: 5mm; padding: 4mm; color: var(--ink); }
       .print-back img { width: 40mm; height: 40mm; }
@@ -91,10 +93,11 @@
          until then the wordmark below shows instead. -->
     <img src="cyden-logo.png" alt="Cyden Homes" onerror="this.remove();document.getElementById('wordmark').hidden=false">
     <div class="wordmark" id="wordmark" hidden>Cyden <span>Homes</span></div>
+    <div class="site">The Hyde</div>
   </div>
   <div class="who">
     <div class="name">Thomas Dyson</div>
-    <div class="role">Assistant Site Manager · <b>The Hyde</b></div>
+    <div class="role">Assistant Site Manager</div>
   </div>
   <div class="lines">
     <div><span class="k">T</span><a href="tel:+447471355743">07471 355743</a></div>
