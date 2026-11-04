@@ -41,7 +41,7 @@ const SYNC_KEYS = [
   'dash-habits-v1',       // Dashboard — habit ticks
   'dash-focus-v1',        // Dashboard — Today's Focus list
   'dash-focus-seen-v1',   // Dashboard — focus-inbox ids already added (stops re-adds)
-  'dash-decisions-v1',    // Dashboard — old decision log (card removed; kept so the data isn't lost)
+  'dash-decisions-v1',    // Dashboard — decision log
   'dash-deadlines-v1',    // Dashboard — uni submission deadlines
   'dash-pulse-v1',        // Dashboard — Business pulse numbers
   'dash-waiting-v1',      // Dashboard — Waiting on (things others owe you)

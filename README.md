@@ -259,6 +259,12 @@ notes) are untouched, and if you're offline it says so and leaves the current da
 The **Command Center** components mirror the Notion dashboard. Pillars, Goals, Uni modules and
 submission deadlines are edited via `data.json`.
 
+They render as a 2×2 grid of half-width tiles — Pillars, Goals, Deadlines, Modules — each showing a
+headline number and a one-line read (`2 at risk`, `avg 22% complete`, `next is tomorrow`), so the
+block can be scanned without opening anything. Tap a tile to open its full list underneath; the list
+is full width because pillar and goal names are too long for a half-width column. One opens at a
+time, and the Modules tile hides itself when `data.json` carries no modules.
+
 Edited directly on the dashboard (no `data.json` needed):
 
 - **Today's Focus** — shows only your **top 3** unfinished items; everything else waits in a collapsed
@@ -284,9 +290,18 @@ Edited directly on the dashboard (no `data.json` needed):
   drops to the bottom so a stale deadline can't sit above the one you need to hit
 - **Habits** — tap to tick. Use **‹** / **›** in the card header to point the list at an earlier day
   and tick it there — handy for things you only know the next morning, like bedtime (amber when it
-  isn't today; up to 29 days back). The card shows how many are ticked and a **3-day average** (share
-  of habit boxes ticked today and the two days before, from your first logged day in that window)
-Focus, business pulse, notes, habit ticks and deadlines are stored in the browser's localStorage and **synced across devices**
+  isn't today; up to 29 days back). The card shows how many are ticked and a **30-day average** (share
+  of habit boxes ticked across the last 30 days, measured from your first logged day in that window so
+  a missed day counts against you but the weeks before you started don't). The averaging window matches
+  how far back you can tick, so every day you can reach is a day that counts.
+- **Decision Log** — **+ Log a decision** records what you decided, what you expect to happen, how
+  confident you are, and a date to come back to it (90 days out by default). Once the review date
+  passes, the entry jumps to the top of the list with a **Review now** flag until you record an
+  outcome. Entries you've marked right or wrong feed the **Calibration** panel, which shows — per
+  confidence band — how often you were actually right. If you're well calibrated the 70% band lands
+  near 70%; most people's high-confidence band is the one that's off
+
+Focus, business pulse, notes, habit ticks, deadlines and the decision log are stored in the browser's localStorage and **synced across devices**
 when signed in via the sync bar (see Cross-device sync above) — `data.json` only provides the initial
 content the first time the page loads on a device. The **Backup** card at the bottom also lets you
 **Export**/**Import** them as a JSON file for an offline safety net.

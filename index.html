@@ -135,6 +135,131 @@
       margin-bottom: 0.75rem;
     }
 
+    /* ── Decision log ── */
+    .dec-row {
+      padding: 0.6rem 0;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .dec-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .dec-row:first-child { padding-top: 0; }
+    .dec-title { font-size: 0.82rem; font-weight: 500; overflow-wrap: anywhere; }
+    .dec-expect {
+      font-size: 0.7rem;
+      color: var(--muted);
+      margin-top: 0.2rem;
+      line-height: 1.35;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .dec-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem; margin-top: 0.4rem; }
+    .dec-when { font-size: 0.62rem; color: var(--muted); margin-right: 0.15rem; }
+
+    .dec-chip {
+      font-size: 0.6rem;
+      font-weight: 600;
+      border-radius: 6px;
+      padding: 0.14rem 0.45rem;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      background: #101010;
+      white-space: nowrap;
+    }
+
+    .dec-chip.due    { color: var(--amber); border-color: #3a2b00; background: #1c1400; }
+    .dec-chip.right  { color: var(--green); border-color: #12401f; background: #06170c; }
+    .dec-chip.wrong  { color: var(--red);   border-color: #3d0000; background: #1c0000; }
+
+    .dec-fields { display: flex; gap: 0.5rem; }
+    .dec-fields label { flex: 1; min-width: 0; }
+    .note-editor label {
+      display: block;
+      font-size: 0.62rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+    }
+    .note-editor label > select,
+    .note-editor label > input { margin-top: 0.25rem; }
+    .note-editor select {
+      width: 100%;
+      background: #0f0f0f;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 16px;
+      padding: 0.5rem 0.6rem;
+      margin-bottom: 0.5rem;
+    }
+    .note-editor select:focus { outline: none; border-color: var(--accent); }
+
+    .calib { margin-top: 0.8rem; padding-top: 0.7rem; border-top: 1px solid var(--border); }
+    .calib-head {
+      font-size: 0.62rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 0.45rem;
+    }
+    .calib-row { display: flex; justify-content: space-between; font-size: 0.72rem; padding: 0.18rem 0; }
+    .calib-row .calib-band { color: var(--muted); }
+    .calib-hint { font-size: 0.68rem; color: var(--muted); line-height: 1.4; }
+
+    /* ── Command Center tiles ── */
+    /* Four half-width blocks instead of four full-width lists, to break up a
+       long page. The detail opens full width underneath, because pillar and
+       goal names are far too long to read in a half-width column. */
+    .cc-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.6rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .cc-tile {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 0.7rem 0.75rem;
+      min-width: 0;
+      text-align: left;
+      font-family: inherit;
+      color: var(--text);
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      display: flex;
+      flex-direction: column;
+      gap: 0.1rem;
+    }
+
+    .cc-tile[aria-expanded="true"] { border-color: var(--accent); }
+
+    .cc-label {
+      font-size: 0.6rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.3rem;
+    }
+
+    .cc-label .chev { transition: transform 0.15s; font-size: 0.85rem; line-height: 1; }
+    .cc-tile[aria-expanded="true"] .cc-label .chev { transform: rotate(90deg); color: var(--accent); }
+
+    .cc-n { font-size: 1.35rem; font-weight: 700; line-height: 1.1; letter-spacing: -0.02em; }
+    .cc-n.warn { color: var(--amber); }
+    .cc-n.good { color: var(--green); }
+    /* Nothing to count yet — don't let the em dash read as a bold rule. */
+    .cc-n.none { color: var(--border); font-weight: 400; }
+    .cc-sub { font-size: 0.62rem; color: var(--muted); line-height: 1.3; overflow-wrap: anywhere; }
+
     /* ── Focus ── */
     .focus-item {
       display: flex;
@@ -418,7 +543,7 @@
     .habit-day-label { font-size: 0.8rem; color: var(--muted); min-width: 5.5rem; text-align: center; }
     .habit-day-label.past { color: var(--amber); font-weight: 600; }
 
-    /* 3-day score */
+    /* 30-day score */
     .habit-score {
       display: flex;
       justify-content: space-between;
@@ -805,7 +930,7 @@
     <div class="habit-score">
       <div>
         <div class="score-big" id="habit-avg">—</div>
-        <div class="score-label">3-day avg</div>
+        <div class="score-label">30-day avg</div>
       </div>
       <div class="score-right">
         <div class="habit-count" id="habit-count">—</div>
@@ -947,26 +1072,39 @@
   </a>
 </div>
 
-<!-- PILLARS -->
+<!-- COMMAND CENTER — four tiles, detail opens underneath -->
 <div class="section">
-  <div class="section-label">Pillars</div>
-  <div class="card" id="pillars-card"></div>
-</div>
+  <div class="section-label">Command Center</div>
+  <div class="cc-grid">
+    <button class="cc-tile" id="cc-tile-pillars" aria-expanded="false" aria-controls="cc-panel-pillars" onclick="toggleCC('pillars')">
+      <span class="cc-label">Pillars <span class="chev">›</span></span>
+      <span class="cc-n" id="cc-n-pillars">—</span>
+      <span class="cc-sub" id="cc-sub-pillars"></span>
+    </button>
+    <button class="cc-tile" id="cc-tile-goals" aria-expanded="false" aria-controls="cc-panel-goals" onclick="toggleCC('goals')">
+      <span class="cc-label">Goals <span class="chev">›</span></span>
+      <span class="cc-n" id="cc-n-goals">—</span>
+      <span class="cc-sub" id="cc-sub-goals"></span>
+    </button>
+    <button class="cc-tile" id="cc-tile-deadlines" aria-expanded="false" aria-controls="cc-panel-deadlines" onclick="toggleCC('deadlines')">
+      <span class="cc-label">Deadlines <span class="chev">›</span></span>
+      <span class="cc-n" id="cc-n-deadlines">—</span>
+      <span class="cc-sub" id="cc-sub-deadlines"></span>
+    </button>
+    <button class="cc-tile" id="cc-tile-modules" aria-expanded="false" aria-controls="cc-panel-modules" onclick="toggleCC('modules')">
+      <span class="cc-label">Modules <span class="chev">›</span></span>
+      <span class="cc-n" id="cc-n-modules">—</span>
+      <span class="cc-sub" id="cc-sub-modules"></span>
+    </button>
+  </div>
 
-<!-- GOALS -->
-<div class="section">
-  <div class="section-label">Goals &amp; Milestones</div>
-  <div class="card" id="goals-card"></div>
-</div>
-
-<!-- UNIVERSITY -->
-<div class="section">
-  <div class="section-label">University — Leeds Beckett</div>
-  <div class="card">
+  <div class="card" id="cc-panel-pillars" hidden><div id="pillars-card"></div></div>
+  <div class="card" id="cc-panel-goals" hidden><div id="goals-card"></div></div>
+  <div class="card" id="cc-panel-deadlines" hidden>
     <div id="deadlines-card"></div>
     <button class="note-add" onclick="addDeadline()">+ Add deadline</button>
   </div>
-  <div class="card" id="modules-card"></div>
+  <div class="card" id="cc-panel-modules" hidden><div id="modules-card"></div></div>
 </div>
 
 <!-- CALENDAR CONNECTION -->
@@ -983,6 +1121,17 @@
       </div>
       <div class="backup-note" id="calcfg-msg">Saved privately to your signed-in account and synced to your other devices — never put in the public repo.</div>
     </div>
+  </details>
+</div>
+
+<!-- DECISION LOG -->
+<div class="section">
+  <div class="section-label">Decision Log 🧭</div>
+  <details class="card">
+    <summary><span>Decisions <span class="summary-sub" id="dec-count"></span></span><span class="chev">›</span></summary>
+    <div id="dec-list"></div>
+    <button class="note-add" onclick="addDecision()">+ Log a decision</button>
+    <div class="calib" id="dec-calib"></div>
   </details>
 </div>
 
@@ -1291,9 +1440,11 @@
     return c;
   }
 
-  // 3-day average: share of habit boxes ticked over today and the two days
-  // before, counting only from the first day you logged anything in that window.
-  var HABIT_AVG_DAYS = 3;
+  // 30-day average: share of habit boxes ticked across the last 30 days,
+  // counted from the first day you logged anything in that window — so a missed
+  // day counts against you, but the weeks before you started tracking don't.
+  // Matches HABIT_MAX_BACK, so every day you can tick is a day that's scored.
+  var HABIT_AVG_DAYS = 30;
   function renderHabitScore(habits, state) {
     var n = habits.length;
     var avgEl = document.getElementById('habit-avg');
@@ -1328,15 +1479,66 @@
     if (s.indexOf('done') >= 0 || s.indexOf('complete') >= 0) return 'pill-green';
     return 'pill-neutral';
   }
+  // ── Command Center tiles ──
+  // Each tile carries a headline number and a one-line read, so the page can be
+  // scanned without opening anything. One panel open at a time keeps the page
+  // short; the panel is full width so long pillar and goal names stay readable.
+  var CC_KEYS = ['pillars', 'goals', 'deadlines', 'modules'];
+  var ccOpen = null;
+
+  function toggleCC(key) {
+    ccOpen = (ccOpen === key) ? null : key;
+    CC_KEYS.forEach(function (k) {
+      var panel = document.getElementById('cc-panel-' + k);
+      var tile = document.getElementById('cc-tile-' + k);
+      if (!panel || !tile) return;
+      var on = (ccOpen === k);
+      panel.hidden = !on;
+      tile.setAttribute('aria-expanded', on ? 'true' : 'false');
+    });
+  }
+
+  function setCCTile(key, n, sub, cls) {
+    var nEl = document.getElementById('cc-n-' + key);
+    var subEl = document.getElementById('cc-sub-' + key);
+    if (!nEl) return;
+    nEl.textContent = n;
+    nEl.className = 'cc-n' + (cls ? ' ' + cls : '');
+    if (subEl) subEl.textContent = sub || '';
+  }
+
+  // A tile with nothing behind it is just a dead end — hide it and close its
+  // panel if it happened to be the open one.
+  function setCCTileVisible(key, visible) {
+    var tile = document.getElementById('cc-tile-' + key);
+    if (tile) tile.style.display = visible ? '' : 'none';
+    if (!visible && ccOpen === key) toggleCC(key);
+  }
+
   function renderPillars(pillars) {
-    document.getElementById('pillars-card').innerHTML = (pillars || []).map(function (p) {
+    pillars = pillars || [];
+    var atRisk = pillars.filter(function (p) { return p.status === 'atrisk'; }).length;
+    setCCTile('pillars', pillars.length, atRisk ? atRisk + ' at risk' : 'all ticking over',
+              atRisk ? 'warn' : '');
+    document.getElementById('pillars-card').innerHTML = pillars.map(function (p) {
       var st = PILLAR_STATUS[p.status] || { label: p.status, cls: 'pill-neutral' };
       return '<div class="line-item"><span>' + esc(p.name) + '</span>' +
         '<span class="pill ' + st.cls + '">' + esc(st.label) + '</span></div>';
     }).join('');
   }
   function renderGoals(goals) {
-    document.getElementById('goals-card').innerHTML = (goals || []).map(function (g) {
+    goals = goals || [];
+    var atRisk = goals.filter(function (g) {
+      return (g.status || '').toLowerCase().indexOf('risk') >= 0;
+    }).length;
+    var done = goals.filter(function (g) {
+      var s = (g.status || '').toLowerCase();
+      return s.indexOf('done') >= 0 || s.indexOf('complete') >= 0;
+    }).length;
+    setCCTile('goals', goals.length,
+              atRisk ? atRisk + ' at risk' : (done ? done + ' done' : 'in progress'),
+              atRisk ? 'warn' : (done ? 'good' : ''));
+    document.getElementById('goals-card').innerHTML = goals.map(function (g) {
       return '<div class="line-item"><span>' + esc(g.name) + '</span>' +
         '<span class="pill ' + goalPillClass(g.status) + '">' + esc(g.status) + '</span></div>';
     }).join('');
@@ -1364,10 +1566,17 @@
   }
   function saveDeadlines() { localStorage.setItem(DLKEY, JSON.stringify(deadlineState)); }
 
+  // Whole days between midnight today and midnight on the due date. Both ends
+  // are snapped to local midnight: comparing against noon rounded a due-today
+  // date up to "1 day" (so the "today" badge never showed) and a yesterday date
+  // to "today" instead of passed. Math.round absorbs the 23/25-hour days either
+  // side of a clock change.
   function daysUntil(dateStr) {
     var today = new Date();
     today.setHours(0, 0, 0, 0);
-    return Math.ceil((new Date(dateStr + 'T12:00:00') - today) / 86400000);
+    var due = new Date(dateStr + 'T00:00:00');
+    due.setHours(0, 0, 0, 0);
+    return Math.round((due - today) / 86400000);
   }
 
   // Upcoming first, soonest at the top; anything passed drops to the bottom so
@@ -1382,9 +1591,20 @@
       });
   }
 
+  function renderDeadlineTile() {
+    var upcoming = deadlineState.filter(function (dl) { return daysUntil(dl.date) >= 0; });
+    if (!deadlineState.length) { setCCTile('deadlines', '—', 'none added yet', 'none'); return; }
+    if (!upcoming.length) { setCCTile('deadlines', 0, 'all ' + deadlineState.length + ' passed', ''); return; }
+    var soonest = upcoming.reduce(function (a, b) { return a.date < b.date ? a : b; });
+    var d = daysUntil(soonest.date);
+    var sub = d === 0 ? 'next is today' : d === 1 ? 'next is tomorrow' : 'next in ' + d + ' days';
+    setCCTile('deadlines', upcoming.length, sub, d <= 7 ? 'warn' : '');
+  }
+
   function renderDeadlines() {
     var card = document.getElementById('deadlines-card');
     if (!card) return;
+    renderDeadlineTile();
     if (!deadlineState.length && editingDeadline == null) {
       card.innerHTML = '<div class="focus-empty">No submission dates yet — add them as they land.</div>';
       return;
@@ -1472,7 +1692,11 @@
   // ── Uni modules ──
   function renderModules(mods) {
     var card = document.getElementById('modules-card');
-    if (!mods || !mods.length) { card.style.display = 'none'; return; }
+    if (!mods || !mods.length) { setCCTileVisible('modules', false); return; }
+    setCCTileVisible('modules', true);
+    var avg = Math.round(mods.reduce(function (a, m) { return a + (m.progress || 0); }, 0) / mods.length);
+    setCCTile('modules', mods.length, 'avg ' + avg + '% complete',
+              avg >= 50 ? 'good' : (avg < 25 ? 'warn' : ''));
     card.innerHTML = mods.map(function (m) {
       var col = m.progress >= 50 ? 'var(--green)' : (m.progress >= 25 ? 'var(--amber)' : 'var(--muted)');
       return '<div class="mod-row"><div class="mod-top">' +
@@ -2142,13 +2366,204 @@
     renderNotes();
   }
 
+  // ── Decision log ──
+  // One line per call worth remembering: what you decided, what you expected to
+  // happen, how sure you were, and when to come back to it. Reviewing them is the
+  // only honest feedback loop on your own judgement — memory keeps the good calls
+  // and quietly drops the rest.
+  var DKEY = 'dash-decisions-v1';
+  var decisionState = [];
+  var editingDecision = null;
+  var CONF_STEPS = [50, 60, 70, 80, 90, 95];
+  var VERDICTS = [
+    { v: '',      label: 'Not reviewed yet' },
+    { v: 'right', label: 'Called it right' },
+    { v: 'wrong', label: 'Called it wrong' },
+    { v: 'mixed', label: 'Bit of both' }
+  ];
+
+  function loadDecisions() {
+    try { return JSON.parse(localStorage.getItem(DKEY)) || []; } catch (e) { return []; }
+  }
+  function saveDecisions() { localStorage.setItem(DKEY, JSON.stringify(decisionState)); }
+
+  function dateKeyAhead(n) {
+    var d = new Date(); d.setDate(d.getDate() + n);
+    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+  }
+  function fmtDay(key) {
+    var p = String(key || '').split('-');
+    if (p.length !== 3) return '';
+    var d = new Date(+p[0], +p[1] - 1, +p[2]);
+    return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+  // Due once the review date has arrived and you haven't recorded an outcome.
+  function decDue(d) { return !d.verdict && d.review && d.review <= todayKey(); }
+
+  // Due reviews first (oldest first — they're the ones you're avoiding), then
+  // everything else newest first.
+  function decisionsSorted() {
+    return decisionState.map(function (d, i) { return { d: d, i: i }; })
+      .sort(function (a, b) {
+        var ad = decDue(a.d), bd = decDue(b.d);
+        if (ad !== bd) return ad ? -1 : 1;
+        if (ad) return (a.d.review || '') < (b.d.review || '') ? -1 : 1;
+        return (a.d.date || '') > (b.d.date || '') ? -1 : 1;
+      });
+  }
+
+  function renderDecisions() {
+    var due = 0;
+    for (var i = 0; i < decisionState.length; i++) if (decDue(decisionState[i])) due++;
+    document.getElementById('dec-count').textContent =
+      '· ' + decisionState.length + (due ? ' · ' + due + ' to review' : '');
+
+    document.getElementById('dec-list').innerHTML = decisionsSorted().map(function (row) {
+      var d = row.d, idx = row.i;
+      if (editingDecision === idx) return decisionEditor(d, idx);
+
+      var chips = '<span class="dec-chip">' + (d.conf || 70) + '% sure</span>';
+      if (d.verdict === 'right')      chips += '<span class="dec-chip right">Right</span>';
+      else if (d.verdict === 'wrong') chips += '<span class="dec-chip wrong">Wrong</span>';
+      else if (d.verdict === 'mixed') chips += '<span class="dec-chip">Mixed</span>';
+      else if (decDue(d))             chips += '<span class="dec-chip due">Review now</span>';
+      else if (d.review)              chips += '<span class="dec-chip">Review ' + esc(fmtDay(d.review)) + '</span>';
+
+      return '<div class="dec-row" onclick="startEditDecision(' + idx + ')">' +
+        '<div class="dec-title">' + esc(d.title || '(untitled decision)') + '</div>' +
+        (d.expect ? '<div class="dec-expect">' + esc(d.expect) + '</div>' : '') +
+        '<div class="dec-meta"><span class="dec-when">' + esc(fmtDay(d.date)) + '</span>' + chips + '</div>' +
+        '</div>';
+    }).join('');
+
+    renderCalibration();
+  }
+
+  function decisionEditor(d, idx) {
+    var conf = '';
+    for (var i = 0; i < CONF_STEPS.length; i++) {
+      var c = CONF_STEPS[i];
+      conf += '<option value="' + c + '"' + (c === (d.conf || 70) ? ' selected' : '') + '>' + c + '%</option>';
+    }
+    var verd = VERDICTS.map(function (v) {
+      return '<option value="' + v.v + '"' + (v.v === (d.verdict || '') ? ' selected' : '') + '>' + v.label + '</option>';
+    }).join('');
+
+    return '<div class="note-editor">' +
+      '<input class="de-title" placeholder="The decision" value="' + attr(d.title) + '">' +
+      '<textarea class="de-expect" placeholder="What you expect to happen…">' + esc(d.expect || '') + '</textarea>' +
+      '<div class="dec-fields">' +
+        '<label>Confidence<select class="de-conf">' + conf + '</select></label>' +
+        '<label>Review on<input class="de-review" type="date" value="' + attr(d.review || '') + '"></label>' +
+      '</div>' +
+      '<label>Outcome<select class="de-verdict">' + verd + '</select></label>' +
+      '<textarea class="de-outcome" placeholder="What actually happened…">' + esc(d.outcome || '') + '</textarea>' +
+      '<div class="btn-row">' +
+        '<button class="note-btn save" onclick="saveDecision()">Save</button>' +
+        '<button class="note-btn cancel" onclick="cancelDecision()">Cancel</button>' +
+        '<button class="note-btn del" onclick="deleteDecision(' + idx + ')">Delete</button>' +
+      '</div></div>';
+  }
+
+  function startEditDecision(i) {
+    editingDecision = i;
+    renderDecisions();
+  }
+
+  function addDecision() {
+    decisionState.push({
+      date: todayKey(),
+      title: '',
+      expect: '',
+      conf: 70,
+      review: dateKeyAhead(90),
+      verdict: '',
+      outcome: ''
+    });
+    editingDecision = decisionState.length - 1;
+    renderDecisions();
+    var el = document.getElementById('dec-list').querySelector('.de-title');
+    if (el) el.focus();
+  }
+
+  function saveDecision() {
+    var i = editingDecision;
+    if (i == null) return;
+    var root = document.getElementById('dec-list');
+    var titleEl = root && root.querySelector('.de-title');
+    if (!titleEl) { editingDecision = null; return; }
+
+    var d = decisionState[i];
+    d.title   = titleEl.value.trim();
+    d.expect  = root.querySelector('.de-expect').value;
+    d.conf    = parseInt(root.querySelector('.de-conf').value, 10) || 70;
+    d.review  = root.querySelector('.de-review').value;
+    d.verdict = root.querySelector('.de-verdict').value;
+    d.outcome = root.querySelector('.de-outcome').value;
+
+    if (!d.title && !d.expect) decisionState.splice(i, 1); // nothing entered — drop it
+    editingDecision = null;
+    saveDecisions();
+    renderDecisions();
+  }
+
+  function cancelDecision() {
+    var i = editingDecision;
+    if (i != null) {
+      var d = decisionState[i];
+      if (d && !d.title && !d.expect) decisionState.splice(i, 1); // drop a blank new one
+    }
+    editingDecision = null;
+    renderDecisions();
+  }
+
+  function deleteDecision(i) {
+    decisionState.splice(i, 1);
+    editingDecision = null;
+    saveDecisions();
+    renderDecisions();
+  }
+
+  // Calibration: of the calls you were N% sure about, how many came off? If
+  // you're well calibrated, the 70% band lands near 70%. Most people's
+  // high-confidence band is the one that's wrong.
+  var CALIB_BANDS = [
+    { lo: 50, hi: 69,  label: '50–69%' },
+    { lo: 70, hi: 84,  label: '70–84%' },
+    { lo: 85, hi: 100, label: '85%+'   }
+  ];
+
+  function renderCalibration() {
+    var el = document.getElementById('dec-calib');
+    var scored = decisionState.filter(function (d) { return d.verdict === 'right' || d.verdict === 'wrong'; });
+    if (!scored.length) {
+      el.innerHTML = '<div class="calib-hint">Log a call, say how sure you are, and set a date to come back to it. ' +
+        'Once you\'ve reviewed a few, this shows how well your confidence matches reality.</div>';
+      return;
+    }
+    var rows = CALIB_BANDS.map(function (b) {
+      var inBand = scored.filter(function (d) { return (d.conf || 70) >= b.lo && (d.conf || 70) <= b.hi; });
+      if (!inBand.length) return '';
+      var right = inBand.filter(function (d) { return d.verdict === 'right'; }).length;
+      return '<div class="calib-row"><span class="calib-band">' + b.label + '</span>' +
+        '<span>' + right + ' of ' + inBand.length + ' · ' + Math.round(right / inBand.length * 100) + '%</span></div>';
+    }).join('');
+    el.innerHTML = '<div class="calib-head">Calibration · ' + scored.length + ' reviewed</div>' + rows;
+  }
+
+  function initDecisions() {
+    decisionState = loadDecisions();
+    renderDecisions();
+  }
+
   // ── Backup / restore (notes + habit ticks) ──
   function exportBackup() {
     var payload = { _type: 'tom-dashboard-backup', exported: todayKey(),
-                    notes: null, habits: null, focus: null, deadlines: null, pulse: null };
+                    notes: null, habits: null, focus: null, decisions: null, deadlines: null, pulse: null };
     try { payload.notes     = JSON.parse(localStorage.getItem(NKEY)); } catch (e) {}
     try { payload.habits    = JSON.parse(localStorage.getItem(HKEY)); } catch (e) {}
     try { payload.focus     = JSON.parse(localStorage.getItem(FKEY)); } catch (e) {}
+    try { payload.decisions = JSON.parse(localStorage.getItem(DKEY)); } catch (e) {}
     try { payload.deadlines = JSON.parse(localStorage.getItem(DLKEY)); } catch (e) {}
     try { payload.pulse     = JSON.parse(localStorage.getItem(PKEY)); } catch (e) {}
     payload.extra = {};
@@ -2171,7 +2586,7 @@
       try {
         var d = JSON.parse(reader.result);
         if (!d || (d.notes === undefined && d.habits === undefined && d.focus === undefined &&
-                   d.deadlines === undefined && d.pulse === undefined && d.extra === undefined)) throw new Error('bad');
+                   d.decisions === undefined && d.deadlines === undefined && d.pulse === undefined && d.extra === undefined)) throw new Error('bad');
         var when = d.exported ? ' (from ' + d.exported + ')' : '';
         if (!confirm('Restore this backup' + when + '? It replaces your current focus, notes, habit ticks, business pulse and deadlines on this device.')) {
           ev.target.value = '';
@@ -2198,6 +2613,12 @@
           editingPulse = null;
           savePulse();
           renderPulse();
+        }
+        if (Array.isArray(d.decisions)) {
+          localStorage.setItem(DKEY, JSON.stringify(d.decisions));
+          decisionState = d.decisions;
+          editingDecision = null;
+          renderDecisions();
         }
         if (Array.isArray(d.deadlines)) {
           localStorage.setItem(DLKEY, JSON.stringify(d.deadlines));
@@ -2362,6 +2783,7 @@
   initPulse();      // purely local — doesn't wait on data.json
   initMdLists();    // Waiting on, People, Weekly review, Road to MD
   initCalendar();   // Today's diary (filled once signed in)
+  initDecisions();   // purely local — doesn't wait on data.json
   loadData(false);
 </script>
 </body>
