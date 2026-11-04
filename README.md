@@ -257,6 +257,12 @@ notes) are untouched, and if you're offline it says so and leaves the current da
 The **Command Center** components mirror the Notion dashboard. Pillars, Goals, Uni modules and
 submission deadlines are edited via `data.json`.
 
+They render as a 2×2 grid of half-width tiles — Pillars, Goals, Deadlines, Modules — each showing a
+headline number and a one-line read (`2 at risk`, `avg 22% complete`, `next is tomorrow`), so the
+block can be scanned without opening anything. Tap a tile to open its full list underneath; the list
+is full width because pillar and goal names are too long for a half-width column. One opens at a
+time, and the Modules tile hides itself when `data.json` carries no modules.
+
 Edited directly on the dashboard (no `data.json` needed):
 
 - **Today's Focus** — shows only your **top 3** unfinished items; everything else waits in a collapsed

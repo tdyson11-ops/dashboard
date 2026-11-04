@@ -135,6 +135,56 @@
       margin-bottom: 0.75rem;
     }
 
+    /* ── Command Center tiles ── */
+    /* Four half-width blocks instead of four full-width lists, to break up a
+       long page. The detail opens full width underneath, because pillar and
+       goal names are far too long to read in a half-width column. */
+    .cc-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.6rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .cc-tile {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 0.7rem 0.75rem;
+      min-width: 0;
+      text-align: left;
+      font-family: inherit;
+      color: var(--text);
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      display: flex;
+      flex-direction: column;
+      gap: 0.1rem;
+    }
+
+    .cc-tile[aria-expanded="true"] { border-color: var(--accent); }
+
+    .cc-label {
+      font-size: 0.6rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.3rem;
+    }
+
+    .cc-label .chev { transition: transform 0.15s; font-size: 0.85rem; line-height: 1; }
+    .cc-tile[aria-expanded="true"] .cc-label .chev { transform: rotate(90deg); color: var(--accent); }
+
+    .cc-n { font-size: 1.35rem; font-weight: 700; line-height: 1.1; letter-spacing: -0.02em; }
+    .cc-n.warn { color: var(--amber); }
+    .cc-n.good { color: var(--green); }
+    /* Nothing to count yet — don't let the em dash read as a bold rule. */
+    .cc-n.none { color: var(--border); font-weight: 400; }
+    .cc-sub { font-size: 0.62rem; color: var(--muted); line-height: 1.3; overflow-wrap: anywhere; }
+
     /* ── Focus ── */
     .focus-item {
       display: flex;
@@ -947,26 +997,39 @@
   </a>
 </div>
 
-<!-- PILLARS -->
+<!-- COMMAND CENTER — four tiles, detail opens underneath -->
 <div class="section">
-  <div class="section-label">Pillars</div>
-  <div class="card" id="pillars-card"></div>
-</div>
+  <div class="section-label">Command Center</div>
+  <div class="cc-grid">
+    <button class="cc-tile" id="cc-tile-pillars" aria-expanded="false" aria-controls="cc-panel-pillars" onclick="toggleCC('pillars')">
+      <span class="cc-label">Pillars <span class="chev">›</span></span>
+      <span class="cc-n" id="cc-n-pillars">—</span>
+      <span class="cc-sub" id="cc-sub-pillars"></span>
+    </button>
+    <button class="cc-tile" id="cc-tile-goals" aria-expanded="false" aria-controls="cc-panel-goals" onclick="toggleCC('goals')">
+      <span class="cc-label">Goals <span class="chev">›</span></span>
+      <span class="cc-n" id="cc-n-goals">—</span>
+      <span class="cc-sub" id="cc-sub-goals"></span>
+    </button>
+    <button class="cc-tile" id="cc-tile-deadlines" aria-expanded="false" aria-controls="cc-panel-deadlines" onclick="toggleCC('deadlines')">
+      <span class="cc-label">Deadlines <span class="chev">›</span></span>
+      <span class="cc-n" id="cc-n-deadlines">—</span>
+      <span class="cc-sub" id="cc-sub-deadlines"></span>
+    </button>
+    <button class="cc-tile" id="cc-tile-modules" aria-expanded="false" aria-controls="cc-panel-modules" onclick="toggleCC('modules')">
+      <span class="cc-label">Modules <span class="chev">›</span></span>
+      <span class="cc-n" id="cc-n-modules">—</span>
+      <span class="cc-sub" id="cc-sub-modules"></span>
+    </button>
+  </div>
 
-<!-- GOALS -->
-<div class="section">
-  <div class="section-label">Goals &amp; Milestones</div>
-  <div class="card" id="goals-card"></div>
-</div>
-
-<!-- UNIVERSITY -->
-<div class="section">
-  <div class="section-label">University — Leeds Beckett</div>
-  <div class="card">
+  <div class="card" id="cc-panel-pillars" hidden><div id="pillars-card"></div></div>
+  <div class="card" id="cc-panel-goals" hidden><div id="goals-card"></div></div>
+  <div class="card" id="cc-panel-deadlines" hidden>
     <div id="deadlines-card"></div>
     <button class="note-add" onclick="addDeadline()">+ Add deadline</button>
   </div>
-  <div class="card" id="modules-card"></div>
+  <div class="card" id="cc-panel-modules" hidden><div id="modules-card"></div></div>
 </div>
 
 <!-- CALENDAR CONNECTION -->
@@ -1328,15 +1391,66 @@
     if (s.indexOf('done') >= 0 || s.indexOf('complete') >= 0) return 'pill-green';
     return 'pill-neutral';
   }
+  // ── Command Center tiles ──
+  // Each tile carries a headline number and a one-line read, so the page can be
+  // scanned without opening anything. One panel open at a time keeps the page
+  // short; the panel is full width so long pillar and goal names stay readable.
+  var CC_KEYS = ['pillars', 'goals', 'deadlines', 'modules'];
+  var ccOpen = null;
+
+  function toggleCC(key) {
+    ccOpen = (ccOpen === key) ? null : key;
+    CC_KEYS.forEach(function (k) {
+      var panel = document.getElementById('cc-panel-' + k);
+      var tile = document.getElementById('cc-tile-' + k);
+      if (!panel || !tile) return;
+      var on = (ccOpen === k);
+      panel.hidden = !on;
+      tile.setAttribute('aria-expanded', on ? 'true' : 'false');
+    });
+  }
+
+  function setCCTile(key, n, sub, cls) {
+    var nEl = document.getElementById('cc-n-' + key);
+    var subEl = document.getElementById('cc-sub-' + key);
+    if (!nEl) return;
+    nEl.textContent = n;
+    nEl.className = 'cc-n' + (cls ? ' ' + cls : '');
+    if (subEl) subEl.textContent = sub || '';
+  }
+
+  // A tile with nothing behind it is just a dead end — hide it and close its
+  // panel if it happened to be the open one.
+  function setCCTileVisible(key, visible) {
+    var tile = document.getElementById('cc-tile-' + key);
+    if (tile) tile.style.display = visible ? '' : 'none';
+    if (!visible && ccOpen === key) toggleCC(key);
+  }
+
   function renderPillars(pillars) {
-    document.getElementById('pillars-card').innerHTML = (pillars || []).map(function (p) {
+    pillars = pillars || [];
+    var atRisk = pillars.filter(function (p) { return p.status === 'atrisk'; }).length;
+    setCCTile('pillars', pillars.length, atRisk ? atRisk + ' at risk' : 'all ticking over',
+              atRisk ? 'warn' : '');
+    document.getElementById('pillars-card').innerHTML = pillars.map(function (p) {
       var st = PILLAR_STATUS[p.status] || { label: p.status, cls: 'pill-neutral' };
       return '<div class="line-item"><span>' + esc(p.name) + '</span>' +
         '<span class="pill ' + st.cls + '">' + esc(st.label) + '</span></div>';
     }).join('');
   }
   function renderGoals(goals) {
-    document.getElementById('goals-card').innerHTML = (goals || []).map(function (g) {
+    goals = goals || [];
+    var atRisk = goals.filter(function (g) {
+      return (g.status || '').toLowerCase().indexOf('risk') >= 0;
+    }).length;
+    var done = goals.filter(function (g) {
+      var s = (g.status || '').toLowerCase();
+      return s.indexOf('done') >= 0 || s.indexOf('complete') >= 0;
+    }).length;
+    setCCTile('goals', goals.length,
+              atRisk ? atRisk + ' at risk' : (done ? done + ' done' : 'in progress'),
+              atRisk ? 'warn' : (done ? 'good' : ''));
+    document.getElementById('goals-card').innerHTML = goals.map(function (g) {
       return '<div class="line-item"><span>' + esc(g.name) + '</span>' +
         '<span class="pill ' + goalPillClass(g.status) + '">' + esc(g.status) + '</span></div>';
     }).join('');
@@ -1364,10 +1478,17 @@
   }
   function saveDeadlines() { localStorage.setItem(DLKEY, JSON.stringify(deadlineState)); }
 
+  // Whole days between midnight today and midnight on the due date. Both ends
+  // are snapped to local midnight: comparing against noon rounded a due-today
+  // date up to "1 day" (so the "today" badge never showed) and a yesterday date
+  // to "today" instead of passed. Math.round absorbs the 23/25-hour days either
+  // side of a clock change.
   function daysUntil(dateStr) {
     var today = new Date();
     today.setHours(0, 0, 0, 0);
-    return Math.ceil((new Date(dateStr + 'T12:00:00') - today) / 86400000);
+    var due = new Date(dateStr + 'T00:00:00');
+    due.setHours(0, 0, 0, 0);
+    return Math.round((due - today) / 86400000);
   }
 
   // Upcoming first, soonest at the top; anything passed drops to the bottom so
@@ -1382,9 +1503,20 @@
       });
   }
 
+  function renderDeadlineTile() {
+    var upcoming = deadlineState.filter(function (dl) { return daysUntil(dl.date) >= 0; });
+    if (!deadlineState.length) { setCCTile('deadlines', '—', 'none added yet', 'none'); return; }
+    if (!upcoming.length) { setCCTile('deadlines', 0, 'all ' + deadlineState.length + ' passed', ''); return; }
+    var soonest = upcoming.reduce(function (a, b) { return a.date < b.date ? a : b; });
+    var d = daysUntil(soonest.date);
+    var sub = d === 0 ? 'next is today' : d === 1 ? 'next is tomorrow' : 'next in ' + d + ' days';
+    setCCTile('deadlines', upcoming.length, sub, d <= 7 ? 'warn' : '');
+  }
+
   function renderDeadlines() {
     var card = document.getElementById('deadlines-card');
     if (!card) return;
+    renderDeadlineTile();
     if (!deadlineState.length && editingDeadline == null) {
       card.innerHTML = '<div class="focus-empty">No submission dates yet — add them as they land.</div>';
       return;
@@ -1472,7 +1604,11 @@
   // ── Uni modules ──
   function renderModules(mods) {
     var card = document.getElementById('modules-card');
-    if (!mods || !mods.length) { card.style.display = 'none'; return; }
+    if (!mods || !mods.length) { setCCTileVisible('modules', false); return; }
+    setCCTileVisible('modules', true);
+    var avg = Math.round(mods.reduce(function (a, m) { return a + (m.progress || 0); }, 0) / mods.length);
+    setCCTile('modules', mods.length, 'avg ' + avg + '% complete',
+              avg >= 50 ? 'good' : (avg < 25 ? 'warn' : ''));
     card.innerHTML = mods.map(function (m) {
       var col = m.progress >= 50 ? 'var(--green)' : (m.progress >= 25 ? 'var(--amber)' : 'var(--muted)');
       return '<div class="mod-row"><div class="mod-top">' +
