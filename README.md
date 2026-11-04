@@ -288,8 +288,10 @@ Edited directly on the dashboard (no `data.json` needed):
   drops to the bottom so a stale deadline can't sit above the one you need to hit
 - **Habits** — tap to tick. Use **‹** / **›** in the card header to point the list at an earlier day
   and tick it there — handy for things you only know the next morning, like bedtime (amber when it
-  isn't today; up to 29 days back). The card shows how many are ticked and a **3-day average** (share
-  of habit boxes ticked today and the two days before, from your first logged day in that window)
+  isn't today; up to 29 days back). The card shows how many are ticked and a **30-day average** (share
+  of habit boxes ticked across the last 30 days, measured from your first logged day in that window so
+  a missed day counts against you but the weeks before you started don't). The averaging window matches
+  how far back you can tick, so every day you can reach is a day that counts.
 Focus, business pulse, notes, habit ticks and deadlines are stored in the browser's localStorage and **synced across devices**
 when signed in via the sync bar (see Cross-device sync above) — `data.json` only provides the initial
 content the first time the page loads on a device. The **Backup** card at the bottom also lets you

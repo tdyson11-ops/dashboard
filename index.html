@@ -468,7 +468,7 @@
     .habit-day-label { font-size: 0.8rem; color: var(--muted); min-width: 5.5rem; text-align: center; }
     .habit-day-label.past { color: var(--amber); font-weight: 600; }
 
-    /* 3-day score */
+    /* 30-day score */
     .habit-score {
       display: flex;
       justify-content: space-between;
@@ -855,7 +855,7 @@
     <div class="habit-score">
       <div>
         <div class="score-big" id="habit-avg">—</div>
-        <div class="score-label">3-day avg</div>
+        <div class="score-label">30-day avg</div>
       </div>
       <div class="score-right">
         <div class="habit-count" id="habit-count">—</div>
@@ -1354,9 +1354,11 @@
     return c;
   }
 
-  // 3-day average: share of habit boxes ticked over today and the two days
-  // before, counting only from the first day you logged anything in that window.
-  var HABIT_AVG_DAYS = 3;
+  // 30-day average: share of habit boxes ticked across the last 30 days,
+  // counted from the first day you logged anything in that window — so a missed
+  // day counts against you, but the weeks before you started tracking don't.
+  // Matches HABIT_MAX_BACK, so every day you can tick is a day that's scored.
+  var HABIT_AVG_DAYS = 30;
   function renderHabitScore(habits, state) {
     var n = habits.length;
     var avgEl = document.getElementById('habit-avg');
