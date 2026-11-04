@@ -76,16 +76,18 @@ meal sections simply don't render and the food log still works.
 ## Business card
 
 `card.html` is a digital business card (linked from the dashboard; installable as its own **Card** app):
-name, role, site, phone and email, a big **QR code** to show people, and **Save contact**, **Call**,
-**Email** and **Send my card** buttons. **Print** gives a front and back at real card size (85 × 55 mm).
+the card itself (name, role, site, phone and email) and a big **QR code** to show people. Nothing else.
+
+It works with **no WiFi or signal**: the logo and QR are embedded in the page (no web fonts), and the
+service worker stores the card on the phone and opens it from there first. Open it once while online
+after a change so the phone picks up the new version.
 
 The QR code holds the contact itself (a vCard), so scanning it with any phone camera offers
 "Add to contacts" with no app or signal needed.
 
 - Details live in `tools/make_card.py`. Change them there, run `pip install segno` then
-  `python tools/make_card.py` to rebuild `contact.vcf` and `card-qr.svg`, and update the matching
-  text in `card.html`
-- Logo: save it as `cyden-logo.png` in the repo root and it replaces the text wordmark automatically
+  `python tools/make_card.py` to rebuild `contact.vcf` and `card-qr.svg`, then re-embed the QR
+  (base64) and update the matching text in `card.html`
 
 ## Cross-device sync
 
