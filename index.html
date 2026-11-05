@@ -652,6 +652,11 @@
     .prep-add { background: none; border: 1px solid var(--border); border-radius: 6px; color: var(--muted); font: inherit;
       font-size: 0.6rem; padding: 0.15rem 0.4rem; flex-shrink: 0; cursor: pointer; -webkit-tap-highlight-color: transparent; }
     .prep-add.done { color: var(--green); border-color: #12401f; }
+    .prep-head { display: flex; align-items: center; gap: 0.4rem; }
+    .prep-ai { text-transform: none; letter-spacing: 0; color: var(--accent); font-size: 0.62rem; }
+    .prep-ai.err { color: var(--amber); }
+    .prep-again { margin-left: auto; background: none; border: none; color: var(--muted); font: inherit; font-size: 0.8rem;
+      padding: 0 0.2rem; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 
     /* ── Lists: Waiting on / People / Road to MD ── */
     .li-row { display: flex; align-items: flex-start; gap: 0.6rem; padding: 0.55rem 0;
@@ -1842,23 +1847,134 @@
     btn.classList.add('done');
   }
 
+  // ── Claude-written prep ──
+  // If the Worker has an ANTHROPIC_API_KEY, Claude writes the prep: it sees
+  // today's and tomorrow's meetings plus People, Waiting on, Focus, Business
+  // pulse, deadlines and notes, and suggests what to do before each one.
+  // Asked once per version of the diary (cached on this device) — ↻ asks
+  // again. If it isn't set up or doesn't answer, the rules above are used.
+  var AI_PREP = 'dash-prep-ai-v1';
+  var aiPrep = null;            // { key, at, meetings: [{ day, start, title, why, actions }] }
+  var aiState = '';             // '' | 'loading' | 'off' | 'error'
+  var aiTried = '', aiReady = false;
+  try { aiPrep = JSON.parse(localStorage.getItem(AI_PREP)); } catch (e) {}
+  setTimeout(function () { if (!aiReady) { aiReady = true; askClaude(); } }, 8000);  // don't wait forever on data.json
+
+  function aiEvents() {
+    var out = [];
+    [['Today', calData.today], ['Tomorrow', calData.tomorrow || []]].forEach(function (d) {
+      (d[1] || []).forEach(function (e) {
+        out.push({ id: 'e' + out.length, day: d[0], start: e.allDay ? '' : e.start, end: e.allDay ? '' : e.end,
+          allDay: !!e.allDay, title: e.title, location: e.location || '' });
+      });
+    });
+    return out;
+  }
+  function aiKey(evs) {
+    return calData.date + '|' + evs.map(function (e) { return [e.day, e.start, e.end, e.title, e.location].join('~'); }).join('|');
+  }
+  function aiContext() {
+    function items(n) { return LISTS[n] ? LISTS[n].items : []; }
+    var today = todayKey();
+    return {
+      people: items('people').filter(function (p) { return p.name; }).map(function (p) {
+        return { name: p.name, next: p.next || '', lastSpoke: p.last ? agoText(daysSince(p.last)) : '' };
+      }),
+      waiting: items('waiting').filter(function (w) { return !w.done && w.what; }).map(function (w) {
+        return { who: w.who || '', what: w.what, asked: w.asked ? agoText(daysSince(w.asked)) : '' };
+      }),
+      focus: (typeof focusState !== 'undefined' ? focusState : []).filter(function (f) { return !f.done && f.text; })
+        .map(function (f) { return f.text; }),
+      pulse: (pulseState.items || []).filter(function (it) { return it.value || it.sub; }).map(function (it) {
+        return { label: it.label, value: it.value || '', note: it.sub || '', status: it.status || '' };
+      }),
+      deadlines: (deadlineState || []).filter(function (d) { return d.name && d.date && d.date >= today; })
+        .sort(function (a, b) { return a.date < b.date ? -1 : 1; }).slice(0, 5),
+      notes: PADS.map(function (p) { return { name: p.name, text: notesState[p.k] || '' }; })
+        .filter(function (n) { return n.text.trim(); })
+    };
+  }
+
+  function askClaude(force) {
+    var c = calConfig();
+    if (!c || !calData || calData.date !== todayKey() || aiState === 'loading' || (!aiReady && !force)) return;
+    var evs = aiEvents(), key = aiKey(evs);
+    if (!force) {
+      if (aiState === 'off') return;
+      if (aiPrep && aiPrep.key === key) return;
+      if (aiState === 'error' && aiTried === key) return;    // failed for this diary — wait for ↻
+      if (!evs.length) return;
+    }
+    aiState = 'loading'; aiTried = key;
+    renderCalendar();
+    var now = new Date().toLocaleString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+    fetch(c.url.replace(/\/+$/, '') + '/prep', {
+      method: 'POST', cache: 'no-store',
+      headers: { Authorization: 'Bearer ' + c.key, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ now: now, events: evs, context: aiContext() })
+    }).then(function (r) {
+      return r.json().catch(function () { return {}; }).then(function (d) {
+        // 503: no API key on the Worker; 404/405: Worker deployed before /prep existed.
+        if (r.status === 503 || r.status === 404 || r.status === 405) { aiState = 'off'; return; }
+        if (!r.ok || !Array.isArray(d.meetings)) throw new Error(d.error || 'HTTP ' + r.status);
+        var byId = {};
+        evs.forEach(function (e) { byId[e.id] = e; });
+        aiPrep = { key: key, at: Date.now(), meetings: d.meetings.filter(function (m) { return byId[m.id]; }).map(function (m) {
+          var e = byId[m.id];
+          return { day: e.day, start: e.start, title: e.title, why: m.why, actions: m.actions };
+        }) };
+        try { localStorage.setItem(AI_PREP, JSON.stringify(aiPrep)); } catch (e) {}
+        aiState = '';
+      });
+    }).catch(function (e) {
+      console.warn('[prep]', e && e.message);
+      aiState = 'error';
+    }).then(renderCalendar);
+  }
+  window.askClaude = askClaude;
+
+  function prepActs(acts) {
+    return acts.map(function (a) {
+      if (a.indexOf(FOCUS_PREFIX) === 0) return '<div class="prep-act"><span>' + esc(a) + '</span></div>';
+      return '<div class="prep-act"><span>' + esc(a) + '</span>' +
+        '<button class="prep-add' + (prepAdded[a] ? ' done' : '') + '" onclick="addPrepToFocus(this,' + attr(JSON.stringify(a)) + ')">' +
+        (prepAdded[a] ? 'Added ✓' : '+ Focus') + '</button></div>';
+    }).join('');
+  }
+
   function calPrep(w) {
     var t = nowMin();
-    var items = w.timed.filter(function (x) { return x.e > t; })
-      .sort(function (a, b) { return a.rs - b.rs; })
-      .map(prepFor).filter(Boolean).slice(0, 5);
-    if (!items.length) return '';
-    return '<div class="prep"><div class="prep-head">Prep for what’s coming up</div>' + items.map(function (p) {
-      var e = p.x.ev;
-      return '<div class="prep-ev"><div class="prep-title"><i>' + (p.x.day === 'Tomorrow' ? 'Tmrw ' : '') + e.start + '</i>' + esc(e.title) + '</div>' +
-        (p.why.length ? '<div class="prep-why">' + esc(p.why.join(' · ')) + '</div>' : '') +
-        p.acts.map(function (a) {
-          if (a.indexOf(FOCUS_PREFIX) === 0) return '<div class="prep-act"><span>' + esc(a) + '</span></div>';
-          return '<div class="prep-act"><span>' + esc(a) + '</span>' +
-            '<button class="prep-add' + (prepAdded[a] ? ' done' : '') + '" onclick="addPrepToFocus(this,' + attr(JSON.stringify(a)) + ')">' +
-            (prepAdded[a] ? 'Added ✓' : '+ Focus') + '</button></div>';
-        }).join('') + '</div>';
-    }).join('') + '</div>';
+    var upcoming = w.timed.filter(function (x) { return x.e > t; }).sort(function (a, b) { return a.rs - b.rs; });
+    var fresh = aiPrep && calData && aiPrep.key === aiKey(aiEvents());
+    var items;
+    if (fresh) {
+      // Claude's picks, in diary order, for meetings that haven't finished yet
+      // (plus any all-day event it thought worth a mention).
+      var find = function (x) {
+        return aiPrep.meetings.filter(function (m) { return m.day === x.day && m.title === x.ev.title && m.start === (x.ev.allDay ? '' : x.ev.start); })[0];
+      };
+      items = w.allDay.concat(upcoming).map(function (x) {
+        var m = find(x);
+        return m && { x: x, why: m.why ? [m.why] : [], acts: m.actions };
+      }).filter(Boolean).slice(0, 6);
+    } else {
+      items = upcoming.map(prepFor).filter(Boolean).slice(0, 5);
+    }
+
+    var tag = aiState === 'loading' ? '<span class="prep-ai">✦ Claude is thinking…</span>'
+      : fresh ? '<span class="prep-ai">✦ Claude</span>'
+      : aiState === 'error' ? '<span class="prep-ai err">Claude didn’t answer</span>' : '';
+    var again = aiState !== 'off' && aiState !== 'loading' && calConfig()
+      ? '<button class="prep-again" onclick="askClaude(true)" aria-label="Ask Claude again">↻</button>' : '';
+    if (!items.length && !tag) return '';
+    return '<div class="prep"><div class="prep-head">Prep for what’s coming up' + tag + again + '</div>' +
+      (items.length ? '' : '<div class="prep-why">' + (fresh ? 'Nothing that needs prep before your next meetings.' : '') + '</div>') +
+      items.map(function (p) {
+        var e = p.x.ev;
+        return '<div class="prep-ev"><div class="prep-title"><i>' + (p.x.day === 'Tomorrow' ? 'Tmrw ' : '') + (e.allDay ? 'All day' : e.start) + '</i>' + esc(e.title) + '</div>' +
+          (p.why.length ? '<div class="prep-why">' + esc(p.why.join(' · ')) + '</div>' : '') +
+          prepActs(p.acts) + '</div>';
+      }).join('') + '</div>';
   }
 
   function renderCalendar() {
@@ -1875,6 +1991,7 @@
     document.getElementById('cal-section').hidden = false;
     var mins = Math.round((Date.now() - new Date(calData.fetchedAt)) / 60000);
     document.getElementById('cal-age').textContent = '· ' + (mins < 2 ? 'just now' : mins < 60 ? mins + ' min ago' : 'earlier');
+    if (!stale) askClaude();
   }
 
   // Where the calendar comes from: your Cloudflare Worker's address and the
@@ -2671,6 +2788,7 @@
         initDeadlines(d.university && d.university.deadlines);
         renderModules(d.university && d.university.modules);
         initNotes();
+        aiReady = true;     // Claude's prep can now see Focus, deadlines and notes
         renderCalendar();   // prep suggestions can now see Focus
 
         // Fresh data arrived, so it's safe to drop the cached page shell and
