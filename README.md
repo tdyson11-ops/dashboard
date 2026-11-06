@@ -153,12 +153,12 @@ or network access is needed.
 
 ## Today's diary (calendar)
 
-The **Diary** card (under Recovery / Habits) lists everything in the **next 24 hours** (from the current
-hour to the same time tomorrow), grouped under **Today** and **Tomorrow**. Each meeting shows its time,
+The **Diary** card (under Recovery / Habits) lists everything in the **next 7 days** (from the current
+hour to the end of the seventh day), grouped by day — **Today**, **Tomorrow**, then each date; empty days are skipped. Each meeting shows its time,
 date, title and location; all-day events say "All day", the one happening now is outlined and tagged
 **Now**, and finished ones fade.
 
-Underneath, **Prep for what's coming up** picks out the meetings that matter and suggests actions, using:
+Underneath, **Prep for the week ahead** picks out the meetings that matter and suggests actions, using:
 - **People** — the next thing to raise with anyone named in the meeting
 - **Waiting on** — anything that person still owes you
 - **Focus** — items that mention the same thing (shown as "Already on your Focus list")
@@ -172,9 +172,10 @@ Until a calendar is connected the card stays hidden.
 ### Claude-written prep (optional)
 
 Give the Worker an Anthropic API key and **Claude writes the prep instead** (marked **✦ Claude**). It
-sees today's and tomorrow's meetings plus your People, Waiting on, Focus, Business pulse, upcoming
-deadlines and Notes, and suggests 2–4 concrete things to do before each meeting that needs it —
-who to chase, what to raise, which numbers to check, a clash with the meeting before. Meetings that
+sees the next 7 days of meetings plus your People, Waiting on, Focus, Business pulse, upcoming
+deadlines and Notes, picks the meetings across the week worth preparing for, and suggests 2–4 concrete
+things to do before each — who to chase, what to raise, which numbers to check, clashes, and anything
+that needs lead time ("By Mon: ask the QS for the valuation" ahead of Wednesday's meeting). Meetings that
 need nothing (lunch, personal blocks) are left out.
 
 - Asked once each time the diary changes (new day, meeting added/moved) and cached on the device —
@@ -196,7 +197,7 @@ npx wrangler deploy
 To turn it off again: `npx wrangler secret delete ANTHROPIC_API_KEY`.
 
 It comes from a small **Cloudflare Worker** (`calendar-worker/`, free plan, no card needed) that
-reads your calendar's **private iCal address** and returns today's and tomorrow's events. Recurring
+reads your calendar's **private iCal address** and returns the next 7 days of events. Recurring
 meetings, cancelled/moved instances and the clocks changing are handled by `node-ical`
 (`calendar-worker/src/calendar.js`; tests: `cd calendar-worker && npm install && npm test`).
 
