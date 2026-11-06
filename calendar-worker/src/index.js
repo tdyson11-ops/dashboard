@@ -2,7 +2,7 @@
 // Cloudflare Worker: today's calendar for the dashboard.
 //
 // GET /  with  Authorization: Bearer <CALENDAR_KEY>
-//   → { date, today: [...], tomorrow: [...], fetchedAt }
+//   → { date, today: [...], tomorrow: [...], days: [{ date, events }] × 7, fetchedAt }
 // POST /prep  (same key)  body { now, events: [...], context: {...} }
 //   → { meetings: [{ id, why, actions: [...] }], model }  — prep written by Claude
 //

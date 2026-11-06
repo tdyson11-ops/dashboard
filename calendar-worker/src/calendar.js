@@ -3,7 +3,7 @@
 //
 // Reads a calendar's private iCal (.ics) address — Google Calendar's
 // "Secret address in iCal format" or Outlook's published ICS link — and
-// returns the events for today and tomorrow in Europe/London. Recurring
+// returns the events for the next 7 days (today first) in Europe/London. Recurring
 // meetings, cancelled instances (EXDATE), moved instances (RECURRENCE-ID)
 // and the clocks changing are all handled by node-ical.
 //
@@ -124,8 +124,9 @@ function eventsByDay(icsText, fromDay, days) {
   return out;
 }
 
-// Fetch the .ics and return today + tomorrow (London).
-async function calendarToday({ fetchImpl, icsUrl, now = new Date() }) {
+// Fetch the .ics and return the next `days` days (London), today first.
+// `today` / `tomorrow` stay for dashboards cached before `days` existed.
+async function calendarToday({ fetchImpl, icsUrl, now = new Date(), days = 7 }) {
   if (!icsUrl) throw new Error('No calendar address set (CALENDAR_ICS_URL secret).');
   const url = icsUrl.replace(/^webcal:\/\//i, 'https://');
   const res = await fetchImpl(url, { headers: { Accept: 'text/calendar' } });
@@ -135,11 +136,12 @@ async function calendarToday({ fetchImpl, icsUrl, now = new Date() }) {
 
   const today = londonDay(now);
   const tomorrow = addDays(today, 1);
-  const byDay = eventsByDay(body, today, 2);
+  const byDay = eventsByDay(body, today, days);
   return {
     date: today,
     today: byDay[today],
     tomorrow: byDay[tomorrow],
+    days: Object.keys(byDay).sort().map((date) => ({ date, events: byDay[date] })),
     fetchedAt: now.toISOString()
   };
 }
