@@ -1723,35 +1723,47 @@
   function toMin(hm) { var p = String(hm).split(':'); return (+p[0]) * 60 + (+p[1] || 0); }
   function nowMin() { var d = new Date(); return d.getHours() * 60 + d.getMinutes(); }
 
-  // The next 24 hours: from the current hour to the same hour tomorrow.
-  // Tomorrow's times are offset by 24h so both days compare on one scale.
-  function calWindow(today, tomorrow) {
-    var start = Math.floor(nowMin() / 60) * 60, end = start + 24 * 60;
-    var timed = [], allDay = [];
-    [[today, 0, 'Today'], [tomorrow, 1440, 'Tomorrow']].forEach(function (d) {
-      (d[0] || []).forEach(function (e) {
-        if (e.allDay) { allDay.push({ ev: e, day: d[2] }); return; }
-        var s = toMin(e.start) + d[1], en = Math.max(toMin(e.end) + d[1], s + 15);
-        if (en > start && s < end) timed.push({ ev: e, s: Math.max(s, start), e: Math.min(en, end), rs: s, day: d[2] });
-      });
+  // The diary days the Worker sent (7 from today; older Workers sent only
+  // today + tomorrow), each with its display names.
+  function calDays() {
+    var list = Array.isArray(calData.days) ? calData.days
+      : [{ date: calData.date, events: calData.today }, { date: '', events: calData.tomorrow || [] }];
+    return list.map(function (d, i) {
+      var dt = new Date(); dt.setDate(dt.getDate() + i);
+      return {
+        i: i, key: d.date || 'day' + i, events: d.events || [],
+        label: dt.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }),
+        head: i === 0 ? 'Today' : i === 1 ? 'Tomorrow' : dt.toLocaleDateString('en-GB', { weekday: 'long' }),
+        short: i === 0 ? '' : i === 1 ? 'Tmrw' : dt.toLocaleDateString('en-GB', { weekday: 'short' })
+      };
     });
-    return { start: start, end: end, timed: timed, allDay: allDay };
   }
 
-  // Next 24 hours as a simple list, grouped by day, with date and time on
-  // every meeting — no inner scrolling.
+  // From the current hour to the end of the last day sent (the next 7 days).
+  // Each day's times are offset by 24h per day so they compare on one scale.
+  function calWindow(days) {
+    var start = Math.floor(nowMin() / 60) * 60, end = days.length * 1440;
+    var timed = [], allDay = [];
+    days.forEach(function (d) {
+      d.events.forEach(function (e) {
+        if (e.allDay) { allDay.push({ ev: e, day: d.key, d: d }); return; }
+        var s = toMin(e.start) + d.i * 1440, en = Math.max(toMin(e.end) + d.i * 1440, s + 15);
+        if (en > start && s < end) timed.push({ ev: e, s: Math.max(s, start), e: Math.min(en, end), rs: s, day: d.key, d: d });
+      });
+    });
+    return { start: start, end: end, timed: timed, allDay: allDay, days: days };
+  }
+
+  // The week as a simple list, grouped by day, with date and time on every
+  // meeting — no inner scrolling. Empty days are skipped.
   function calList(w) {
     var t = nowMin();
-    var days = [['Today', 0], ['Tomorrow', 1]].map(function (d) {
-      var dt = new Date(); dt.setDate(dt.getDate() + d[1]);
-      return { name: d[0], label: dt.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }) };
-    });
     var html = '';
-    days.forEach(function (d) {
-      var all = w.allDay.filter(function (a) { return a.day === d.name; });
-      var timed = w.timed.filter(function (x) { return x.day === d.name; }).sort(function (a, b) { return a.rs - b.rs; });
+    w.days.forEach(function (d) {
+      var all = w.allDay.filter(function (a) { return a.day === d.key; });
+      var timed = w.timed.filter(function (x) { return x.day === d.key; }).sort(function (a, b) { return a.rs - b.rs; });
       if (!all.length && !timed.length) return;
-      html += '<div class="cal-dayhead">' + d.name + ' · ' + d.label + '</div>';
+      html += '<div class="cal-dayhead">' + (d.i < 2 ? d.head + ' · ' : '') + d.label + '</div>';
       all.forEach(function (a) {
         html += '<div class="cal-item" style="' + calColour(a.ev.title) + '"><div class="cal-when">All day<small>' + d.label + '</small></div>' +
           '<div class="cal-what">' + esc(a.ev.title) + (a.ev.location ? '<small>' + esc(a.ev.location) + '</small>' : '') + '</div></div>';
@@ -1764,11 +1776,11 @@
             (e.location ? '<small>' + esc(e.location) + '</small>' : '') + '</div></div>';
       });
     });
-    return html || '<div class="cal-empty">Nothing in the diary for the next 24 hours.</div>';
+    return html || '<div class="cal-empty">Nothing in the diary for the next 7 days.</div>';
   }
 
   // ── Prep suggestions ──
-  // Looks at the next 24 hours and picks out what matters, using what the
+  // Looks at the week ahead and picks out what matters, using what the
   // dashboard already knows (People, Waiting on, Focus) plus common meeting
   // types in your world. Rule-based and private — nothing leaves the phone.
   var PREP_RULES = [
@@ -1849,11 +1861,11 @@
 
   // ── Claude-written prep ──
   // If the Worker has an ANTHROPIC_API_KEY, Claude writes the prep: it sees
-  // today's and tomorrow's meetings plus People, Waiting on, Focus, Business
+  // the next 7 days of meetings plus People, Waiting on, Focus, Business
   // pulse, deadlines and notes, and suggests what to do before each one.
   // Asked once per version of the diary (cached on this device) — ↻ asks
   // again. If it isn't set up or doesn't answer, the rules above are used.
-  var AI_PREP = 'dash-prep-ai-v1';
+  var AI_PREP = 'dash-prep-ai-v2';
   var aiPrep = null;            // { key, at, meetings: [{ day, start, title, why, actions }] }
   var aiState = '';             // '' | 'loading' | 'off' | 'error'
   var aiTried = '', aiReady = false;
@@ -1862,16 +1874,17 @@
 
   function aiEvents() {
     var out = [];
-    [['Today', calData.today], ['Tomorrow', calData.tomorrow || []]].forEach(function (d) {
-      (d[1] || []).forEach(function (e) {
-        out.push({ id: 'e' + out.length, day: d[0], start: e.allDay ? '' : e.start, end: e.allDay ? '' : e.end,
+    calDays().forEach(function (d) {
+      d.events.forEach(function (e) {
+        out.push({ id: 'e' + out.length, date: d.key, day: (d.i < 2 ? d.head + ', ' : '') + d.label,
+          start: e.allDay ? '' : e.start, end: e.allDay ? '' : e.end,
           allDay: !!e.allDay, title: e.title, location: e.location || '' });
       });
     });
     return out;
   }
   function aiKey(evs) {
-    return calData.date + '|' + evs.map(function (e) { return [e.day, e.start, e.end, e.title, e.location].join('~'); }).join('|');
+    return calData.date + '|' + evs.map(function (e) { return [e.date, e.start, e.end, e.title, e.location].join('~'); }).join('|');
   }
   function aiContext() {
     function items(n) { return LISTS[n] ? LISTS[n].items : []; }
@@ -1921,7 +1934,7 @@
         evs.forEach(function (e) { byId[e.id] = e; });
         aiPrep = { key: key, at: Date.now(), meetings: d.meetings.filter(function (m) { return byId[m.id]; }).map(function (m) {
           var e = byId[m.id];
-          return { day: e.day, start: e.start, title: e.title, why: m.why, actions: m.actions };
+          return { day: e.date, start: e.start, title: e.title, why: m.why, actions: m.actions };
         }) };
         try { localStorage.setItem(AI_PREP, JSON.stringify(aiPrep)); } catch (e) {}
         aiState = '';
@@ -1948,17 +1961,18 @@
     var fresh = aiPrep && calData && aiPrep.key === aiKey(aiEvents());
     var items;
     if (fresh) {
-      // Claude's picks, in diary order, for meetings that haven't finished yet
-      // (plus any all-day event it thought worth a mention).
+      // Claude's picks across the week, in diary order, for meetings that
+      // haven't finished yet (plus any all-day event it thought worth a mention).
       var find = function (x) {
         return aiPrep.meetings.filter(function (m) { return m.day === x.day && m.title === x.ev.title && m.start === (x.ev.allDay ? '' : x.ev.start); })[0];
       };
-      items = w.allDay.concat(upcoming).map(function (x) {
+      var byDay = function (a, b) { return a.d.i - b.d.i || (a.rs || 0) - (b.rs || 0); };
+      items = w.allDay.concat(upcoming).sort(byDay).map(function (x) {
         var m = find(x);
         return m && { x: x, why: m.why ? [m.why] : [], acts: m.actions };
-      }).filter(Boolean).slice(0, 6);
+      }).filter(Boolean).slice(0, 8);
     } else {
-      items = upcoming.map(prepFor).filter(Boolean).slice(0, 5);
+      items = upcoming.map(prepFor).filter(Boolean).slice(0, 6);
     }
 
     var tag = aiState === 'loading' ? '<span class="prep-ai">✦ Claude is thinking…</span>'
@@ -1967,11 +1981,11 @@
     var again = aiState !== 'off' && aiState !== 'loading' && calConfig()
       ? '<button class="prep-again" onclick="askClaude(true)" aria-label="Ask Claude again">↻</button>' : '';
     if (!items.length && !tag) return '';
-    return '<div class="prep"><div class="prep-head">Prep for what’s coming up' + tag + again + '</div>' +
-      (items.length ? '' : '<div class="prep-why">' + (fresh ? 'Nothing that needs prep before your next meetings.' : '') + '</div>') +
+    return '<div class="prep"><div class="prep-head">Prep for the week ahead' + tag + again + '</div>' +
+      (items.length ? '' : '<div class="prep-why">' + (fresh ? 'Nothing this week that needs prep.' : '') + '</div>') +
       items.map(function (p) {
         var e = p.x.ev;
-        return '<div class="prep-ev"><div class="prep-title"><i>' + (p.x.day === 'Tomorrow' ? 'Tmrw ' : '') + (e.allDay ? 'All day' : e.start) + '</i>' + esc(e.title) + '</div>' +
+        return '<div class="prep-ev"><div class="prep-title"><i>' + (p.x.d.short ? p.x.d.short + ' ' : '') + (e.allDay ? 'All day' : e.start) + '</i>' + esc(e.title) + '</div>' +
           (p.why.length ? '<div class="prep-why">' + esc(p.why.join(' · ')) + '</div>' : '') +
           prepActs(p.acts) + '</div>';
       }).join('') + '</div>';
@@ -1980,11 +1994,11 @@
   function renderCalendar() {
     if (!calData || !Array.isArray(calData.today)) return;
     var stale = calData.date !== todayKey();           // cached from an earlier day
-    var w = calWindow(stale ? [] : calData.today, stale ? [] : (calData.tomorrow || []));
+    var w = calWindow(stale ? [] : calDays());
     var count = w.timed.length + w.allDay.length;
 
     document.getElementById('cal-card').innerHTML =
-      '<div class="cal-head"><div class="cal-date">Next 24 hours' +
+      '<div class="cal-head"><div class="cal-date">Next 7 days' +
         (count ? '<small>' + count + ' event' + (count === 1 ? '' : 's') + '</small>' : '') + '</div></div>' +
       (stale ? '<div class="cal-empty">Updating…</div>' : calList(w) + calPrep(w));
 

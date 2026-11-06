@@ -86,6 +86,8 @@ END:VCALENDAR`;
     assert.strictEqual(out.date, '2026-11-04');
     assert.strictEqual(out.today.length, 3);
     assert.deepStrictEqual(out.tomorrow.map((e) => e.title), ['Leave']);
+    assert.deepStrictEqual(out.days.map((d) => d.date), ['2026-11-04', '2026-11-05', '2026-11-06', '2026-11-07', '2026-11-08', '2026-11-09', '2026-11-10'], 'next 7 days');
+    assert.deepStrictEqual(out.days[0].events, out.today);
     await assert.rejects(calendarToday({ fetchImpl: async () => ({ ok: true, status: 200, text: async () => '<html>' }), icsUrl: 'https://x' }),
       /did not return a calendar/);
     console.log('2. calendar: fetch, webcal:// links, bad responses                ✓');
